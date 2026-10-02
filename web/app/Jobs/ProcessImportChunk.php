@@ -4,7 +4,6 @@ namespace App\Jobs;
 
 use App\Enums\ImportStatus;
 use App\Models\ImportBatch;
-use App\Services\Sales\SalesImportProcessor;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
@@ -16,8 +15,9 @@ use Throwable;
  * Imports one slice of an uploaded file, then queues the next slice. Short
  * jobs, one after another, keep each well inside the queue worker's time
  * limit however big the file is, and the screen can show progress as it goes.
+ * What a slice does depends on the kind of file: see the import definition.
  */
-class ProcessSalesImportChunk implements ShouldQueue
+class ProcessImportChunk implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -30,7 +30,7 @@ class ProcessSalesImportChunk implements ShouldQueue
         $this->onQueue('imports');
     }
 
-    public function handle(SalesImportProcessor $processor): void
+    public function handle(): void
     {
         $batch = ImportBatch::query()->find($this->batchId);
 
@@ -43,7 +43,7 @@ class ProcessSalesImportChunk implements ShouldQueue
             $batch->forceFill(['status' => ImportStatus::Processing, 'started_at' => now()])->save();
         }
 
-        if ($processor->processNext($batch, $this->offset)) {
+        if ($batch->type->definition()->processor()->processNext($batch, $this->offset)) {
             self::dispatch($batch->id, $batch->rows_processed);
 
             return;

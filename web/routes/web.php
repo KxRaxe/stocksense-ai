@@ -4,6 +4,7 @@ use App\Enums\Permission;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductImportController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SalesImportController;
 use App\Http\Controllers\StockController;
@@ -41,23 +42,29 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('products/{product}/adjust', [StockController::class, 'adjust'])->name('products.adjust');
     });
 
-    // Importing sales from a file. Declared before the "sales/{sale}" routes so
-    // "imports" is not mistaken for a sale id.
-    Route::middleware('can:'.Permission::ImportSales->value)
-        ->prefix('sales/imports')
-        ->name('sales.imports.')
-        ->group(function () {
-            Route::get('/', [SalesImportController::class, 'index'])->name('index');
-            Route::get('create', [SalesImportController::class, 'create'])->name('create');
-            Route::get('template', [SalesImportController::class, 'template'])->name('template');
-            Route::post('/', [SalesImportController::class, 'store'])->name('store');
-            Route::get('{batch}', [SalesImportController::class, 'show'])->name('show')->whereNumber('batch');
-            Route::put('{batch}', [SalesImportController::class, 'update'])->name('update')->whereNumber('batch');
-            Route::post('{batch}/confirm', [SalesImportController::class, 'confirm'])->name('confirm')->whereNumber('batch');
-            Route::get('{batch}/errors', [SalesImportController::class, 'errors'])->name('errors')->whereNumber('batch');
-            Route::post('{batch}/undo', [SalesImportController::class, 'undo'])->name('undo')->whereNumber('batch');
-            Route::delete('{batch}', [SalesImportController::class, 'cancel'])->name('cancel')->whereNumber('batch');
-        });
+    // Importing from a file works the same way for every kind of file. Each
+    // set is declared before the routes with an id ("sales/{sale}",
+    // "products/{product}") so "imports" is not mistaken for one.
+    $importRoutes = function (string $controller, string $prefix, Permission $permission) {
+        Route::middleware('can:'.$permission->value)
+            ->prefix("{$prefix}/imports")
+            ->name("{$prefix}.imports.")
+            ->group(function () use ($controller) {
+                Route::get('/', [$controller, 'index'])->name('index');
+                Route::get('create', [$controller, 'create'])->name('create');
+                Route::get('template', [$controller, 'template'])->name('template');
+                Route::post('/', [$controller, 'store'])->name('store');
+                Route::get('{batch}', [$controller, 'show'])->name('show')->whereNumber('batch');
+                Route::put('{batch}', [$controller, 'update'])->name('update')->whereNumber('batch');
+                Route::post('{batch}/confirm', [$controller, 'confirm'])->name('confirm')->whereNumber('batch');
+                Route::get('{batch}/errors', [$controller, 'errors'])->name('errors')->whereNumber('batch');
+                Route::post('{batch}/undo', [$controller, 'undo'])->name('undo')->whereNumber('batch');
+                Route::delete('{batch}', [$controller, 'cancel'])->name('cancel')->whereNumber('batch');
+            });
+    };
+
+    $importRoutes(ProductImportController::class, 'products', Permission::ManageCatalog);
+    $importRoutes(SalesImportController::class, 'sales', Permission::ImportSales);
 
     // Entering sales by hand and looking at sales history.
     Route::middleware('can:'.Permission::EnterSales->value)->group(function () {

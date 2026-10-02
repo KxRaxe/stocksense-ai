@@ -14,8 +14,6 @@ import {
 } from '@/components/ui/table';
 import { firstError } from '@/lib/errors';
 import { formatNumber } from '@/lib/format';
-import { index as salesIndex } from '@/routes/sales';
-import { errors as errorReport, undo } from '@/routes/sales/imports';
 import type { ImportBatch } from '@/types';
 
 function Figure({ label, value }: { label: string; value: number }) {
@@ -49,36 +47,31 @@ export default function ImportResult({ batch }: { batch: ImportBatch }) {
 
             {batch.status === 'undone' && (
                 <div className="rounded-lg border p-4 text-sm" role="status">
-                    This import was undone. Its sales were removed and any stock
-                    it took was put back.
+                    This import was undone.
                 </div>
             )}
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <Figure label="Rows in the file" value={batch.rows_total} />
-                <Figure label="Imported" value={batch.rows_ok} />
-                <Figure
-                    label="Already there, skipped"
-                    value={batch.rows_duplicate}
-                />
-                <Figure label="Failed" value={batch.rows_failed} />
+                {(batch.result_figures ?? []).map((figure) => (
+                    <Figure key={figure.label} {...figure} />
+                ))}
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-                {batch.rows_ok > 0 && batch.status !== 'undone' && (
+                {batch.results && (
                     <Button variant="outline" asChild>
                         <Link
-                            href={salesIndex({ query: { import: batch.id } })}
-                            data-test="view-imported-sales"
+                            href={batch.results.url}
+                            data-test="view-import-results"
                         >
-                            View the imported sales
+                            {batch.results.label}
                         </Link>
                     </Button>
                 )}
                 {batch.has_error_report && (
                     <Button variant="outline" asChild>
                         <a
-                            href={errorReport.url(batch.id)}
+                            href={batch.links.errors}
                             download
                             data-test="download-error-report"
                         >
@@ -137,13 +130,13 @@ export default function ImportResult({ batch }: { batch: ImportBatch }) {
                 open={confirmingUndo}
                 onOpenChange={setConfirmingUndo}
                 title="Undo this import?"
-                description={`This removes the ${formatNumber(batch.rows_ok)} sales it brought in${batch.adjust_stock ? ' and puts their stock back' : ''}. The change is recorded. You can upload the file again afterwards.`}
+                description={batch.undo_description ?? ''}
                 confirmLabel="Undo import"
                 destructive
                 testId="confirm-undo-import"
                 onConfirm={() =>
                     router.post(
-                        undo.url(batch.id),
+                        batch.links.undo,
                         {},
                         {
                             onFinish: () => setConfirmingUndo(false),

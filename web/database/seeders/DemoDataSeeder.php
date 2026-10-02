@@ -3,14 +3,15 @@
 namespace Database\Seeders;
 
 use App\Enums\ImportStatus;
+use App\Enums\ImportType;
 use App\Enums\StockMovementType;
 use App\Models\Category;
 use App\Models\ImportBatch;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\Imports\ImportManager;
+use App\Services\Imports\ImportProcessor;
 use App\Services\Inventory\StockService;
-use App\Services\Sales\ImportManager;
-use App\Services\Sales\SalesImportProcessor;
 use Carbon\CarbonImmutable;
 use Generator;
 use Illuminate\Database\Seeder;
@@ -33,7 +34,7 @@ use SplFileObject;
  */
 class DemoDataSeeder extends Seeder
 {
-    public function run(StockService $stock, ImportManager $imports, SalesImportProcessor $processor): void
+    public function run(StockService $stock, ImportManager $imports): void
     {
         if (Product::query()->exists()) {
             $this->say('Products already exist; leaving the demo data alone.', 'warn');
@@ -50,7 +51,7 @@ class DemoDataSeeder extends Seeder
         $this->loadRestocks($directory, $stock);
 
         $this->say('Importing sales through the import pipeline...');
-        $this->importSales($directory, $imports, $processor);
+        $this->importSales($directory, $imports);
     }
 
     /**
@@ -120,16 +121,17 @@ class DemoDataSeeder extends Seeder
         $stock->recordMany($entries);
     }
 
-    private function importSales(string $directory, ImportManager $imports, SalesImportProcessor $processor): void
+    private function importSales(string $directory, ImportManager $imports): void
     {
         $path = "{$directory}/sales.csv";
         $owner = User::query()->where('email', 'owner@stocksense.test')->first()
             ?? throw new RuntimeException('Run DemoUsersSeeder first: the demo owner uploads the sales file.');
 
         // The `true` marks it as a trusted local file rather than a browser upload.
-        $batch = $imports->start(new UploadedFile($path, 'demo-sales.csv', 'text/csv', null, true), adjustStock: true, user: $owner);
+        $file = new UploadedFile($path, 'demo-sales.csv', 'text/csv', null, true);
+        $batch = $imports->start(ImportType::Sales, $file, ['adjust_stock' => true], $owner);
 
-        $this->runToCompletion($batch, $processor);
+        $this->runToCompletion($batch, ImportType::Sales->definition()->processor());
 
         $this->say(sprintf(
             '  %s sales imported (%s skipped as duplicates, %s failed).',
@@ -143,7 +145,7 @@ class DemoDataSeeder extends Seeder
      * What the queue does for a real upload, done here in one go: work through
      * the file a slice at a time until it is finished.
      */
-    private function runToCompletion(ImportBatch $batch, SalesImportProcessor $processor): void
+    private function runToCompletion(ImportBatch $batch, ImportProcessor $processor): void
     {
         $batch->forceFill(['status' => ImportStatus::Processing, 'started_at' => now()])->save();
 

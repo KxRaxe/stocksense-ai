@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import ImportResult from '@/components/sales/import-result';
+import ImportResult from '@/components/imports/import-result';
 import type { ImportBatch } from '@/types';
 
 const calls = vi.hoisted(() => ({ post: vi.fn() }));
@@ -37,6 +37,7 @@ const completed: ImportBatch = {
     rows_processed: 100,
     rows_ok: 90,
     rows_duplicate: 6,
+    rows_updated: 0,
     rows_failed: 4,
     errors: [
         { row: 7, messages: ["Unknown SKU 'ZZ-1'."] },
@@ -44,13 +45,30 @@ const completed: ImportBatch = {
     ],
     has_error_report: true,
     error_message: null,
-    adjust_stock: true,
     headers: ['date', 'sku', 'quantity'],
     columns: { date: 0, sku: 1, quantity: 2, unit_price: null },
-    date_format: 'iso',
+    options: { adjust_stock: '1', date_format: 'iso' },
     user: 'Pat',
     created_at: null,
     finished_at: null,
+    links: {
+        show: '/sales/imports/12',
+        update: '/sales/imports/12',
+        confirm: '/sales/imports/12/confirm',
+        cancel: '/sales/imports/12',
+        undo: '/sales/imports/12/undo',
+        errors: '/sales/imports/12/errors',
+        index: '/sales/imports',
+    },
+    result_figures: [
+        { label: 'Rows in the file', value: 100 },
+        { label: 'Imported', value: 90 },
+        { label: 'Already there, skipped', value: 6 },
+        { label: 'Failed', value: 4 },
+    ],
+    undo_description:
+        'This removes the 90 sales it brought in and puts their stock back. The change is recorded.',
+    results: { url: '/sales?import=12', label: 'View the imported sales' },
 };
 
 const figure = (label: string) =>
@@ -66,6 +84,24 @@ describe('ImportResult', () => {
         expect(figure('Imported')).toContain('90');
         expect(figure('Already there, skipped')).toContain('6');
         expect(figure('Failed')).toContain('4');
+    });
+
+    it('gives whatever counts another kind of import sends', () => {
+        render(
+            <ImportResult
+                batch={{
+                    ...completed,
+                    result_figures: [
+                        { label: 'Created', value: 5 },
+                        { label: 'Updated', value: 3 },
+                    ],
+                }}
+            />,
+        );
+
+        expect(figure('Created')).toContain('5');
+        expect(figure('Updated')).toContain('3');
+        expect(screen.queryByText('Rows in the file')).toBeNull();
     });
 
     it('lists the failed rows, with every problem in the row', () => {
@@ -85,15 +121,23 @@ describe('ImportResult', () => {
         ).toBeTruthy();
     });
 
-    it('links to the error report and to the imported sales', () => {
+    it('links to the error report and to what the import brought in', () => {
         render(<ImportResult batch={completed} />);
 
         expect(
             screen.getByTestId('download-error-report').getAttribute('href'),
         ).toBe('/sales/imports/12/errors');
-        expect(
-            screen.getByTestId('view-imported-sales').getAttribute('href'),
-        ).toBe('/sales?import=12');
+
+        const results = screen.getByTestId('view-import-results');
+
+        expect(results.getAttribute('href')).toBe('/sales?import=12');
+        expect(results.textContent).toBe('View the imported sales');
+    });
+
+    it('has no link to results when there are none to show', () => {
+        render(<ImportResult batch={{ ...completed, results: null }} />);
+
+        expect(screen.queryByTestId('view-import-results')).toBeNull();
     });
 
     it('has no error report when nothing failed', () => {
@@ -132,7 +176,12 @@ describe('ImportResult', () => {
     it('says so when an import has been undone, and offers no undo', () => {
         render(
             <ImportResult
-                batch={{ ...completed, status: 'undone', can_undo: false }}
+                batch={{
+                    ...completed,
+                    status: 'undone',
+                    can_undo: false,
+                    results: null,
+                }}
             />,
         );
 
@@ -140,11 +189,11 @@ describe('ImportResult', () => {
             'This import was undone',
         );
         expect(screen.queryByTestId('undo-import-button')).toBeNull();
-        expect(screen.queryByTestId('view-imported-sales')).toBeNull();
+        expect(screen.queryByTestId('view-import-results')).toBeNull();
     });
 
     describe('undoing', () => {
-        it('asks first, saying what will happen', async () => {
+        it('asks first, saying what will happen in the server’s words', async () => {
             const user = userEvent.setup();
             render(<ImportResult batch={completed} />);
 
@@ -159,16 +208,22 @@ describe('ImportResult', () => {
             expect(calls.post).not.toHaveBeenCalled();
         });
 
-        it('does not mention stock for an import that left it alone', async () => {
+        it('says something different for another kind of import', async () => {
             const user = userEvent.setup();
             render(
-                <ImportResult batch={{ ...completed, adjust_stock: false }} />,
+                <ImportResult
+                    batch={{
+                        ...completed,
+                        undo_description:
+                            'This archives the 4 products it created.',
+                    }}
+                />,
             );
 
             await user.click(screen.getByTestId('undo-import-button'));
 
             expect(
-                screen.getByText(/removes the 90 sales it brought in\./),
+                screen.getByText('This archives the 4 products it created.'),
             ).toBeTruthy();
             expect(screen.queryByText(/puts their stock back/)).toBeNull();
         });

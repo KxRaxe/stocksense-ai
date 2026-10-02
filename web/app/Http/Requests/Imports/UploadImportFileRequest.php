@@ -1,20 +1,27 @@
 <?php
 
-namespace App\Http\Requests\Sales;
+namespace App\Http\Requests\Imports;
 
+use App\Http\Controllers\ImportController;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class UploadSalesFileRequest extends FormRequest
+/**
+ * The file, and the choices its kind of import asks for at upload.
+ */
+class UploadImportFileRequest extends FormRequest
 {
     /**
      * @return array<string, array<int, ValidationRule|string>>
      */
     public function rules(): array
     {
+        /** @var ImportController $controller */
+        $controller = $this->route()?->getController();
+
         return [
             'file' => ['required', 'file', 'extensions:csv,txt,xlsx', 'max:'.config('imports.max_file_kb')],
-            'adjust_stock' => ['required', 'boolean'],
+            ...$controller->type()->definition()->uploadRules(),
         ];
     }
 

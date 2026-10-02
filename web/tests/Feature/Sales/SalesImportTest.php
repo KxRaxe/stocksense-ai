@@ -2,7 +2,7 @@
 
 use App\Enums\ImportStatus;
 use App\Enums\SaleSource;
-use App\Jobs\ProcessSalesImportChunk;
+use App\Jobs\ProcessImportChunk;
 use App\Models\Category;
 use App\Models\ImportBatch;
 use App\Models\InventoryLevel;
@@ -10,8 +10,8 @@ use App\Models\Product;
 use App\Models\Sale;
 use App\Models\StockMovement;
 use App\Models\User;
+use App\Services\Imports\ImportRowsFile;
 use App\Services\Inventory\StockService;
-use App\Services\Sales\ImportRowsFile;
 use App\Services\Sales\SalesImportProcessor;
 use App\Services\Sales\SalesService;
 use Carbon\CarbonImmutable;
@@ -252,10 +252,14 @@ describe('the preview', function () {
 
         $preview = previewOf($batch);
 
-        expect($preview['total_rows'])->toBe(6)
-            ->and($preview['importable_rows'])->toBe(2)
+        expect($preview['importable_rows'])->toBe(2)
             ->and($preview['invalid_rows'])->toBe(4)
-            ->and($preview['duplicate_rows'])->toBe(0)
+            ->and(array_column($preview['figures'], 'value', 'label'))->toBe([
+                'Will be imported' => 2,
+                'Already imported, skipped' => 0,
+                'Have a problem, skipped' => 4,
+            ])
+            ->and($preview['import_label'])->toBe('Import 2 rows')
             ->and(collect($preview['problems'])->pluck('row')->all())->toBe([3, 4, 5, 6])
             ->and($preview['problems'][0]['messages'])->toBe(["Unknown SKU 'ZZ-999'."])
             ->and($preview['sample'][0])->toMatchArray(['row' => 2, 'status' => 'ok'])
@@ -282,7 +286,10 @@ describe('the preview', function () {
                 ->where('batch.headers', ['date', 'sku', 'quantity', 'unit_price'])
                 ->where('fields.0', ['key' => 'date', 'label' => 'Date', 'required' => true])
                 ->where('fields.3.required', false)
-                ->has('dateFormats', 3));
+                ->where('options.0.name', 'adjust_stock')
+                ->where('options.1.name', 'date_format')
+                ->has('options.1.choices', 3)
+                ->where('batch.options', ['date_format' => 'iso', 'adjust_stock' => '0']));
     });
 
     it('changes with the chosen column mapping and date layout', function () {
@@ -311,8 +318,9 @@ describe('the preview', function () {
             ['2026-03-06', 'HW-001', 4, '85.00'],    // new
         ])));
 
-        expect($preview)->toMatchArray(['importable_rows' => 1, 'duplicate_rows' => 1])
-            ->and($preview['sample'][0]['status'])->toBe('duplicate');
+        expect($preview['importable_rows'])->toBe(1)
+            ->and(array_column($preview['figures'], 'value', 'label')['Already imported, skipped'])->toBe(1)
+            ->and($preview['sample'][0])->toMatchArray(['status' => 'skip', 'label' => 'Already imported']);
     });
 });
 
@@ -370,7 +378,7 @@ describe('importing', function () {
         $batch = uploadSales(csvUpload([['2026-03-05', 'HW-001', 1, '']]));
         $this->actingAs($this->user)->post(route('sales.imports.confirm', $batch))->assertRedirect();
 
-        Queue::assertPushedOn('imports', ProcessSalesImportChunk::class, fn ($job) => $job->batchId === $batch->id && $job->offset === 0);
+        Queue::assertPushedOn('imports', ProcessImportChunk::class, fn ($job) => $job->batchId === $batch->id && $job->offset === 0);
         expect($batch->fresh()->status)->toBe(ImportStatus::Queued)
             ->and(Sale::count())->toBe(0);
     });

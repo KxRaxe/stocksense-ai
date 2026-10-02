@@ -3,6 +3,7 @@
 namespace App\Services\Sales;
 
 use App\Models\Product;
+use App\Services\Imports\RowProblem;
 use Carbon\CarbonImmutable;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
@@ -36,10 +37,10 @@ class SalesRowValidator
      */
     public function validate(int $row, array $cells): ParsedSalesRow|array
     {
-        $date = $this->parseDate($this->cell($cells, ImportFields::DATE));
-        $product = $this->findProduct($this->cell($cells, ImportFields::SKU));
-        $quantity = $this->parseQuantity($this->cell($cells, ImportFields::QUANTITY));
-        $price = $this->parsePrice($this->cell($cells, ImportFields::UNIT_PRICE), $product);
+        $date = $this->parseDate($this->cell($cells, SalesImportFields::DATE));
+        $product = $this->findProduct($this->cell($cells, SalesImportFields::SKU));
+        $quantity = $this->parseQuantity($this->cell($cells, SalesImportFields::QUANTITY));
+        $price = $this->parsePrice($this->cell($cells, SalesImportFields::UNIT_PRICE), $product);
 
         $problems = [];
 
@@ -70,7 +71,7 @@ class SalesRowValidator
      */
     public static function skusIn(iterable $rows, array $columns): array
     {
-        $index = $columns[ImportFields::SKU] ?? null;
+        $index = $columns[SalesImportFields::SKU] ?? null;
 
         if ($index === null) {
             return [];
@@ -129,7 +130,7 @@ class SalesRowValidator
             : '/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})(?:[ T].*)?$/';
 
         if (! preg_match($pattern, $text, $parts)) {
-            $layout = ImportFields::DATE_FORMATS[$this->dateFormat] ?? $this->dateFormat;
+            $layout = SalesImportFields::DATE_FORMATS[$this->dateFormat] ?? $this->dateFormat;
 
             return new RowProblem("Date '{$text}' is not in the format {$layout}.");
         }

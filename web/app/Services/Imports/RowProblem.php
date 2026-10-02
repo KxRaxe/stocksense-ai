@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Sales;
+namespace App\Services\Imports;
 
 /**
  * What is wrong with one value in a file row. A distinct type, so a message

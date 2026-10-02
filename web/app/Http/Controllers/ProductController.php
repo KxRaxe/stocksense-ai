@@ -37,6 +37,8 @@ class ProductController extends Controller
             'status' => in_array($request->query('status'), ['active', 'archived', 'all'], true)
                 ? $request->query('status')
                 : 'active',
+            // Set when arriving from a finished product import: only what that import created.
+            'import' => $request->query('import') !== null ? (int) $request->query('import') : null,
         ];
 
         $products = Product::query()
@@ -44,6 +46,7 @@ class ProductController extends Controller
             ->search($filters['search'])
             ->when($filters['category'], fn ($query, int $category) => $query->where('category_id', $category))
             ->when($filters['status'] !== 'all', fn ($query) => $query->where('is_active', $filters['status'] === 'active'))
+            ->when($filters['import'], fn ($query, int $import) => $query->where('import_batch_id', $import))
             ->orderBy('name')
             ->paginate(15)
             ->withQueryString()

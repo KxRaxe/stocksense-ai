@@ -4,6 +4,8 @@ namespace App\Services\Sales;
 
 use App\Models\ImportBatch;
 use App\Models\Product;
+use App\Services\Imports\ImportProcessor;
+use App\Services\Imports\ImportRowsFile;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
@@ -13,17 +15,13 @@ use Illuminate\Support\Facades\DB;
  * nothing, and the batch remembers how far it got, so a slice that is run
  * twice does no harm.
  */
-class SalesImportProcessor
+class SalesImportProcessor implements ImportProcessor
 {
     public function __construct(
         private readonly SalesService $sales,
         private readonly DuplicateFinder $duplicates,
     ) {}
 
-    /**
-     * @param  int  $offset  Where this slice starts; ignored if the batch has already got past it
-     * @return bool Whether rows remain after this slice
-     */
     public function processNext(ImportBatch $batch, int $offset): bool
     {
         // Already done (for example a job that was retried): nothing to do.
@@ -61,7 +59,7 @@ class SalesImportProcessor
             ->keyBy('sku')
             ->all();
 
-        $validator = new SalesRowValidator($products, $settings['columns'], $settings['date_format'], CarbonImmutable::today());
+        $validator = new SalesRowValidator($products, $settings['columns'], (string) $batch->option('date_format'), CarbonImmutable::today());
 
         $parsed = [];
         $failed = [];
@@ -82,7 +80,7 @@ class SalesImportProcessor
         $imported = count($new);
         $skipped = count($parsed) - $imported;
 
-        $this->sales->recordMany($new, $batch, $batch->user, $settings['adjust_stock']);
+        $this->sales->recordMany($new, $batch, $batch->user, (bool) $batch->option('adjust_stock'));
 
         $kept = $batch->errors ?? [];
         foreach ($failed as $problem) {

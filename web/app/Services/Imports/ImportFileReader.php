@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Sales;
+namespace App\Services\Imports;
 
 use DateTimeInterface;
 use Generator;
@@ -13,7 +13,7 @@ use Throwable;
  * Reads an uploaded CSV or Excel file: finds the header row and hands back
  * the data rows with their original row numbers. Only the first sheet is read.
  */
-class SalesFileReader
+class ImportFileReader
 {
     /**
      * @return array{headers: list<string>, rows: Generator<int, array{0: int, 1: list<mixed>}>}

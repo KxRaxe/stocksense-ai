@@ -2,8 +2,13 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import ImportPreview from '@/components/sales/import-preview';
-import type { ImportBatch, ImportField, ImportPreviewData } from '@/types';
+import ImportPreview from '@/components/imports/import-preview';
+import type {
+    ImportBatch,
+    ImportField,
+    ImportOption,
+    ImportPreviewData,
+} from '@/types';
 
 // Whether the mocked Form reports unsaved changes, and any server errors.
 const formState = vi.hoisted(() => ({
@@ -45,9 +50,27 @@ const fields: ImportField[] = [
     { key: 'unit_price', label: 'Unit price', required: false },
 ];
 
-const dateFormats = [
-    { value: 'iso', label: 'YYYY-MM-DD (2026-03-05)' },
-    { value: 'mdy', label: 'MM/DD/YYYY (03/05/2026)' },
+const options: ImportOption[] = [
+    {
+        name: 'adjust_stock',
+        label: 'Should these sales change stock levels?',
+        kind: 'radio',
+        upload: true,
+        choices: [
+            { value: '0', label: 'No, this is past sales history' },
+            { value: '1', label: 'Yes, take them off the shelf' },
+        ],
+    },
+    {
+        name: 'date_format',
+        label: 'How are dates written?',
+        kind: 'select',
+        upload: false,
+        choices: [
+            { value: 'iso', label: 'YYYY-MM-DD (2026-03-05)' },
+            { value: 'mdy', label: 'MM/DD/YYYY (03/05/2026)' },
+        ],
+    },
 ];
 
 const batch: ImportBatch = {
@@ -61,41 +84,58 @@ const batch: ImportBatch = {
     rows_processed: 0,
     rows_ok: 0,
     rows_duplicate: 0,
+    rows_updated: 0,
     rows_failed: 0,
     errors: [],
     has_error_report: false,
     error_message: null,
-    adjust_stock: false,
     headers: ['Sale Date', 'Product Code', 'Qty', 'Price'],
     columns: { date: 0, sku: 1, quantity: 2, unit_price: 3 },
-    date_format: 'iso',
+    options: { adjust_stock: '0', date_format: 'iso' },
     user: 'Pat',
     created_at: null,
     finished_at: null,
+    links: {
+        show: '/sales/imports/7',
+        update: '/sales/imports/7',
+        confirm: '/sales/imports/7/confirm',
+        cancel: '/sales/imports/7',
+        undo: '/sales/imports/7/undo',
+        errors: '/sales/imports/7/errors',
+        index: '/sales/imports',
+    },
 };
 
 const preview: ImportPreviewData = {
-    total_rows: 6,
     importable_rows: 3,
-    duplicate_rows: 1,
+    import_label: 'Import 3 rows',
+    figures: [
+        { label: 'Will be imported', value: 3, tone: 'good' },
+        { label: 'Already imported, skipped', value: 1, tone: 'neutral' },
+        { label: 'Have a problem, skipped', value: 2, tone: 'warn' },
+    ],
+    notes: [],
     invalid_rows: 2,
     sample: [
         {
             row: 2,
             cells: ['2026-03-05', 'HW-001', 12, '85.00'],
             status: 'ok',
+            label: 'OK',
             messages: [],
         },
         {
             row: 3,
             cells: ['2026-03-05', 'HW-001', 12, '85.00'],
-            status: 'duplicate',
+            status: 'skip',
+            label: 'Already imported',
             messages: [],
         },
         {
             row: 4,
             cells: ['2026-03-06', 'ZZ-9', 1, ''],
             status: 'error',
+            label: '',
             messages: ["Unknown SKU 'ZZ-9'."],
         },
     ],
@@ -113,7 +153,7 @@ function setup(
             batch={overrides.batch ?? batch}
             preview={overrides.preview ?? preview}
             fields={fields}
-            dateFormats={dateFormats}
+            options={options}
         />,
     );
 
@@ -123,6 +163,9 @@ function setup(
 const startButton = () =>
     screen.getByTestId('start-import-button') as HTMLButtonElement;
 
+const figure = (label: string) =>
+    screen.getByText(label).parentElement?.textContent ?? '';
+
 describe('ImportPreview', () => {
     afterEach(() => {
         vi.clearAllMocks();
@@ -130,20 +173,58 @@ describe('ImportPreview', () => {
         formState.errors = {};
     });
 
-    it('says how many rows will be imported, skipped as repeats, and skipped as wrong', () => {
+    it('draws the figures the server gives, in order', () => {
         setup();
 
+        expect(figure('Will be imported')).toContain('3');
+        expect(figure('Already imported, skipped')).toContain('1');
+        expect(figure('Have a problem, skipped')).toContain('2');
+    });
+
+    it('draws whatever figures another kind of import gives', () => {
+        setup({
+            preview: {
+                ...preview,
+                figures: [
+                    { label: 'Will be created', value: 4, tone: 'good' },
+                    { label: 'Will be updated', value: 2, tone: 'good' },
+                    {
+                        label: 'Have a problem, skipped',
+                        value: 1,
+                        tone: 'warn',
+                    },
+                ],
+            },
+        });
+
+        expect(figure('Will be created')).toContain('4');
+        expect(figure('Will be updated')).toContain('2');
+        expect(screen.queryByText('Will be imported')).toBeNull();
+    });
+
+    it('lists the notes about what the import will do', () => {
+        setup({
+            preview: {
+                ...preview,
+                notes: [
+                    '2 new categories will be created (Toys, Garden).',
+                    '1 archived product will be brought back by the update.',
+                ],
+            },
+        });
+
+        const notes = within(screen.getByTestId('preview-notes'));
+
+        expect(notes.getAllByRole('listitem')).toHaveLength(2);
         expect(
-            screen.getByText('Will be imported').parentElement?.textContent,
-        ).toContain('3');
-        expect(
-            screen.getByText('Already imported, skipped').parentElement
-                ?.textContent,
-        ).toContain('1');
-        expect(
-            screen.getByText('Have a problem, skipped').parentElement
-                ?.textContent,
-        ).toContain('2');
+            notes.getByText('2 new categories will be created (Toys, Garden).'),
+        ).toBeTruthy();
+    });
+
+    it('has no notes box when there is nothing to note', () => {
+        setup();
+
+        expect(screen.queryByTestId('preview-notes')).toBeNull();
     });
 
     it("offers the file's own headers for each field, with the guessed ones chosen", () => {
@@ -164,8 +245,21 @@ describe('ImportPreview', () => {
         expect(price.options[0].text).toBe('Not in my file');
     });
 
-    it('shows the saved date layout and stock choice', () => {
-        setup({ batch: { ...batch, date_format: 'mdy', adjust_stock: true } });
+    it('posts the changes to the address the server gave', () => {
+        setup();
+
+        expect(document.querySelector('form')?.getAttribute('action')).toBe(
+            '/sales/imports/7',
+        );
+    });
+
+    it("shows the saved choices, whatever the kind of import's questions are", () => {
+        setup({
+            batch: {
+                ...batch,
+                options: { adjust_stock: '1', date_format: 'mdy' },
+            },
+        });
 
         expect(
             (
@@ -204,7 +298,7 @@ describe('ImportPreview', () => {
         ).toBeTruthy();
     });
 
-    it('marks each sample row OK, already imported, or with its problem', () => {
+    it('marks each sample row with the words the server gives it, or its problem', () => {
         setup();
 
         expect(
@@ -222,11 +316,44 @@ describe('ImportPreview', () => {
         ).toBeTruthy();
     });
 
+    it('uses other labels for other kinds of import', () => {
+        setup({
+            preview: {
+                ...preview,
+                sample: [
+                    {
+                        row: 2,
+                        cells: ['NEW-1', 'Nails', 'Hardware'],
+                        status: 'ok',
+                        label: 'New product',
+                        messages: [],
+                    },
+                    {
+                        row: 3,
+                        cells: ['HW-001', 'Cement', 'Hardware'],
+                        status: 'skip',
+                        label: 'Already exists',
+                        messages: [],
+                    },
+                ],
+            },
+        });
+
+        expect(
+            within(screen.getByTestId('sample-row-2')).getByText('New product'),
+        ).toBeTruthy();
+        expect(
+            within(screen.getByTestId('sample-row-3')).getByText(
+                'Already exists',
+            ),
+        ).toBeTruthy();
+    });
+
     describe('the Import button', () => {
-        it('says how many rows it will import and starts the import', async () => {
+        it('uses the text the server gives it and starts the import', async () => {
             const user = setup();
 
-            expect(startButton().textContent).toContain('Import 3 rows');
+            expect(startButton().textContent).toBe('Import 3 rows');
             expect(startButton().disabled).toBe(false);
 
             await user.click(startButton());
@@ -238,10 +365,16 @@ describe('ImportPreview', () => {
             );
         });
 
-        it('uses the singular for one row', () => {
-            setup({ preview: { ...preview, importable_rows: 1 } });
+        it('follows the server for the singular too', () => {
+            setup({
+                preview: {
+                    ...preview,
+                    importable_rows: 1,
+                    import_label: 'Import 1 row',
+                },
+            });
 
-            expect(startButton().textContent).toContain('Import 1 row');
+            expect(startButton().textContent).toBe('Import 1 row');
         });
 
         it('is off when there is nothing to import', () => {

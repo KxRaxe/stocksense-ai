@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Sales;
+namespace App\Services\Imports;
 
 use RuntimeException;
 

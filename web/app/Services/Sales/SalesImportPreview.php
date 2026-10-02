@@ -4,7 +4,10 @@ namespace App\Services\Sales;
 
 use App\Models\ImportBatch;
 use App\Models\Product;
+use App\Services\Imports\ImportRowsFile;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Number;
+use Illuminate\Support\Str;
 
 /**
  * Checks a whole uploaded file against the chosen column mapping, without
@@ -21,12 +24,13 @@ class SalesImportPreview
 
     /**
      * @return array{
-     *     total_rows: int,
      *     importable_rows: int,
-     *     duplicate_rows: int,
-     *     invalid_rows: int,
-     *     sample: list<array{row: int, cells: list<mixed>, status: string, messages: list<string>}>,
-     *     problems: list<array{row: int, messages: list<string>}>
+     *     import_label: string,
+     *     figures: list<array{label: string, value: int, tone: 'good'|'neutral'|'warn'}>,
+     *     notes: list<string>,
+     *     sample: list<array{row: int, cells: list<mixed>, status: 'ok'|'skip'|'error', label: string, messages: list<string>}>,
+     *     problems: list<array{row: int, messages: list<string>}>,
+     *     invalid_rows: int
      * }
      */
     public function build(ImportBatch $batch): array
@@ -40,7 +44,7 @@ class SalesImportPreview
             ->keyBy('sku')
             ->all();
 
-        $validator = new SalesRowValidator($products, $settings['columns'], $settings['date_format'], CarbonImmutable::today());
+        $validator = new SalesRowValidator($products, $settings['columns'], (string) $batch->option('date_format'), CarbonImmutable::today());
 
         /** @var array<int, ParsedSalesRow> $valid Keyed by row number */
         $valid = [];
@@ -63,13 +67,18 @@ class SalesImportPreview
         }
 
         $duplicateRows = array_filter($valid, fn (ParsedSalesRow $row) => isset($known[$row->duplicateKey()]));
+        $importable = count($valid) - count($duplicateRows);
 
         $sample = [];
         foreach (array_slice($rows, 0, self::SAMPLE_ROWS) as [$number, $cells]) {
+            $isError = isset($invalid[$number]);
+            $isRepeat = isset($duplicateRows[$number]);
+
             $sample[] = [
                 'row' => $number,
                 'cells' => $cells,
-                'status' => isset($invalid[$number]) ? 'error' : (isset($duplicateRows[$number]) ? 'duplicate' : 'ok'),
+                'status' => $isError ? 'error' : ($isRepeat ? 'skip' : 'ok'),
+                'label' => $isRepeat ? 'Already imported' : 'OK',
                 'messages' => $invalid[$number] ?? [],
             ];
         }
@@ -80,12 +89,17 @@ class SalesImportPreview
         }
 
         return [
-            'total_rows' => count($rows),
-            'importable_rows' => count($valid) - count($duplicateRows),
-            'duplicate_rows' => count($duplicateRows),
-            'invalid_rows' => count($invalid),
+            'importable_rows' => $importable,
+            'import_label' => 'Import '.Number::format($importable).' '.Str::plural('row', $importable),
+            'figures' => [
+                ['label' => 'Will be imported', 'value' => $importable, 'tone' => 'good'],
+                ['label' => 'Already imported, skipped', 'value' => count($duplicateRows), 'tone' => 'neutral'],
+                ['label' => 'Have a problem, skipped', 'value' => count($invalid), 'tone' => 'warn'],
+            ],
+            'notes' => [],
             'sample' => $sample,
             'problems' => $problems,
+            'invalid_rows' => count($invalid),
         ];
     }
 }

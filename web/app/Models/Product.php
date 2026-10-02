@@ -30,6 +30,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property int|null $reorder_point_override
  * @property int|null $safety_stock_override
  * @property bool $is_active
+ * @property int|null $import_batch_id The import that created the product, if any
  * @property CarbonInterface|null $created_at
  * @property CarbonInterface|null $updated_at
  * @property-read int|null $stock_on_hand Present after scopeWithStockAt()
@@ -38,7 +39,7 @@ use Spatie\Activitylog\Support\LogOptions;
 #[Fillable([
     'sku', 'name', 'category_id', 'unit', 'unit_cost', 'unit_price',
     'lead_time_days', 'moq', 'pack_size',
-    'reorder_point_override', 'safety_stock_override', 'is_active',
+    'reorder_point_override', 'safety_stock_override', 'is_active', 'import_batch_id',
 ])]
 class Product extends Model
 {

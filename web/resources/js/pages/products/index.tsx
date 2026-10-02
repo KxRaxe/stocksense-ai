@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
-import { Plus } from 'lucide-react';
+import { FileUp, Plus, X } from 'lucide-react';
 import ListFilters from '@/components/catalog/list-filters';
 import Heading from '@/components/heading';
 import Pagination from '@/components/pagination';
@@ -15,11 +15,17 @@ import {
 } from '@/components/ui/table';
 import { formatMoney } from '@/lib/format';
 import { create, index, show } from '@/routes/products';
+import { create as importCreate } from '@/routes/products/imports';
 import type { Option, Paginated, ProductRow } from '@/types';
 
 type Props = {
     products: Paginated<ProductRow>;
-    filters: { search: string; category: number | null; status: string };
+    filters: {
+        search: string;
+        category: number | null;
+        status: string;
+        import: number | null;
+    };
     categories: Option[];
     can: { manage: boolean };
 };
@@ -41,12 +47,24 @@ export default function ProductsIndex({
                         description="Everything you sell. Open a product to see its stock history."
                     />
                     {can.manage && (
-                        <Button asChild data-test="new-product-button">
-                            <Link href={create()}>
-                                <Plus />
-                                New product
-                            </Link>
-                        </Button>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <Button
+                                variant="outline"
+                                asChild
+                                data-test="import-products-button"
+                            >
+                                <Link href={importCreate()}>
+                                    <FileUp />
+                                    Import from a file
+                                </Link>
+                            </Button>
+                            <Button asChild data-test="new-product-button">
+                                <Link href={create()}>
+                                    <Plus />
+                                    New product
+                                </Link>
+                            </Button>
+                        </div>
                     )}
                 </div>
 
@@ -64,6 +82,20 @@ export default function ProductsIndex({
                         ],
                     }}
                 />
+
+                {filters.import !== null && (
+                    <div className="flex items-center gap-2 text-sm">
+                        <span className="rounded-md bg-muted px-2 py-1">
+                            Showing products from import #{filters.import}
+                        </span>
+                        <Button variant="ghost" size="sm" asChild>
+                            <Link href={index()}>
+                                <X />
+                                Show all
+                            </Link>
+                        </Button>
+                    </div>
+                )}
 
                 <div className="rounded-lg border">
                     <Table>

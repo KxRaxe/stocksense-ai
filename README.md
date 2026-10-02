@@ -112,6 +112,18 @@ Deactivated users cannot sign in and are signed out immediately; their history i
 
 The demo data (`php artisan db:seed`) is described under *Demo data* below.
 
+### Importing a product list
+
+**Products > Import from a file** (Owner and Manager) loads a whole catalogue from a CSV or Excel (.xlsx) file. It follows the same upload, check, import, review and undo steps as the sales import below, so it is described here only where it differs. Download the example file from the upload page to see the layout.
+
+- **Columns.** `sku`, `name` and `category` are required. `unit`, `unit_cost`, `unit_price`, `lead_time_days`, `moq`, `pack_size`, `reorder_point`, `safety_stock` and `opening_stock` are optional, and common header variations ("Item Code", "SRP", "Case Size", "On Hand") are recognised. A new product that is not given a value starts with the New product form's defaults: unit `pc`, cost and price 0, lead time 7 days, minimum order and pack size 1, no reorder point or safety stock, no stock. Each number is held to the same limits as the product form.
+- **SKUs that already exist** are either *skipped* (the default, so a file that overlaps your catalogue is safe) or *updated*. An update changes only the cells the file gives: an empty cell leaves that product's value as it is. Updating an archived product brings it back. A SKU that appears twice in one file is imported the first time and reported as a problem the second.
+- **Categories** are matched by name, ignoring capitals. A name that does not exist is reported as a problem, or, if you tick *Create categories that don't exist yet*, created with a 95% service level.
+- **Opening stock** is for new products only. It is written to the stock ledger as an opening-stock movement tied to the import, like any other stock change. The stock of a product that already exists changes only through restocks and stock counts, so the column is ignored for updates, and the preview says so.
+- **Undo** archives the products the import created (products are never deleted, so their history stays whole). Changes an import made to products that already existed are not reverted; to bring undone products back, upload the file again and choose to update existing SKUs. **View the imported products** on the result page lists exactly what the import created.
+
+Product changes made by an import are recorded in the audit log under the name of the person who uploaded the file.
+
 ## Sales and imports
 
 Sales history is what the forecasts learn from. There are two ways to get it in.
@@ -133,6 +145,7 @@ Things worth knowing:
 - **Dates** can be text in the chosen layout or real Excel date cells. A blank price uses the product's current price; prices like `₱1,250.50` are understood.
 - **Limits** are set in `web/config/imports.php`: 10 MB and 50,000 rows per file.
 - **Everyone who can enter sales can import them**, matching the access matrix. Stock-affecting imports are logged with who started them.
+- **For developers:** sales and products share one import engine (`web/app/Services/Imports`: file reading, the stored rows, the queue job, the batch lifecycle) and one controller and set of React components. Each kind of import is an `ImportDefinition` (its columns, the choices it asks for, how rows are checked and saved, how it is undone) registered in the `ImportType` enum, with routes and a thin page per kind. An import can only be opened through its own kind's routes, so each keeps its own permission.
 
 ## Demo data
 

@@ -2,11 +2,13 @@
 
 namespace App\Services\Sales;
 
+use App\Services\Imports\HeaderGuesser;
+
 /**
  * The columns a sales file can carry, and how to guess which column of an
  * uploaded file is which from its header names.
  */
-final class ImportFields
+final class SalesImportFields
 {
     public const DATE = 'date';
 
@@ -73,29 +75,6 @@ final class ImportFields
      */
     public static function guess(array $headers): array
     {
-        $normalised = array_map(
-            fn (string $header) => preg_replace('/[^a-z0-9]/', '', strtolower($header)),
-            $headers,
-        );
-
-        $columns = [];
-        $taken = [];
-
-        foreach (self::all() as $field => $definition) {
-            $columns[$field] = null;
-
-            foreach ($definition['aliases'] as $alias) {
-                $index = array_search($alias, $normalised, true);
-
-                if ($index !== false && ! in_array($index, $taken, true)) {
-                    $columns[$field] = $index;
-                    $taken[] = $index;
-
-                    break;
-                }
-            }
-        }
-
-        return $columns;
+        return HeaderGuesser::guess(self::all(), $headers);
     }
 }

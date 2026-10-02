@@ -1,6 +1,7 @@
 import { Form, router } from '@inertiajs/react';
-import { AlertTriangle, CheckCircle2, Copy } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Copy, Info } from 'lucide-react';
 import { toast } from 'sonner';
+import ImportOptions from '@/components/imports/import-options';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,31 +17,52 @@ import {
 } from '@/components/ui/table';
 import { firstError } from '@/lib/errors';
 import { formatNumber } from '@/lib/format';
-import { cancel, confirm, update } from '@/routes/sales/imports';
-import type { ImportBatch, ImportField, ImportPreviewData } from '@/types';
+import type {
+    ImportBatch,
+    ImportField,
+    ImportOption,
+    ImportPreviewData,
+} from '@/types';
 
 type Props = {
     batch: ImportBatch;
     preview: ImportPreviewData;
     fields: ImportField[];
-    dateFormats: { value: string; label: string }[];
+    options: ImportOption[];
+};
+
+type Tone = ImportPreviewData['figures'][number]['tone'];
+
+const tones: Record<Tone, { icon: React.ReactNode; text: string }> = {
+    good: {
+        icon: <CheckCircle2 className="size-4" />,
+        text: 'text-emerald-600 dark:text-emerald-400',
+    },
+    neutral: {
+        icon: <Copy className="size-4" />,
+        text: 'text-muted-foreground',
+    },
+    warn: {
+        icon: <AlertTriangle className="size-4" />,
+        text: 'text-amber-600 dark:text-amber-400',
+    },
 };
 
 function Figure({
-    icon,
     label,
     value,
     tone,
 }: {
-    icon: React.ReactNode;
     label: string;
     value: number;
-    tone: string;
+    tone: Tone;
 }) {
     return (
         <div className="rounded-lg border p-4">
-            <div className={`flex items-center gap-2 text-sm ${tone}`}>
-                {icon}
+            <div
+                className={`flex items-center gap-2 text-sm ${tones[tone].text}`}
+            >
+                {tones[tone].icon}
                 {label}
             </div>
             <div className="mt-1 text-2xl font-semibold tracking-tight">
@@ -52,52 +74,48 @@ function Figure({
 
 /**
  * Step two of an import: match the file's columns to what the system needs,
- * see what would happen to every row, then confirm. Nothing is saved until
- * the person confirms.
+ * make the choices for this kind of file, see what would happen to every row,
+ * then confirm. Nothing is saved until the person confirms.
  */
 export default function ImportPreview({
     batch,
     preview,
     fields,
-    dateFormats,
+    options,
 }: Props) {
     const missing = fields.filter(
         (field) => field.required && batch.columns[field.key] === null,
     );
 
     // The form restarts from the saved settings after each update.
-    const formKey = JSON.stringify([
-        batch.columns,
-        batch.date_format,
-        batch.adjust_stock,
-    ]);
+    const formKey = JSON.stringify([batch.columns, batch.options]);
 
     return (
         <div className="space-y-8">
             <div className="grid gap-4 sm:grid-cols-3">
-                <Figure
-                    icon={<CheckCircle2 className="size-4" />}
-                    label="Will be imported"
-                    value={preview.importable_rows}
-                    tone="text-emerald-600 dark:text-emerald-400"
-                />
-                <Figure
-                    icon={<Copy className="size-4" />}
-                    label="Already imported, skipped"
-                    value={preview.duplicate_rows}
-                    tone="text-muted-foreground"
-                />
-                <Figure
-                    icon={<AlertTriangle className="size-4" />}
-                    label="Have a problem, skipped"
-                    value={preview.invalid_rows}
-                    tone="text-amber-600 dark:text-amber-400"
-                />
+                {preview.figures.map((figure) => (
+                    <Figure key={figure.label} {...figure} />
+                ))}
             </div>
+
+            {preview.notes.length > 0 && (
+                <ul
+                    className="space-y-2 rounded-lg border bg-muted/40 p-4 text-sm"
+                    data-test="preview-notes"
+                >
+                    {preview.notes.map((note) => (
+                        <li key={note} className="flex items-start gap-2">
+                            <Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                            {note}
+                        </li>
+                    ))}
+                </ul>
+            )}
 
             <Form
                 key={formKey}
-                {...update.form(batch.id)}
+                action={batch.links.update}
+                method="put"
                 options={{ preserveScroll: true }}
                 className="space-y-6"
             >
@@ -155,52 +173,16 @@ export default function ImportPreview({
                                         />
                                     </div>
                                 ))}
-
-                                <div className="grid gap-2">
-                                    <Label htmlFor="date_format">
-                                        How are dates written?
-                                    </Label>
-                                    <NativeSelect
-                                        id="date_format"
-                                        name="date_format"
-                                        defaultValue={batch.date_format}
-                                    >
-                                        {dateFormats.map((format) => (
-                                            <option
-                                                key={format.value}
-                                                value={format.value}
-                                            >
-                                                {format.label}
-                                            </option>
-                                        ))}
-                                    </NativeSelect>
-                                    <InputError message={errors.date_format} />
-                                </div>
                             </div>
 
-                            <fieldset className="grid gap-2">
-                                <legend className="mb-1 text-sm font-medium">
-                                    Should these sales change stock levels?
-                                </legend>
-                                <label className="flex items-center gap-2 text-sm">
-                                    <input
-                                        type="radio"
-                                        name="adjust_stock"
-                                        value="0"
-                                        defaultChecked={!batch.adjust_stock}
-                                    />
-                                    No, this is past sales history
-                                </label>
-                                <label className="flex items-center gap-2 text-sm">
-                                    <input
-                                        type="radio"
-                                        name="adjust_stock"
-                                        value="1"
-                                        defaultChecked={batch.adjust_stock}
-                                    />
-                                    Yes, take them off the shelf
-                                </label>
-                            </fieldset>
+                            <div className="grid gap-4 border-t pt-4 sm:grid-cols-2">
+                                <ImportOptions
+                                    options={options}
+                                    values={batch.options}
+                                    errors={errors}
+                                    compact
+                                />
+                            </div>
 
                             {missing.length > 0 && (
                                 <p className="text-sm text-amber-600 dark:text-amber-400">
@@ -232,7 +214,7 @@ export default function ImportPreview({
                                 }
                                 onClick={() =>
                                     router.post(
-                                        confirm.url(batch.id),
+                                        batch.links.confirm,
                                         {},
                                         {
                                             onError: (errors) =>
@@ -242,14 +224,13 @@ export default function ImportPreview({
                                 }
                                 data-test="start-import-button"
                             >
-                                Import {formatNumber(preview.importable_rows)}{' '}
-                                {preview.importable_rows === 1 ? 'row' : 'rows'}
+                                {preview.import_label}
                             </Button>
                             <Button
                                 type="button"
                                 variant="ghost"
                                 onClick={() =>
-                                    router.delete(cancel.url(batch.id), {
+                                    router.delete(batch.links.cancel, {
                                         onError: (errors) =>
                                             toast.error(firstError(errors)),
                                     })
@@ -323,11 +304,13 @@ export default function ImportPreview({
                                     ))}
                                     <TableCell className="pr-4">
                                         {row.status === 'ok' && (
-                                            <Badge variant="outline">OK</Badge>
+                                            <Badge variant="outline">
+                                                {row.label}
+                                            </Badge>
                                         )}
-                                        {row.status === 'duplicate' && (
+                                        {row.status === 'skip' && (
                                             <Badge variant="secondary">
-                                                Already imported
+                                                {row.label}
                                             </Badge>
                                         )}
                                         {row.status === 'error' && (
