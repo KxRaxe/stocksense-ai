@@ -1,5 +1,6 @@
 import type { InertiaLinkProps } from '@inertiajs/react';
 import type { LucideIcon } from 'lucide-react';
+import type { Permission } from '@/types/auth';
 
 export type BreadcrumbItem = {
     title: string;
@@ -11,4 +12,6 @@ export type NavItem = {
     href: NonNullable<InertiaLinkProps['href']>;
     icon?: LucideIcon | null;
     isActive?: boolean;
+    /** When set, the item is only shown to users holding this permission. */
+    permission?: Permission;
 };

@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -15,11 +14,14 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Safe everywhere, including production: it only manages roles/permissions.
+        $this->call(RolesAndPermissionsSeeder::class);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // Demo accounts for local development and the thesis demo. Never created
+        // in production; there, the first Owner is created with
+        // `php artisan app:create-owner`.
+        if (! app()->isProduction()) {
+            $this->call(DemoUsersSeeder::class);
+        }
     }
 }

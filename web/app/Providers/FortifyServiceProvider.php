@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Actions\Fortify\ResetUserPassword;
+use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -39,6 +41,21 @@ class FortifyServiceProvider extends ServiceProvider
     private function configureActions(): void
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
+
+        // Deactivated accounts cannot sign in. They get the same generic
+        // "credentials do not match" error as a wrong password, so the login
+        // form does not reveal which accounts exist.
+        Fortify::authenticateUsing(function (Request $request) {
+            $user = User::query()
+                ->where(Fortify::username(), Str::lower((string) $request->input(Fortify::username())))
+                ->first();
+
+            if ($user !== null && $user->is_active && Hash::check((string) $request->input('password'), $user->password)) {
+                return $user;
+            }
+
+            return null;
+        });
     }
 
     /**

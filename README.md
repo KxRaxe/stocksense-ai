@@ -60,6 +60,45 @@ An existing database volume predates the test database. If tests fail with `data
 docker compose exec db createdb -U stocksense stocksense_test
 ```
 
+## Users and roles
+
+There is no public sign-up. The Owner creates accounts under **Users**; the new person gets an email with a link to choose their own password. Nobody is ever emailed a password, and the email contains no personal details.
+
+| | Owner | Manager | Inventory staff |
+|---|:-:|:-:|:-:|
+| Users, settings, audit log | ✓ | | |
+| Products and categories | ✓ | ✓ | view |
+| Stock levels | ✓ | ✓ | view and edit |
+| Sales entry and import | ✓ | ✓ | ✓ |
+| Run forecasts | ✓ | ✓ | |
+| Recommendations | ✓ decide | ✓ decide | view |
+| Reports | ✓ all | ✓ all | inventory only |
+
+The matrix lives in `web/app/Enums/Role.php` and is enforced on the server. A test (`RolePermissionMatrixTest`) checks it against the proposal's table.
+
+**Demo accounts** (local development only; created by `php artisan db:seed`, never in production). All use the password `password`:
+
+| Email | Role |
+|---|---|
+| `owner@stocksense.test` | Owner |
+| `manager@stocksense.test` | Manager |
+| `staff@stocksense.test` | Inventory staff |
+
+Reset the development database to this state at any time:
+
+```bash
+docker compose exec app php artisan migrate:fresh --seed
+```
+
+**First Owner in production** (there are no demo accounts there):
+
+```bash
+docker compose exec app php artisan app:create-owner "Full Name" owner@example.com
+# Add --print-link to print the password link instead of emailing it.
+```
+
+Deactivated users cannot sign in and are signed out immediately; their history is kept. Owners cannot deactivate themselves or change their own role, and the system always keeps at least one active Owner.
+
 ## Repository layout
 
 ```

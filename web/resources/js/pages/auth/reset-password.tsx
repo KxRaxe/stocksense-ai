@@ -9,7 +9,9 @@ import { update } from '@/routes/password';
 
 type Props = {
     token: string;
-    email: string;
+    // Reset links do not contain the email address (email policy), so it is
+    // normally empty and the person types it in.
+    email?: string | null;
     passwordRules: string;
 };
 
@@ -20,7 +22,7 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
 
             <Form
                 {...update.form()}
-                transform={(data) => ({ ...data, token, email })}
+                transform={(data) => ({ ...data, token })}
                 resetOnSuccess={['password', 'password_confirmation']}
             >
                 {({ processing, errors }) => (
@@ -32,9 +34,10 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                                 type="email"
                                 name="email"
                                 autoComplete="email"
-                                value={email}
+                                defaultValue={email ?? ''}
                                 className="mt-1 block w-full"
-                                readOnly
+                                autoFocus={!email}
+                                required
                             />
                             <InputError
                                 message={errors.email}
@@ -49,7 +52,7 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                                 name="password"
                                 autoComplete="new-password"
                                 className="mt-1 block w-full"
-                                autoFocus
+                                autoFocus={!!email}
                                 placeholder="Password"
                                 passwordrules={passwordRules}
                             />
