@@ -4,6 +4,7 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { NativeSelect } from '@/components/ui/native-select';
 import { Spinner } from '@/components/ui/spinner';
 import { index } from '@/routes/users';
 import type { ManagedUser, RoleOption } from '@/types';
@@ -67,20 +68,19 @@ export default function UserForm({
                                 value={user.role}
                             />
                         )}
-                        <select
+                        <NativeSelect
                             id="role"
                             name={roleLocked ? undefined : 'role'}
                             defaultValue={user?.role ?? 'inventory_staff'}
                             disabled={roleLocked}
                             required
-                            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive md:text-sm"
                         >
                             {roles.map((role) => (
                                 <option key={role.value} value={role.value}>
                                     {role.label}
                                 </option>
                             ))}
-                        </select>
+                        </NativeSelect>
                         {roleLocked && (
                             <p className="text-sm text-muted-foreground">
                                 You cannot change your own role.

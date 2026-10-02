@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\Inventory\LocationContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Date;
@@ -16,7 +17,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // One per request (and per queued job), so a long-running worker never
+        // holds on to a stale location.
+        $this->app->scoped(LocationContext::class);
     }
 
     /**

@@ -99,6 +99,17 @@ docker compose exec app php artisan app:create-owner "Full Name" owner@example.c
 
 Deactivated users cannot sign in and are signed out immediately; their history is kept. Owners cannot deactivate themselves or change their own role, and the system always keeps at least one active Owner.
 
+## Products, categories and stock
+
+- **Categories** group products and carry a target service level (for example 95%), which later drives how much safety stock to hold. A category cannot be deleted while any product, even an archived one, uses it.
+- **Products** have a SKU (saved in capitals, unique regardless of capitals), a unit, cost and price, and the reordering inputs: lead time, minimum order quantity, pack size, and an optional reorder point and safety stock. Products are **archived**, never deleted, so sales and stock history stay intact.
+- **Stock** is a ledger. Every change (opening stock, restock, stock count, and later sales) is one row in `stock_movements`, and `inventory_levels.on_hand` always equals the sum of those rows. Only `StockService` changes stock, inside a database transaction that locks the row, so two people recording stock at once cannot overwrite each other. The product page shows the ledger.
+- **Low-stock flags** compare stock on hand with the product's reorder point. Products without one are never flagged "low". Once forecasts exist, the system will calculate reorder points itself.
+- Everyone can record a **restock** (goods received) or a **stock count** (sets stock to what was counted and records the difference with a reason). Only the Owner and Manager can change products and categories.
+- **Branches** are not built, but stock is already kept per location. See [docs/future-multi-branch.md](docs/future-multi-branch.md).
+
+The demo data (`php artisan db:seed`) includes the five proposal categories and 15 products with stock, some deliberately low or out of stock.
+
 ## Repository layout
 
 ```

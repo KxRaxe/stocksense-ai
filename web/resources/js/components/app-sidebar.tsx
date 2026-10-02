@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { LayoutGrid, Users } from 'lucide-react';
+import { Boxes, LayoutGrid, Package, Tags, Users } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -14,6 +14,9 @@ import {
 } from '@/components/ui/sidebar';
 import { useCan } from '@/hooks/use-can';
 import { dashboard } from '@/routes';
+import { index as categoriesIndex } from '@/routes/categories';
+import { index as inventoryIndex } from '@/routes/inventory';
+import { index as productsIndex } from '@/routes/products';
 import { index as usersIndex } from '@/routes/users';
 import type { NavItem } from '@/types';
 
@@ -23,6 +26,24 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Products',
+        href: productsIndex(),
+        icon: Package,
+        permission: 'catalog.view',
+    },
+    {
+        title: 'Inventory',
+        href: inventoryIndex(),
+        icon: Boxes,
+        permission: 'inventory.view',
+    },
+    {
+        title: 'Categories',
+        href: categoriesIndex(),
+        icon: Tags,
+        permission: 'catalog.view',
     },
     {
         title: 'Users',

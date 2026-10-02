@@ -71,6 +71,7 @@ jobs:
       - run: npm ci
       - run: npm run check          # oxlint + oxfmt via Vite+
       - run: npm run types:check    # tsc --noEmit
+      - run: npm test               # Vitest component tests
       - run: npm run build
 
   ml:
