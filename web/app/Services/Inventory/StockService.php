@@ -26,15 +26,21 @@ class StockService
     public function __construct(private readonly LocationContext $locations) {}
 
     /**
-     * Stock a product started with. Does nothing for zero.
+     * Stock a product started with. Does nothing for zero. `$occurredAt` dates
+     * it to the day the product was first stocked, for products set up with
+     * history.
      */
-    public function openingStock(Product $product, int $quantity, ?User $user = null): ?StockMovement
-    {
+    public function openingStock(
+        Product $product,
+        int $quantity,
+        ?User $user = null,
+        ?CarbonInterface $occurredAt = null,
+    ): ?StockMovement {
         if ($quantity === 0) {
             return null;
         }
 
-        return $this->record($product, StockMovementType::Initial, $quantity, user: $user);
+        return $this->record($product, StockMovementType::Initial, $quantity, $occurredAt, user: $user);
     }
 
     /**
@@ -122,6 +128,114 @@ class StockService
 
             return $movement;
         });
+    }
+
+    /**
+     * Writes many movements at once, for loading a lot of history (an imported
+     * sales file, a delivery log). Does the same as calling record() for each,
+     * in far fewer database round trips: one insert per thousand movements and
+     * one update per product, instead of several queries for every movement.
+     *
+     * All or nothing: if any entry is invalid, none are written.
+     *
+     * @param  list<array{
+     *     product_id: int,
+     *     type: StockMovementType,
+     *     quantity: int,
+     *     occurred_at: CarbonInterface,
+     *     note?: string|null,
+     *     user_id?: int|null,
+     *     reference_type?: string|null,
+     *     reference_id?: int|null
+     * }>  $entries
+     */
+    public function recordMany(array $entries, ?Location $location = null): void
+    {
+        if ($entries === []) {
+            return;
+        }
+
+        foreach ($entries as $position => $entry) {
+            if (! $entry['type']->allows($entry['quantity'])) {
+                throw new InvalidArgumentException(
+                    "Movement #{$position}: a {$entry['type']->value} movement cannot have a quantity of {$entry['quantity']}."
+                );
+            }
+        }
+
+        DB::transaction(function () use ($entries, $location) {
+            $location ??= $this->locations->current();
+            $now = now();
+
+            // Make sure each product has a stock row, then lock them all so
+            // nobody else changes these products while this runs.
+            $productIds = array_values(array_unique(array_column($entries, 'product_id')));
+            $this->lockLevels($productIds, $location);
+
+            $rows = [];
+            $change = [];
+            $delivered = [];
+
+            foreach ($entries as $entry) {
+                $rows[] = [
+                    'product_id' => $entry['product_id'],
+                    'location_id' => $location->getKey(),
+                    'type' => $entry['type']->value,
+                    'quantity' => $entry['quantity'],
+                    'occurred_at' => $entry['occurred_at']->format('Y-m-d H:i:s'),
+                    'reference_type' => $entry['reference_type'] ?? null,
+                    'reference_id' => $entry['reference_id'] ?? null,
+                    'note' => $entry['note'] ?? null,
+                    'user_id' => $entry['user_id'] ?? null,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+
+                $change[$entry['product_id']] = ($change[$entry['product_id']] ?? 0) + $entry['quantity'];
+
+                if ($entry['type'] === StockMovementType::Restock) {
+                    $delivered[$entry['product_id']] = ($delivered[$entry['product_id']] ?? 0) + $entry['quantity'];
+                }
+            }
+
+            foreach (array_chunk($rows, 1000) as $slice) {
+                StockMovement::query()->insert($slice);
+            }
+
+            foreach ($change as $productId => $quantity) {
+                // Goods that arrive stop counting as "on order", but never below zero.
+                DB::update(
+                    'update inventory_levels set on_hand = on_hand + ?, on_order = greatest(0, on_order - ?), updated_at = ? where product_id = ? and location_id = ?',
+                    [$quantity, $delivered[$productId] ?? 0, $now->toDateTimeString(), $productId, $location->getKey()],
+                );
+            }
+        });
+    }
+
+    /**
+     * Creates any missing stock rows for the given products at a location, then
+     * locks all of them.
+     *
+     * @param  list<int>  $productIds
+     */
+    private function lockLevels(array $productIds, Location $location): void
+    {
+        $now = now();
+
+        InventoryLevel::query()->insertOrIgnore(array_map(fn (int $productId) => [
+            'product_id' => $productId,
+            'location_id' => $location->getKey(),
+            'on_hand' => 0,
+            'on_order' => 0,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ], $productIds));
+
+        InventoryLevel::query()
+            ->whereIn('product_id', $productIds)
+            ->where('location_id', $location->getKey())
+            ->lockForUpdate()
+            ->pluck('id');
     }
 
     /**

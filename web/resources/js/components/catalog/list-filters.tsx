@@ -1,7 +1,7 @@
-import { router } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
+import { useListQuery } from '@/hooks/use-list-query';
 import type { Option } from '@/types';
 
 type Choice = { value: string; label: string };
@@ -27,25 +27,7 @@ export default function ListFilters({
     extra,
 }: Props) {
     const [search, setSearch] = useState(String(filters.search ?? ''));
-    const latest = useRef(filters);
-    latest.current = filters;
-
-    const apply = (changes: Record<string, string | number | null>) => {
-        const next = { ...latest.current, ...changes };
-
-        // Leave out empty values so the URL stays short.
-        const query = Object.fromEntries(
-            Object.entries(next).filter(
-                ([, value]) => value !== null && value !== '',
-            ),
-        );
-
-        router.get(url, query, {
-            preserveState: true,
-            preserveScroll: true,
-            replace: true,
-        });
-    };
+    const apply = useListQuery(url, filters);
 
     useEffect(() => {
         if (search === String(filters.search ?? '')) {
@@ -55,7 +37,7 @@ export default function ListFilters({
         const timer = setTimeout(() => apply({ search }), 300);
 
         return () => clearTimeout(timer);
-        // `apply` only reads refs and props, so it is not a dependency.
+        // `apply` always reads the latest filters, so it is not a dependency.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search]);
 

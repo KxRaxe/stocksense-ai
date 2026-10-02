@@ -1,0 +1,51 @@
+sku,name,category,unit,unit_cost,unit_price,lead_time_days,moq,pack_size,reorder_point,opening_stock,start_date
+FB-001,Instant coffee 3-in-1 (30 sachets),Food and beverages,box,95.00,131.25,5,1,6,106,294,2024-10-01
+FB-002,Bottled water 500 ml,Food and beverages,pc,8.00,14.70,3,1,24,,960,2024-10-01
+FB-003,Canned sardines 155 g,Food and beverages,can,17.50,25.20,7,1,24,170,408,2024-10-01
+FB-004,White sugar 1 kg,Food and beverages,pack,62.00,81.90,5,1,10,,190,2024-10-01
+FB-005,Cooking oil 1 L,Food and beverages,bottle,88.00,120.75,7,1,12,109,252,2024-10-01
+FB-006,Instant noodles (pack of 6),Food and beverages,pack,48.00,69.30,4,1,12,,432,2024-10-01
+FB-007,Rice 5 kg,Food and beverages,bag,235.00,288.75,6,1,5,58,140,2024-10-01
+FB-008,Soy sauce 385 ml,Food and beverages,bottle,24.00,35.70,7,1,12,,180,2024-10-01
+FB-009,Soft drink 1.5 L,Food and beverages,bottle,52.00,71.40,4,1,12,129,420,2024-10-01
+FB-010,Powdered milk 300 g,Food and beverages,pack,118.00,162.75,10,1,6,,156,2025-11-03
+PC-001,Shampoo sachet (12 pcs),Personal care,pack,36.00,52.00,7,1,12,89,204,2024-10-01
+PC-002,Bath soap 90 g,Personal care,pc,22.00,32.00,7,1,12,,156,2024-10-01
+PC-003,Toothpaste 100 ml,Personal care,pc,48.00,68.00,10,1,12,71,144,2024-10-01
+PC-004,Toothbrush,Personal care,pc,24.00,38.00,10,1,12,,108,2024-10-01
+PC-005,Deodorant roll-on 50 ml,Personal care,pc,68.00,95.00,10,1,6,49,90,2024-10-01
+PC-006,Facial wash 100 ml,Personal care,pc,92.00,135.00,14,1,6,,66,2024-10-01
+PC-007,Cotton buds (200 pcs),Personal care,pack,26.00,38.00,10,1,12,46,84,2024-10-01
+PC-008,Hand sanitizer 250 ml,Personal care,bottle,55.00,79.00,10,1,6,,90,2024-10-01
+PC-009,Sanitary napkins (8 pcs),Personal care,pack,34.00,49.00,7,1,12,64,144,2024-10-01
+PC-010,Baby wipes (80 sheets),Personal care,pack,85.00,120.00,14,1,6,,60,2026-01-12
+HC-001,Dishwashing liquid 500 ml,Household and cleaning,bottle,38.00,57.20,7,1,12,101,228,2024-10-01
+HC-002,Laundry powder 1 kg,Household and cleaning,pack,85.00,119.60,10,1,10,,190,2024-10-01
+HC-003,"Trash bags (medium, 10 pcs)",Household and cleaning,pack,28.00,43.68,14,1,20,95,160,2024-10-01
+HC-004,Bleach 1 L,Household and cleaning,bottle,42.00,64.48,10,1,12,,120,2024-10-01
+HC-005,Fabric conditioner 800 ml,Household and cleaning,bottle,72.00,101.92,10,1,12,53,108,2024-10-01
+HC-006,Floor cleaner 1 L,Household and cleaning,bottle,58.00,85.28,12,1,6,,84,2024-10-01
+HC-007,Sponge scourer (3 pcs),Household and cleaning,pack,18.00,29.12,10,1,24,80,168,2024-10-01
+HC-008,Tissue roll (4 rolls),Household and cleaning,pack,44.00,64.48,7,1,12,,156,2024-10-01
+HC-009,Insect spray 300 ml,Household and cleaning,can,96.00,140.40,14,1,6,43,72,2024-10-01
+HC-010,Laundry bar soap,Household and cleaning,pc,14.00,22.88,7,1,24,,288,2026-02-09
+SO-001,Notebook 80 leaves,School and office supplies,pc,18.00,30.00,14,1,20,243,420,2024-10-01
+SO-002,Ballpoint pen (box of 12),School and office supplies,box,60.00,90.00,14,1,10,,140,2024-10-01
+SO-003,Bond paper A4 (ream),School and office supplies,ream,215.00,260.00,10,1,5,54,100,2024-10-01
+SO-004,Pencil #2 (box of 12),School and office supplies,box,48.00,72.00,14,1,10,,150,2024-10-01
+SO-005,Crayons 24 colors,School and office supplies,box,54.00,85.00,14,1,6,57,96,2024-10-01
+SO-006,Pad paper (10 pads),School and office supplies,pack,66.00,95.00,14,1,10,,90,2024-10-01
+SO-007,Scissors,School and office supplies,pc,28.00,45.00,14,1,12,44,72,2024-10-01
+SO-008,School glue 130 g,School and office supplies,bottle,22.00,35.00,14,1,12,,120,2024-10-01
+SO-009,Folder with fastener (10 pcs),School and office supplies,pack,52.00,78.00,14,1,10,44,70,2024-10-01
+SO-010,Scientific calculator,School and office supplies,pc,420.00,595.00,21,1,1,,57,2026-02-02
+HW-001,Common wire nails 2 in (1 kg),Hardware and construction,kg,62.00,89.25,14,1,10,46,80,2024-10-01
+HW-002,Cement 40 kg,Hardware and construction,bag,235.00,288.75,7,1,20,,100,2024-10-01
+HW-003,PVC pipe 1/2 in x 3 m,Hardware and construction,pc,70.00,102.90,14,1,10,31,50,2024-10-01
+HW-004,Paint 4 L (white),Hardware and construction,can,520.00,719.25,21,1,4,,56,2024-10-01
+HW-005,Paint brush 2 in,Hardware and construction,pc,32.00,50.40,21,1,12,42,60,2024-10-01
+HW-006,Electrical tape,Hardware and construction,roll,18.00,29.40,14,1,12,,60,2024-10-01
+HW-007,Hacksaw blade,Hardware and construction,pc,24.00,39.90,21,1,10,36,50,2024-10-01
+HW-008,Padlock 40 mm,Hardware and construction,pc,85.00,131.25,21,1,6,,54,2024-10-01
+HW-009,Plywood 1/4 in (4 x 8 ft),Hardware and construction,sheet,450.00,624.75,14,1,5,25,40,2025-12-01
+HW-010,Hollow blocks 4 in,Hardware and construction,pc,11.00,16.80,5,1,50,,200,2024-10-01

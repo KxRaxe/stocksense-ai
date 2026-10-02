@@ -95,6 +95,9 @@ services:
     volumes:
       - ./ml/app:/srv/app
       - ./ml/tests:/srv/tests
+      - ./ml/scripts:/srv/scripts
+      # Where the synthetic data generator writes the demo dataset (see ml/scripts).
+      - ./web/database/data:/data
       - ml_models:/models
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 

@@ -47,10 +47,12 @@ docker compose exec app composer lint                    # Pint: format PHP (lin
 docker compose exec app composer types:check             # Larastan / PHPStan level 7
 docker compose exec app npm run check                    # Vite+: oxlint + oxfmt (check:fix to fix)
 docker compose exec app npm run types:check              # TypeScript
+npm test --prefix web                                    # Vitest component tests (run on the host; see the note below)
 docker compose exec ml pytest                            # ML tests
-docker compose exec ml ruff check app tests              # ML lint
+docker compose exec ml ruff check app tests scripts      # ML lint
 docker compose exec ml mypy app                          # ML types
 docker compose logs -f horizon                           # follow a service's logs
+docker compose restart horizon scheduler                 # after changing PHP code or installing packages (see below)
 docker compose down                                      # stop (add -v to also delete the database volume)
 ```
 
@@ -108,7 +110,57 @@ Deactivated users cannot sign in and are signed out immediately; their history i
 - Everyone can record a **restock** (goods received) or a **stock count** (sets stock to what was counted and records the difference with a reason). Only the Owner and Manager can change products and categories.
 - **Branches** are not built, but stock is already kept per location. See [docs/future-multi-branch.md](docs/future-multi-branch.md).
 
-The demo data (`php artisan db:seed`) includes the five proposal categories and 15 products with stock, some deliberately low or out of stock.
+The demo data (`php artisan db:seed`) is described under *Demo data* below.
+
+## Sales and imports
+
+Sales history is what the forecasts learn from. There are two ways to get it in.
+
+**Entering sales by hand** (**Sales > Record sales**): pick a date, then add a line for each product sold. Choosing a product fills in its usual price. Each line takes that product off the shelf, and the whole sheet is saved together or not at all. A hand-entered sale can be deleted, which puts its stock back; the deletion is recorded in the audit log.
+
+**Importing a file** (**Sales > Import from a file**): upload a CSV or Excel (.xlsx) file with one row per sale. Download the example file from the upload page to see the layout.
+
+1. **Upload.** The system reads the file, finds the header row, and guesses which column is which from the header names (`date`, `sku`, `quantity` and an optional `unit_price`, plus common variations such as "Qty Sold" or "Product Code").
+2. **Check.** The preview shows how many rows will be imported, how many were already imported before, and which have a problem and why, with a sample of the file. If the guess was wrong, choose the columns and the date layout yourself (YYYY-MM-DD, MM/DD/YYYY or DD/MM/YYYY) and update the preview. Nothing is saved until you confirm.
+3. **Import.** Confirming queues the work. The file is imported a slice at a time by the background workers, so even a large file never ties up the page; the screen shows progress and updates itself.
+4. **Review.** The result shows what was imported, what was skipped, and what failed. Download the **error report** (a CSV of every failed row with the reason) to fix and upload again.
+5. **Undo.** Any import can be undone: its sales are removed and, if it took stock off, the stock is put back. Both are recorded.
+
+Things worth knowing:
+
+- **Should these sales change stock levels?** Choose *No* for past history (the current stock count already reflects those sales) and *Yes* for sales that have not been taken off your stock yet, such as yesterday's cash register export.
+- **Repeats are skipped.** A row is treated as already imported when an earlier import holds a sale for the same product, day, quantity and price, so uploading an overlapping file is safe. Identical rows within one file are all kept (two customers can buy the same thing on the same day), and sales entered by hand are never matched.
+- **Dates** can be text in the chosen layout or real Excel date cells. A blank price uses the product's current price; prices like `₱1,250.50` are understood.
+- **Limits** are set in `web/config/imports.php`: 10 MB and 50,000 rows per file.
+- **Everyone who can enter sales can import them**, matching the access matrix. Stock-affecting imports are logged with who started them.
+
+## Demo data
+
+`php artisan db:seed` (never in production) loads a realistic shop so every screen has something to show: 5 categories, 50 products, **two years of daily sales** (about 30,000 rows, October 2024 to September 2026), and the deliveries that kept the shelves stocked. It takes about 35 seconds and sends the sales through the real import above, so seeding doubles as a test of it. The result is a stock ledger that adds up to today's stock levels, with some products low or out of stock.
+
+The data is made by `ml/scripts/generate_synthetic.py` from a fixed seed, so it is identical on every machine, and the CSV files are kept in `web/database/data/`. The patterns differ by category on purpose, so forecasts can be judged under varied conditions: paydays and December for food, back-to-school in June for stationery, the dry season for hardware, slow and intermittent hardware items, and five products with under a year of history. It also simulates restocking, so stock history includes the occasional stockout.
+
+To regenerate it (only needed if you change the generator; a test fails if the files fall out of step):
+
+```bash
+MSYS_NO_PATHCONV=1 docker compose exec ml python scripts/generate_synthetic.py --out /data
+```
+
+`web/database/data/sales-sample-with-errors.csv` is a small file with deliberate mistakes (an unknown SKU, an impossible date, a bad quantity and price) for trying out the preview and error report.
+
+## Working with the queue workers
+
+Background jobs (imports, and later forecasts) run in the `horizon` container. A worker loads the code once when it starts, so **after you change PHP code or install a package, restart it**:
+
+```bash
+docker compose restart horizon scheduler
+```
+
+If you forget, an import fails with an error such as "class not found". The import page then shows it as failed with a message, and nothing is lost: the sales already imported stay, and the import can be undone. Horizon's own dashboard is at `/horizon` (Owner only).
+
+## Frontend tests
+
+`npm test` (in `web/`) runs the Vitest component tests. They run on the host rather than in Docker because installing npm packages inside the containers is very slow on some Windows setups; CI runs them in a clean Linux environment either way. Containers pick up new npm packages when the `vite` service next restarts.
 
 ## Repository layout
 

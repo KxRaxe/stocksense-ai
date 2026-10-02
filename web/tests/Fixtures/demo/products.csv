@@ -1,0 +1,4 @@
+sku,name,category,unit,unit_cost,unit_price,lead_time_days,moq,pack_size,reorder_point,opening_stock,start_date
+FB-001,Instant coffee,Food and beverages,box,95.00,125.00,5,1,6,20,100,2026-01-01
+FB-002,Bottled water,Food and beverages,pc,8.00,14.00,3,1,24,,500,2026-01-01
+HW-001,Wire nails,Hardware and construction,kg,62.00,85.00,14,1,10,15,50,2026-02-01

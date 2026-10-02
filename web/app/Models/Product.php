@@ -22,8 +22,8 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property string $name
  * @property int $category_id
  * @property string $unit
- * @property string $unit_cost
- * @property string $unit_price
+ * @property numeric-string $unit_cost
+ * @property numeric-string $unit_price
  * @property int $lead_time_days
  * @property int $moq Minimum order quantity
  * @property int $pack_size Orders come in multiples of this

@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
         // `php artisan app:create-owner`.
         if (! app()->isProduction()) {
             $this->call(DemoUsersSeeder::class);
-            $this->call(DemoCatalogSeeder::class);
+            $this->call(DemoDataSeeder::class);
         }
     }
 }
