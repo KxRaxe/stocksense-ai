@@ -19,6 +19,8 @@ x-php: &php
   volumes:
     - ./web:/var/www/html
     - web_node_modules:/var/www/html/node_modules
+    # npm's download cache survives container recreation (the registry can be slow).
+    - npm_cache:/home/app/.npm
   working_dir: /var/www/html
 
 services:
@@ -51,7 +53,7 @@ services:
 
   vite:
     <<: *php
-    command: sh -c "npm install --no-audit --no-fund && npm run dev"
+    command: vite-dev.sh
     ports:
       - "5173:5173"
     depends_on:
@@ -135,3 +137,4 @@ volumes:
   pgdata:
   ml_models:
   web_node_modules:
+  npm_cache:

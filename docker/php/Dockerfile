@@ -30,9 +30,10 @@ ARG UID=1000
 ARG GID=1000
 RUN groupadd -g ${GID} app 2>/dev/null || true \
  && useradd -m -u ${UID} -g ${GID} -s /bin/bash app 2>/dev/null || true \
- && mkdir -p /var/www/html/node_modules \
- && chown -R ${UID}:${GID} /var/www/html
+ && mkdir -p /var/www/html/node_modules /home/app/.npm \
+ && chown -R ${UID}:${GID} /var/www/html /home/app/.npm
 COPY --chmod=755 docker/php/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY --chmod=755 docker/php/vite-dev.sh /usr/local/bin/vite-dev.sh
 USER ${UID}
 ENTRYPOINT ["entrypoint.sh"]
 CMD ["php-fpm"]

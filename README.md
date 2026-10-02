@@ -13,7 +13,9 @@ docker compose up -d --build
 docker compose exec app php artisan migrate
 ```
 
-The first start installs Composer and npm dependencies inside the containers, so allow a few minutes. Vite also pre-bundles dependencies on the first page load, which can take about 15 seconds.
+The first start installs Composer and npm dependencies inside the containers, so allow a few minutes. After that, `npm install` runs only when `package-lock.json` changes.
+
+The first page load after Vite starts or restarts can take up to about 30 seconds while it compiles the app over the Windows bind mount, and the page stays blank (dark) until then. Later loads take a few seconds. If the page stays blank for longer, check `docker compose logs vite`.
 
 | What | URL |
 |---|---|
