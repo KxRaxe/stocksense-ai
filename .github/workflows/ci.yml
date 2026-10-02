@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  php:
+    name: Laravel (Pint, Larastan, tests on PostgreSQL)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: stocksense_test
+          POSTGRES_USER: stocksense
+          POSTGRES_PASSWORD: secret
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U stocksense -d stocksense_test"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      DB_HOST: 127.0.0.1
+      DB_USERNAME: stocksense
+      DB_PASSWORD: secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: pdo_pgsql, redis, intl, gd, zip, bcmath, pcntl, exif
+          tools: composer:v2
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: cp .env.example .env && php artisan key:generate
+      - run: composer lint:check      # Pint
+      - run: composer types:check     # Larastan (level 7)
+      - run: php artisan test
+
+  frontend:
+    name: React (Vite+ check, tsc, build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      # Wayfinder generates the TypeScript route helpers from Laravel's routes.
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: pdo_pgsql, redis, intl, bcmath
+          tools: composer:v2
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: cp .env.example .env && php artisan key:generate
+      - run: php artisan wayfinder:generate --with-form
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run check          # oxlint + oxfmt via Vite+
+      - run: npm run types:check    # tsc --noEmit
+      - run: npm run build
+
+  ml:
+    name: ML service (ruff + mypy + pytest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ml
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv python install 3.12
+      - run: uv sync --group dev
+      - run: uv run ruff check app tests
+      - run: uv run mypy app
+      - run: uv run pytest -q
+
+  docker-smoke:
+    name: Docker stack boots healthy
+    runs-on: ubuntu-latest
+    needs: [php, frontend, ml]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and start the stack
+        run: env UID=$(id -u) GID=$(id -g) docker compose up -d --build --wait --wait-timeout 420
+      - name: Probe login page and ML service
+        run: |
+          curl -fsS http://localhost:8080/login -o /dev/null
+          curl -fsS http://localhost:8001/health
+      - name: Logs on failure
+        if: failure()
+        run: docker compose logs --tail 80
+      - run: docker compose down -v
+        if: always()
