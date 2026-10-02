@@ -15,7 +15,7 @@ logic. This note says what is already in place and what is left.
 | One place to ask "which location?" | `App\Services\Inventory\LocationContext` | All stock reads and writes call this. Today it always returns the default. |
 | One place that changes stock | `App\Services\Inventory\StockService` | Takes an optional location; defaults to `LocationContext`. |
 | Feature flag | `config/features.php` (`FEATURE_MULTI_LOCATION`) | Reserved for the location picker and management screens. Off, and currently has no effect. |
-| Forecast series keys | ML contract `series_key` (Phase 4) | A series is identified by a key, so "product at branch" can be added later without changing the contract. |
+| Forecast series keys | ML contract `series_key`, `forecast_runs.location_id`, `forecasts.location_id` | A series is identified by an opaque key (`product:location`), so "product at branch" needs no contract change. `SeriesBuilder::build()` already takes a location and filters sales by it; forecast runs and their rows are tagged with the location they are for. |
 
 Tests that protect this: `StockServiceTest` (movements are tagged with the default
 location; stock at another location stays separate), `LocationContextTest`, and
@@ -35,8 +35,10 @@ the product page and inventory tests (they only show the current location's stoc
    record it. `StockMovementType::allows()` needs the new type.
 5. **Sales per location.** Add `location_id` to `sales` (Phase 3 creates the table
    with it) and let the import choose a location.
-6. **Forecasts per location.** Build one series per product and location, using the
-   `series_key`. Decide whether to forecast each branch separately, or the total and
+6. **Forecasts per location.** `SeriesBuilder` can already build the series for any
+   location; what is missing is calling it once per location (the scheduler and the
+   Run button use the default), a location filter on the Forecasts pages, and one run
+   per location. Decide whether to forecast each branch separately, or the total and
    then split it, since small branches have thin history.
 7. **Replenishment per location.** Recommendations are computed per product and
    location (`replenishment_recommendations.location_id` already exists in the plan),

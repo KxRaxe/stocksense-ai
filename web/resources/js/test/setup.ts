@@ -10,3 +10,13 @@ configure({ testIdAttribute: 'data-test' });
 afterEach(() => {
     cleanup();
 });
+
+// Recharts measures its container with ResizeObserver, which jsdom does not have.
+// In jsdom everything measures zero, so charts draw no marks, but they mount.
+class ResizeObserverStub {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+}
+
+globalThis.ResizeObserver ??= ResizeObserverStub;

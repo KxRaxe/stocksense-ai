@@ -1,0 +1,125 @@
+{
+  "$defs": {
+    "Granularity": {
+      "enum": [
+        "week",
+        "month"
+      ],
+      "title": "Granularity",
+      "type": "string"
+    },
+    "Period": {
+      "additionalProperties": false,
+      "properties": {
+        "start": {
+          "description": "First day of the period: a Monday for weeks, the 1st for months.",
+          "format": "date",
+          "title": "Start",
+          "type": "string"
+        },
+        "qty": {
+          "description": "Units sold in the period (0 when nothing sold).",
+          "minimum": 0,
+          "title": "Qty",
+          "type": "number"
+        },
+        "avg_price": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Average selling price in the period; null when nothing sold.",
+          "title": "Avg Price"
+        }
+      },
+      "required": [
+        "start",
+        "qty"
+      ],
+      "title": "Period",
+      "type": "object"
+    },
+    "Series": {
+      "additionalProperties": false,
+      "properties": {
+        "series_key": {
+          "description": "Opaque identifier of the series, echoed back. Today product:location; forecasting per branch later changes the key, not the contract.",
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Series Key",
+          "type": "string"
+        },
+        "product_id": {
+          "minimum": 1,
+          "title": "Product Id",
+          "type": "integer"
+        },
+        "category": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Category",
+          "type": "string"
+        },
+        "periods": {
+          "items": {
+            "$ref": "#/$defs/Period"
+          },
+          "maxItems": 1500,
+          "minItems": 1,
+          "title": "Periods",
+          "type": "array"
+        }
+      },
+      "required": [
+        "series_key",
+        "product_id",
+        "category",
+        "periods"
+      ],
+      "title": "Series",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "granularity": {
+      "$ref": "#/$defs/Granularity"
+    },
+    "series": {
+      "items": {
+        "$ref": "#/$defs/Series"
+      },
+      "maxItems": 5000,
+      "minItems": 1,
+      "title": "Series",
+      "type": "array"
+    },
+    "horizon": {
+      "description": "Length of each test window, in periods.",
+      "minimum": 1,
+      "title": "Horizon",
+      "type": "integer"
+    },
+    "folds": {
+      "default": 4,
+      "description": "Number of rolling-origin test windows.",
+      "maximum": 12,
+      "minimum": 1,
+      "title": "Folds",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "granularity",
+    "series",
+    "horizon"
+  ],
+  "title": "BacktestRequest",
+  "type": "object"
+}

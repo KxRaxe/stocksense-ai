@@ -1,0 +1,302 @@
+{
+  "model_version": "xgb-week-20261001T000000Z",
+  "granularity": "week",
+  "horizon": 4,
+  "generated_at": "2026-10-01T00:00:00Z",
+  "forecasts": [
+    {
+      "series_key": "20:1",
+      "product_id": 20,
+      "method": "moving_average",
+      "low_confidence": true,
+      "history_periods": 33,
+      "periods": [
+        {
+          "start": "2026-09-28",
+          "yhat": 87.75,
+          "yhat_lower": 59.286,
+          "yhat_upper": 116.214
+        },
+        {
+          "start": "2026-10-05",
+          "yhat": 87.75,
+          "yhat_lower": 59.286,
+          "yhat_upper": 116.214
+        },
+        {
+          "start": "2026-10-12",
+          "yhat": 87.75,
+          "yhat_lower": 59.286,
+          "yhat_upper": 116.214
+        },
+        {
+          "start": "2026-10-19",
+          "yhat": 87.75,
+          "yhat_lower": 59.286,
+          "yhat_upper": 116.214
+        }
+      ]
+    },
+    {
+      "series_key": "39:1",
+      "product_id": 39,
+      "method": "xgboost",
+      "low_confidence": false,
+      "history_periods": 104,
+      "periods": [
+        {
+          "start": "2026-09-28",
+          "yhat": 51.7484,
+          "yhat_lower": 40.3132,
+          "yhat_upper": 62.0379
+        },
+        {
+          "start": "2026-10-05",
+          "yhat": 47.6669,
+          "yhat_lower": 41.071,
+          "yhat_upper": 57.6416
+        },
+        {
+          "start": "2026-10-12",
+          "yhat": 50.0672,
+          "yhat_lower": 45.8229,
+          "yhat_upper": 60.4469
+        },
+        {
+          "start": "2026-10-19",
+          "yhat": 52.9279,
+          "yhat_lower": 46.2156,
+          "yhat_upper": 64.8158
+        }
+      ]
+    },
+    {
+      "series_key": "49:1",
+      "product_id": 49,
+      "method": "xgboost",
+      "low_confidence": false,
+      "history_periods": 104,
+      "periods": [
+        {
+          "start": "2026-09-28",
+          "yhat": 10.3294,
+          "yhat_lower": 5.9243,
+          "yhat_upper": 13.2455
+        },
+        {
+          "start": "2026-10-05",
+          "yhat": 11.2261,
+          "yhat_lower": 7.4452,
+          "yhat_upper": 13.9927
+        },
+        {
+          "start": "2026-10-12",
+          "yhat": 11.8219,
+          "yhat_lower": 6.7834,
+          "yhat_upper": 13.7516
+        },
+        {
+          "start": "2026-10-19",
+          "yhat": 12.133,
+          "yhat_lower": 7.2617,
+          "yhat_upper": 14.5213
+        }
+      ]
+    }
+  ],
+  "metrics": {
+    "mae": 7.4998,
+    "rmse": 8.9441,
+    "mape": 30.8297,
+    "wape": 22.1397,
+    "n": 8,
+    "coverage": 37.5
+  },
+  "baseline_metrics": {
+    "seasonal_naive": {
+      "mae": 7.25,
+      "rmse": 8.1548,
+      "mape": 42.28,
+      "wape": 21.4022,
+      "n": 8,
+      "coverage": null
+    },
+    "moving_average": {
+      "mae": 6.5625,
+      "rmse": 8.2746,
+      "mape": 23.0573,
+      "wape": 19.3727,
+      "n": 8,
+      "coverage": null
+    }
+  },
+  "per_category_metrics": {
+    "Personal care": {
+      "model": {
+        "mae": 11.7964,
+        "rmse": 12.1889,
+        "mape": 20.4209,
+        "wape": 20.079,
+        "n": 4,
+        "coverage": 25.0
+      },
+      "seasonal_naive": {
+        "mae": 9.0,
+        "rmse": 10.0,
+        "mape": 16.2267,
+        "wape": 15.3191,
+        "n": 4,
+        "coverage": null
+      },
+      "moving_average": {
+        "mae": 11.125,
+        "rmse": 11.4428,
+        "mape": 19.0313,
+        "wape": 18.9362,
+        "n": 4,
+        "coverage": null
+      }
+    },
+    "School and office supplies": {
+      "model": {
+        "mae": 3.2032,
+        "rmse": 3.38,
+        "mape": 41.2385,
+        "wape": 35.5911,
+        "n": 4,
+        "coverage": 50.0
+      },
+      "seasonal_naive": {
+        "mae": 5.5,
+        "rmse": 5.7446,
+        "mape": 68.3333,
+        "wape": 61.1111,
+        "n": 4,
+        "coverage": null
+      },
+      "moving_average": {
+        "mae": 2.0,
+        "rmse": 2.4495,
+        "mape": 27.0833,
+        "wape": 22.2222,
+        "n": 4,
+        "coverage": null
+      }
+    }
+  },
+  "residual_std": {
+    "20:1": 22.2097,
+    "39:1": 12.1889,
+    "49:1": 3.38
+  },
+  "feature_importance": [
+    {
+      "feature": "roll_mean_4",
+      "importance": 0.154587
+    },
+    {
+      "feature": "lag_52",
+      "importance": 0.092148
+    },
+    {
+      "feature": "lag_1",
+      "importance": 0.089607
+    },
+    {
+      "feature": "lag_12",
+      "importance": 0.072588
+    },
+    {
+      "feature": "roll_std_4",
+      "importance": 0.07228
+    },
+    {
+      "feature": "lag_4",
+      "importance": 0.058945
+    },
+    {
+      "feature": "period_of_year",
+      "importance": 0.058535
+    },
+    {
+      "feature": "lag_3",
+      "importance": 0.054762
+    },
+    {
+      "feature": "lag_2",
+      "importance": 0.053745
+    },
+    {
+      "feature": "roll_std_8",
+      "importance": 0.046581
+    },
+    {
+      "feature": "lag_8",
+      "importance": 0.045181
+    },
+    {
+      "feature": "roll_mean_8",
+      "importance": 0.044746
+    },
+    {
+      "feature": "roll_mean_12",
+      "importance": 0.039702
+    },
+    {
+      "feature": "category_code",
+      "importance": 0.038703
+    },
+    {
+      "feature": "age",
+      "importance": 0.03541
+    },
+    {
+      "feature": "paydays",
+      "importance": 0.012356
+    },
+    {
+      "feature": "log_scale",
+      "importance": 0.01021
+    },
+    {
+      "feature": "back_to_school",
+      "importance": 0.008579
+    },
+    {
+      "feature": "month",
+      "importance": 0.006469
+    },
+    {
+      "feature": "december_share",
+      "importance": 0.003067
+    },
+    {
+      "feature": "christmas_rush",
+      "importance": 0.001002
+    },
+    {
+      "feature": "log_price",
+      "importance": 0.000544
+    },
+    {
+      "feature": "quarter",
+      "importance": 0.000252
+    },
+    {
+      "feature": "zero_share",
+      "importance": 3e-06
+    }
+  ],
+  "training": {
+    "first_period": "2024-09-30",
+    "last_period": "2026-09-21",
+    "n_series": 3,
+    "n_model_series": 2,
+    "n_low_confidence": 1,
+    "n_rows": 238,
+    "backtest_folds": 1,
+    "backtest_origins": [
+      "2026-08-24"
+    ]
+  }
+}

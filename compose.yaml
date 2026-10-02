@@ -18,6 +18,8 @@ x-php: &php
     ML_INTERNAL_TOKEN: ${ML_INTERNAL_TOKEN:-change-me-dev-token}
   volumes:
     - ./web:/var/www/html
+    # The JSON Schemas and examples shared with the ML service; the contract tests read them.
+    - ./contracts:/var/www/contracts:ro
     - web_node_modules:/var/www/html/node_modules
     # npm's download cache survives container recreation (the registry can be slow).
     - npm_cache:/home/app/.npm
@@ -98,6 +100,8 @@ services:
       - ./ml/scripts:/srv/scripts
       # Where the synthetic data generator writes the demo dataset (see ml/scripts).
       - ./web/database/data:/data
+      # Where the contract schemas and examples are written (scripts/export_contracts.py).
+      - ./contracts:/contracts
       - ml_models:/models
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 

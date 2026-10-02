@@ -2,6 +2,7 @@
 
 use App\Enums\Permission;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ForecastController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductImportController;
@@ -65,6 +66,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     $importRoutes(ProductImportController::class, 'products', Permission::ManageCatalog);
     $importRoutes(SalesImportController::class, 'sales', Permission::ImportSales);
+
+    // Forecasts: everyone with `forecasts.view` can look; starting a run needs `forecasts.run`.
+    Route::middleware('can:'.Permission::ViewForecasts->value)
+        ->prefix('forecasts')
+        ->name('forecasts.')
+        ->group(function () {
+            Route::get('/', [ForecastController::class, 'index'])->name('index');
+            Route::get('accuracy', [ForecastController::class, 'accuracy'])->name('accuracy');
+            Route::get('products/{product}', [ForecastController::class, 'product'])->name('product')->whereNumber('product');
+        });
+    Route::post('forecasts/run', [ForecastController::class, 'run'])
+        ->middleware('can:'.Permission::RunForecasts->value)
+        ->name('forecasts.run');
 
     // Entering sales by hand and looking at sales history.
     Route::middleware('can:'.Permission::EnterSales->value)->group(function () {

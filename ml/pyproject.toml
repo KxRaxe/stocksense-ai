@@ -22,6 +22,8 @@ dev = [
     "ruff>=0.8",
     "mypy>=1.13",
     "pandas-stubs",
+    "jsonschema>=4.23",
+    "types-jsonschema",
 ]
 
 [tool.ruff]
@@ -30,10 +32,10 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
-
-[tool.ruff.lint.per-file-ignores]
-# The product table reads best with one product per line.
-"scripts/generate_synthetic.py" = ["E501"]
+# The formatter wraps code at the line length. What it leaves alone are long
+# comments and docstrings, which read better as sentences than broken to fit,
+# and the product table in the generator, which reads best one product per line.
+ignore = ["E501"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -43,3 +45,6 @@ plugins = ["pydantic.mypy"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+markers = [
+    "quality: measures the model's accuracy on the synthetic shop with the real settings (slower)",
+]

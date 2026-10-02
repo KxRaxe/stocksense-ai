@@ -17,3 +17,6 @@ use Tests\TestCase;
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->in('Feature');
+
+// Helpers shared by the forecasting tests.
+require_once __DIR__.'/Support/forecasting.php';

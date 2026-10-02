@@ -1,0 +1,362 @@
+{
+  "$defs": {
+    "BaselineMetrics": {
+      "properties": {
+        "seasonal_naive": {
+          "$ref": "#/$defs/Metrics",
+          "description": "Same period last year."
+        },
+        "moving_average": {
+          "$ref": "#/$defs/Metrics",
+          "description": "Average of the last few periods."
+        }
+      },
+      "required": [
+        "seasonal_naive",
+        "moving_average"
+      ],
+      "title": "BaselineMetrics",
+      "type": "object"
+    },
+    "CategoryMetrics": {
+      "properties": {
+        "model": {
+          "$ref": "#/$defs/Metrics"
+        },
+        "seasonal_naive": {
+          "$ref": "#/$defs/Metrics"
+        },
+        "moving_average": {
+          "$ref": "#/$defs/Metrics"
+        }
+      },
+      "required": [
+        "model",
+        "seasonal_naive",
+        "moving_average"
+      ],
+      "title": "CategoryMetrics",
+      "type": "object"
+    },
+    "FeatureImportance": {
+      "properties": {
+        "feature": {
+          "title": "Feature",
+          "type": "string"
+        },
+        "importance": {
+          "description": "Share of the model's total gain; all features sum to 1.",
+          "title": "Importance",
+          "type": "number"
+        }
+      },
+      "required": [
+        "feature",
+        "importance"
+      ],
+      "title": "FeatureImportance",
+      "type": "object"
+    },
+    "ForecastPeriod": {
+      "properties": {
+        "start": {
+          "format": "date",
+          "title": "Start",
+          "type": "string"
+        },
+        "yhat": {
+          "description": "Median (P50) forecast, in units.",
+          "minimum": 0,
+          "title": "Yhat",
+          "type": "number"
+        },
+        "yhat_lower": {
+          "description": "P10: demand is expected to be at least this 9 times in 10.",
+          "minimum": 0,
+          "title": "Yhat Lower",
+          "type": "number"
+        },
+        "yhat_upper": {
+          "description": "P90: demand is expected to be at most this 9 times in 10.",
+          "minimum": 0,
+          "title": "Yhat Upper",
+          "type": "number"
+        }
+      },
+      "required": [
+        "start",
+        "yhat",
+        "yhat_lower",
+        "yhat_upper"
+      ],
+      "title": "ForecastPeriod",
+      "type": "object"
+    },
+    "Granularity": {
+      "enum": [
+        "week",
+        "month"
+      ],
+      "title": "Granularity",
+      "type": "string"
+    },
+    "Metrics": {
+      "properties": {
+        "mae": {
+          "description": "Mean absolute error, in units.",
+          "title": "Mae",
+          "type": "number"
+        },
+        "rmse": {
+          "description": "Root mean squared error, in units.",
+          "title": "Rmse",
+          "type": "number"
+        },
+        "mape": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Mean absolute percentage error over periods that had sales; null if none did.",
+          "title": "Mape"
+        },
+        "wape": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Total absolute error as a percentage of total units sold; null if none were sold.",
+          "title": "Wape"
+        },
+        "n": {
+          "description": "Product-periods compared.",
+          "title": "N",
+          "type": "integer"
+        },
+        "coverage": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Percentage of actual values inside the forecast interval (the target is 80). Null for forecasts without an interval.",
+          "title": "Coverage"
+        }
+      },
+      "required": [
+        "mae",
+        "rmse",
+        "mape",
+        "wape",
+        "n"
+      ],
+      "title": "Metrics",
+      "type": "object"
+    },
+    "SeriesForecast": {
+      "properties": {
+        "series_key": {
+          "title": "Series Key",
+          "type": "string"
+        },
+        "product_id": {
+          "title": "Product Id",
+          "type": "integer"
+        },
+        "method": {
+          "enum": [
+            "xgboost",
+            "moving_average"
+          ],
+          "title": "Method",
+          "type": "string"
+        },
+        "low_confidence": {
+          "description": "True when the product has under a year of history and the forecast is a plain moving average.",
+          "title": "Low Confidence",
+          "type": "boolean"
+        },
+        "history_periods": {
+          "description": "Periods of history the series has.",
+          "title": "History Periods",
+          "type": "integer"
+        },
+        "periods": {
+          "items": {
+            "$ref": "#/$defs/ForecastPeriod"
+          },
+          "title": "Periods",
+          "type": "array"
+        }
+      },
+      "required": [
+        "series_key",
+        "product_id",
+        "method",
+        "low_confidence",
+        "history_periods",
+        "periods"
+      ],
+      "title": "SeriesForecast",
+      "type": "object"
+    },
+    "TrainingInfo": {
+      "properties": {
+        "first_period": {
+          "format": "date",
+          "title": "First Period",
+          "type": "string"
+        },
+        "last_period": {
+          "description": "Start of the last period of history.",
+          "format": "date",
+          "title": "Last Period",
+          "type": "string"
+        },
+        "n_series": {
+          "title": "N Series",
+          "type": "integer"
+        },
+        "n_model_series": {
+          "description": "Series forecast by the model.",
+          "title": "N Model Series",
+          "type": "integer"
+        },
+        "n_low_confidence": {
+          "description": "Series forecast by the moving-average fallback.",
+          "title": "N Low Confidence",
+          "type": "integer"
+        },
+        "n_rows": {
+          "description": "Training rows the final model learned from (0 if none was trained).",
+          "title": "N Rows",
+          "type": "integer"
+        },
+        "backtest_folds": {
+          "description": "Test windows that were measured.",
+          "title": "Backtest Folds",
+          "type": "integer"
+        },
+        "backtest_origins": {
+          "description": "Last period of history at each test window's origin.",
+          "items": {
+            "format": "date",
+            "type": "string"
+          },
+          "title": "Backtest Origins",
+          "type": "array"
+        }
+      },
+      "required": [
+        "first_period",
+        "last_period",
+        "n_series",
+        "n_model_series",
+        "n_low_confidence",
+        "n_rows",
+        "backtest_folds",
+        "backtest_origins"
+      ],
+      "title": "TrainingInfo",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "model_version": {
+      "title": "Model Version",
+      "type": "string"
+    },
+    "granularity": {
+      "$ref": "#/$defs/Granularity"
+    },
+    "horizon": {
+      "title": "Horizon",
+      "type": "integer"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "forecasts": {
+      "items": {
+        "$ref": "#/$defs/SeriesForecast"
+      },
+      "title": "Forecasts",
+      "type": "array"
+    },
+    "metrics": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Metrics"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "The model's accuracy over the test windows; null if not measured."
+    },
+    "baseline_metrics": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BaselineMetrics"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "per_category_metrics": {
+      "additionalProperties": {
+        "$ref": "#/$defs/CategoryMetrics"
+      },
+      "title": "Per Category Metrics",
+      "type": "object"
+    },
+    "residual_std": {
+      "additionalProperties": {
+        "type": "number"
+      },
+      "description": "Typical error of one period's forecast, in units, by series_key. From the test windows where there are enough of them, otherwise from the product's own history.",
+      "title": "Residual Std",
+      "type": "object"
+    },
+    "feature_importance": {
+      "items": {
+        "$ref": "#/$defs/FeatureImportance"
+      },
+      "title": "Feature Importance",
+      "type": "array"
+    },
+    "training": {
+      "$ref": "#/$defs/TrainingInfo"
+    }
+  },
+  "required": [
+    "model_version",
+    "granularity",
+    "horizon",
+    "generated_at",
+    "forecasts",
+    "metrics",
+    "baseline_metrics",
+    "per_category_metrics",
+    "residual_std",
+    "feature_importance",
+    "training"
+  ],
+  "title": "ForecastResponse",
+  "type": "object"
+}

@@ -1,5 +1,13 @@
 import { Link } from '@inertiajs/react';
-import { Boxes, LayoutGrid, Package, Receipt, Tags, Users } from 'lucide-react';
+import {
+    Boxes,
+    LayoutGrid,
+    Package,
+    Receipt,
+    Tags,
+    TrendingUp,
+    Users,
+} from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -15,6 +23,7 @@ import {
 import { useCan } from '@/hooks/use-can';
 import { dashboard } from '@/routes';
 import { index as categoriesIndex } from '@/routes/categories';
+import { index as forecastsIndex } from '@/routes/forecasts';
 import { index as inventoryIndex } from '@/routes/inventory';
 import { index as productsIndex } from '@/routes/products';
 import { index as salesIndex } from '@/routes/sales';
@@ -45,6 +54,12 @@ const mainNavItems: NavItem[] = [
         href: salesIndex(),
         icon: Receipt,
         permission: 'sales.view',
+    },
+    {
+        title: 'Forecasts',
+        href: forecastsIndex(),
+        icon: TrendingUp,
+        permission: 'forecasts.view',
     },
     {
         title: 'Categories',

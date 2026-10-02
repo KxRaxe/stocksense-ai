@@ -32,7 +32,7 @@ The first page load after Vite starts or restarts can take up to about 30 second
 | `app` | php-fpm running Laravel (also has Node, so run `artisan`, `composer` and `npm` here) |
 | `web` | nginx in front of php-fpm |
 | `vite` | Vite dev server with hot reload (file polling is enabled for Windows bind mounts) |
-| `horizon` | Queue workers (queues: `default`, `imports`, `ml`) |
+| `horizon` | Queue workers: one supervisor for `default` and `imports`, and one for `ml` with a long time limit, since a forecast run trains a model |
 | `scheduler` | Runs Laravel's scheduled tasks |
 | `ml` | Internal forecasting service (FastAPI + XGBoost). Only Laravel calls it |
 | `db` / `redis` / `mailpit` | PostgreSQL 17, Redis 7, local mail catcher |
@@ -48,7 +48,10 @@ docker compose exec app composer types:check             # Larastan / PHPStan le
 docker compose exec app npm run check                    # Vite+: oxlint + oxfmt (check:fix to fix)
 docker compose exec app npm run types:check              # TypeScript
 npm test --prefix web                                    # Vitest component tests (run on the host; see the note below)
-docker compose exec ml pytest                            # ML tests
+docker compose exec ml pytest                            # ML tests (about two minutes: they train real models)
+docker compose exec ml python -m scripts.accuracy_report week 8   # how the model compares with the baselines
+docker compose exec ml python -m scripts.export_contracts         # rewrite contracts/ after changing app/schemas.py
+docker compose exec app php artisan forecast:run week --sync     # make a forecast now, in the terminal
 docker compose exec ml ruff check app tests scripts      # ML lint
 docker compose exec ml mypy app                          # ML types
 docker compose logs -f horizon                           # follow a service's logs
@@ -147,6 +150,30 @@ Things worth knowing:
 - **Everyone who can enter sales can import them**, matching the access matrix. Stock-affecting imports are logged with who started them.
 - **For developers:** sales and products share one import engine (`web/app/Services/Imports`: file reading, the stored rows, the queue job, the batch lifecycle) and one controller and set of React components. Each kind of import is an `ImportDefinition` (its columns, the choices it asks for, how rows are checked and saved, how it is undone) registered in the `ImportType` enum, with routes and a thin page per kind. An import can only be opened through its own kind's routes, so each keeps its own permission.
 
+## Forecasting
+
+Forecasts say how many of each product are expected to sell, week by week (8 weeks ahead) or month by month (3 months ahead), with a range around each number. They are **advice only**: nothing is ordered for anyone. Owners and Managers can see them (**Forecasts** in the sidebar) and start a run; inventory staff cannot.
+
+- **Forecasts page.** Pick Weekly or Monthly. Every forecast product is listed with what is expected next period, the total over the horizon, what actually sold in the same number of recent periods, and how the two compare. Filter by category or by confidence, search, or sort by what is most expected. Open a product for a chart of its recent sales followed by the forecast and its likely range (8 times in 10), plus the exact numbers.
+- **Run forecast** queues a run on the `ml` queue, and the page updates itself when it finishes (a minute or two for 50 products). Only one run per granularity goes at a time, so pressing the button twice, or a scheduled run landing on a manual one, does no harm. A run that is stuck for over an hour is written off so it cannot block the next. A run that fails says why (service unreachable, no sales history, ...) and the previous good forecast stays on screen.
+- **Schedule.** The `scheduler` container refreshes weekly forecasts early on Monday (02:00) and monthly ones on the 1st (03:00), Asia/Manila time. Change or switch off in `web/config/forecasting.php` (`FORECAST_SCHEDULE=false` in `.env` disables it).
+- **Accuracy page.** Every run replays the recent past: the model is shown only what was known at the time, asked to forecast, and compared with what really sold, several times over. The same is done for two simple guesses, **the same period last year** and **a recent average**, because a forecast only earns its place by beating them. The page shows MAE, RMSE, MAPE and WAPE for all three, the breakdown by category, what the model leans on (in plain words), and how accuracy has moved from run to run. WAPE (total error as a percentage of total units sold) is the headline figure, since MAPE is distorted by quiet periods.
+- **Low confidence.** A product with under a year of sales history (52 weeks or 12 months) is too young for the model to have seen its seasons. It gets a plain recent average instead, is flagged **Low** confidence, and the product page says so. As its history grows past a year it moves to the model automatically.
+- **What is forecast.** Active products that have sold at least once, from sales at the default location. The current week or month is left out until it is over, since a half-finished period looks like a slump.
+- **Failures are safe.** Errors shown to people never contain stack traces, addresses or secrets; the detail goes to the log.
+
+How it works is in [docs/ml-methodology.md](docs/ml-methodology.md): the features, the model, the validation and, honestly, the limits. In short, one XGBoost model learns the pattern across all products (so young products borrow strength from old ones), predicting a median and a 10th and 90th percentile; each product's history is first divided by its own average so a fast mover and a slow mover look alike.
+
+Laravel and the ML service talk through a small JSON contract. Its schemas and example payloads live in `contracts/` and are generated from the Python models (`scripts/export_contracts.py`). **Both sides test against the same files**: Laravel checks the requests it builds and the example response it parses, and the ML tests check the service's answers, so a change to one side that breaks the other fails a test. The ML service accepts calls only with the shared secret in `ML_INTERNAL_TOKEN` (set the same value on both sides; change it from the development default before deploying).
+
+Training is capped at 4 threads (`ML_THREADS` on the `ml` service changes it). The data is small, so more threads speed nothing up, and on a busy machine they made a run an order of magnitude slower.
+
+To judge a change to the model without going through Laravel:
+
+```bash
+docker compose exec ml python -m scripts.accuracy_report week 8 --folds 4
+```
+
 ## Demo data
 
 `php artisan db:seed` (never in production) loads a realistic shop so every screen has something to show: 5 categories, 50 products, **two years of daily sales** (about 30,000 rows, October 2024 to September 2026), and the deliveries that kept the shelves stocked. It takes about 35 seconds and sends the sales through the real import above, so seeding doubles as a test of it. The result is a stock ledger that adds up to today's stock levels, with some products low or out of stock.
@@ -163,13 +190,13 @@ MSYS_NO_PATHCONV=1 docker compose exec ml python scripts/generate_synthetic.py -
 
 ## Working with the queue workers
 
-Background jobs (imports, and later forecasts) run in the `horizon` container. A worker loads the code once when it starts, so **after you change PHP code or install a package, restart it**:
+Background jobs (imports and forecast runs) run in the `horizon` container. A worker loads the code once when it starts, so **after you change PHP code or install a package, restart it**:
 
 ```bash
 docker compose restart horizon scheduler
 ```
 
-If you forget, an import fails with an error such as "class not found". The import page then shows it as failed with a message, and nothing is lost: the sales already imported stay, and the import can be undone. Horizon's own dashboard is at `/horizon` (Owner only).
+If you forget, an import fails with an error such as "class not found". The import page then shows it as failed with a message, and nothing is lost: the sales already imported stay, and the import can be undone. A forecast run fails the same way, with its own message, and can simply be started again. Horizon's own dashboard is at `/horizon` (Owner only).
 
 ## Frontend tests
 

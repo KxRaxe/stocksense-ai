@@ -199,7 +199,7 @@ return [
     'defaults' => [
         'supervisor-1' => [
             'connection' => 'redis',
-            'queue' => ['default', 'imports', 'ml'],
+            'queue' => ['default', 'imports'],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
             'maxProcesses' => 1,
@@ -210,6 +210,24 @@ return [
             'timeout' => 60,
             'nice' => 0,
         ],
+
+        // Forecast runs train a model and can take minutes, so they get workers
+        // of their own with a long time limit, and cannot be starved by (or
+        // starve) the short jobs above. The limit must stay under the queue's
+        // `retry_after` in config/queue.php, or a running job would be handed
+        // to a second worker.
+        'supervisor-ml' => [
+            'connection' => 'redis',
+            'queue' => ['ml'],
+            'balance' => 'simple',
+            'maxProcesses' => 1,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 256,
+            'tries' => 1,
+            'timeout' => 900,
+            'nice' => 0,
+        ],
     ],
 
     'environments' => [
@@ -218,6 +236,9 @@ return [
                 'maxProcesses' => 10,
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
+            ],
+            'supervisor-ml' => [
+                'maxProcesses' => 2,
             ],
         ],
 
