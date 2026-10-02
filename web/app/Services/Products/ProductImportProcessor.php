@@ -108,7 +108,7 @@ class ProductImportProcessor implements ImportProcessor
 
                 $categories[$key] ??= Category::create([
                     'name' => $row->newCategory,
-                    'service_level' => ProductImportFields::NEW_CATEGORY_SERVICE_LEVEL,
+                    'service_level' => ProductImportFields::newCategoryServiceLevel(),
                 ])->id;
 
                 $values['category_id'] = $categories[$key];

@@ -13,7 +13,7 @@ For each active product, at the default location:
 | Expected demand, day by day | The latest completed forecast (weekly, else monthly). A weekly figure is spread evenly over its 7 days; a monthly one over the days of that month. Days before the first forecast period take that period's rate, and days after the last (a lead time longer than the horizon) take the average over the whole forecast. Only the **median** (P50) is used for demand. |
 | Typical forecast error | The forecast run's `residual_std` for the product (how far past forecasts missed, in units per period). If a run has none for a product, it is taken from the width of the forecast's own 10-90% range (that range spans about 2.56 standard deviations). |
 | Lead time `LT` | `products.lead_time_days` |
-| Review period `R` | `REPLENISHMENT_REVIEW_DAYS`, default 7: the gap between orders you would normally place |
+| Review period `R` | The review period setting (System settings, default 7): the gap between orders you would normally place |
 | Service level | The product's category target, e.g. 95% |
 | On hand, on order | `inventory_levels`. **On order** is the total of accepted recommendations not yet received. |
 | Pack size, minimum order, overrides | The product's own fields |
@@ -53,7 +53,7 @@ Nails: forecast 70 a week, lead time 7 days, review period 7 days, 10 on hand, n
 | **Critical** | `IP < D(LT)`: stock is expected to run out before a new order could arrive. Always due, whatever reorder point was set. |
 | **Low** | `IP ≤ ROP`: at or below the reorder point. Order now. |
 | **Watch** | Will reach the reorder point in **fewer than R days** (before the next review). Order soon. |
-| **Overstock** | More than `REPLENISHMENT_OVERSTOCK_DAYS` (default 90) of average demand on hand. Information only; no quantity. |
+| **Overstock** | More than the overstock threshold (System settings, default 90) days of average demand on hand. Information only; no quantity. |
 | **OK** | Everything else. Not listed. |
 
 Days of cover is `IP ÷ average daily demand` over the forecast horizon.
@@ -66,7 +66,7 @@ Days of cover is `IP ÷ average daily demand` over the forecast horizon.
 
 - There is **one open recommendation per product**. A refresh updates it in place; when the product no longer needs ordering, it is closed.
 - **Accepting** records "I will order this". The quantity is added to *on order*, so the product is not recommended again while it is on its way. Recording a **restock** (goods received) reduces *on order* by the amount received, never below zero; **cancelling** the order removes it.
-- **Dismissing** leaves the product out of the recommendations for `REPLENISHMENT_SNOOZE_DAYS` (default 7) and then looks again.
+- **Dismissing** leaves the product out of the recommendations for the snooze period (System settings, default 7 days) and then looks again.
 - Each decision stores who made it, when, and a note, and goes to the audit log. Only the Owner and Manager can decide; inventory staff can look.
 - On order is a **counter** on the stock level, not a stock movement: ordering something is not stock, and the ledger only records what physically moved.
 - Recommendations are refreshed every morning (06:00 Asia/Manila), after every forecast run, and on demand (**Recalculate**), because stock changes daily even when the forecast does not. A forecast older than 14 days is flagged on the page.

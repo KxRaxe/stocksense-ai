@@ -156,7 +156,7 @@ Forecasts say how many of each product are expected to sell, week by week (8 wee
 
 - **Forecasts page.** Pick Weekly or Monthly. Every forecast product is listed with what is expected next period, the total over the horizon, what actually sold in the same number of recent periods, and how the two compare. Filter by category or by confidence, search, or sort by what is most expected. Open a product for a chart of its recent sales followed by the forecast and its likely range (8 times in 10), plus the exact numbers.
 - **Run forecast** queues a run on the `ml` queue, and the page updates itself when it finishes (a minute or two for 50 products). Only one run per granularity goes at a time, so pressing the button twice, or a scheduled run landing on a manual one, does no harm. A run that is stuck for over an hour is written off so it cannot block the next. A run that fails says why (service unreachable, no sales history, ...) and the previous good forecast stays on screen.
-- **Schedule.** The `scheduler` container refreshes weekly forecasts early on Monday (02:00) and monthly ones on the 1st (03:00), Asia/Manila time. Change or switch off in `web/config/forecasting.php` (`FORECAST_SCHEDULE=false` in `.env` disables it).
+- **Schedule.** The `scheduler` container refreshes weekly forecasts early on Monday (02:00) and monthly ones on the 1st (03:00), Asia/Manila time. The Owner can change the day and time, or switch it off, under **System settings** (see below); `web/config/forecasting.php` holds the defaults.
 - **Accuracy page.** Every run replays the recent past: the model is shown only what was known at the time, asked to forecast, and compared with what really sold, several times over. The same is done for two simple guesses, **the same period last year** and **a recent average**, because a forecast only earns its place by beating them. The page shows MAE, RMSE, MAPE and WAPE for all three, the breakdown by category, what the model leans on (in plain words), and how accuracy has moved from run to run. WAPE (total error as a percentage of total units sold) is the headline figure, since MAPE is distorted by quiet periods.
 - **Low confidence.** A product with under a year of sales history (52 weeks or 12 months) is too young for the model to have seen its seasons. It gets a plain recent average instead, is flagged **Low** confidence, and the product page says so. As its history grows past a year it moves to the model automatically.
 - **What is forecast.** Active products that have sold at least once, from sales at the default location. The current week or month is left out until it is over, since a half-finished period looks like a slump.
@@ -181,7 +181,7 @@ From the forecast and the stock on hand, **Recommendations** (in the sidebar) sa
 - **Risk levels.** *Critical* (expected to run out before an order could arrive), *Low* (at or below the reorder point: order now), *Watch* (will reach it within a week), and *Overstock* (months of cover; information only). The cards at the top count each and narrow the list when pressed. Tabs switch between **To decide**, **Overstock** and **Decided**; filter by risk, category or search.
 - **Each card** shows how much to order and by when, on hand, on order, the demand expected while the order arrives, safety stock, reorder point and days of cover, then a sentence working it out (for example *"Order 130 now: 10 on hand is below the 70 expected over the 7-day lead time."*). Pack size and minimum order are respected.
 - **Decisions.** *Accept*, *Change quantity* or *Dismiss*, each with an optional note; an accepted order can later be *Cancelled*. Every decision records who, when and why, and goes to the audit log. An accepted quantity counts as **on order**, so the product is not recommended again while it is on its way; recording the restock (goods received) clears it. Dismissing leaves a product alone for 7 days.
-- **Refreshing.** The advice is recalculated every morning at 06:00 (Asia/Manila), after every forecast run, and with **Recalculate**. A forecast more than 14 days old is flagged. Settings are in `web/config/replenishment.php` (review period, overstock threshold, snooze days; `REPLENISHMENT_SCHEDULE=false` switches the schedule off); they will move to the settings page.
+- **Refreshing.** The advice is recalculated every morning at 06:00 (Asia/Manila), after every forecast run, and with **Recalculate**. A forecast more than 14 days old is flagged. The review period, overstock threshold, snooze days and times are shop-wide settings the Owner can change under **System settings**; `web/config/replenishment.php` holds the defaults.
 
 ```bash
 docker compose exec app php artisan recommendations:generate --sync   # recalculate now and print what changed
@@ -203,6 +203,41 @@ Alerts reach people in the app (the bell in the header, and the **Notifications*
 Each person chooses, under **Settings → Notifications**, which of these they get, whether in the app, by email, or both, and how often the digest comes. The digest goes out at 07:00 after the morning refresh; `php artisan notifications:digest` sends it by hand (add `--weekly` to include the Monday digest on any day).
 
 **Emails never contain personal data.** They open with a generic greeting, carry only product and stock figures, and link back to the app; no names, email addresses or file names. `EmailPrivacyTest` renders every email for a user with a distinctive name and address and searches the output for them, so a new email must be added to its dataset. In development all mail lands in Mailpit at http://localhost:8026.
+
+## Dashboard
+
+The first page after signing in. It shows what each person is allowed to see, and nothing else, so an inventory staff member does not see forecasts and someone with no permissions gets a note to ask the Owner.
+
+- **Headline figures:** sales for the last 30 days against the 30 before, stock value at cost, how many products need ordering (critical and low), and the forecast's typical error against the same week last year. The last three link to Inventory, Recommendations and the accuracy page.
+- **Charts:** revenue for each of the last 26 whole weeks (this week is left out, as a half-finished week looks like a slump); units sold with what the forecast expects next and its likely range (all products together, so the range adds up each product's own range and is wider than the true range for the total); and each category's share of the revenue.
+- **Lists:** the most urgent products to order, the best sellers by units, and the slowest sellers: products in stock that barely sell, which is money sitting on the shelf.
+
+Sales are over a rolling 30 days rather than a calendar month, which would be nearly empty early in the month.
+
+## Reports
+
+**Reports** in the sidebar has four. Each opens on screen with filters and can be downloaded as **Excel** or **PDF**, with the same figures as the screen.
+
+| Report | Who | Filters |
+|---|---|---|
+| Sales: units, revenue and share of the total for each product | Owner, Manager | period, category |
+| Inventory status: stock on hand and on order, value at cost, stock level and the advice for each product, as of now | Owner, Manager, inventory staff | category |
+| Forecast accuracy: MAE, RMSE, MAPE and WAPE for each run, for all products and by category, against the two baselines | Owner, Manager | period, weekly or monthly, category |
+| Replenishment history: every recommendation raised in a period, what was decided, by whom, and the quantity | Owner, Manager | period, category |
+
+- The Excel file has the table on its first sheet with real numbers, dates and number formats (so it can be sorted, filtered and added up) and an **About** sheet with what it covers, when it was made, the headline figures and the notes needed to read it. The PDF is landscape A4 with the same, cut off at 1,000 rows (the Excel file has them all).
+- A period can cover at most three years. A mistyped or impossible filter in the address falls back to the default and says what was wrong.
+- Every export is recorded in the audit log.
+
+## System settings
+
+Shop-wide settings, **Owner only**, under **System settings** (not to be confused with each person's own notification and account settings under their name): the default service level for new categories, the review period, the overstock threshold, how long dismissed advice stays hidden, when to warn that the forecast is old, how far ahead weekly and monthly forecasts look, and the schedule (when forecasts are refreshed, when the advice is refreshed and when the digest email goes out, each switchable).
+
+Only changes are stored; a setting with no change uses the default from the config files, and **Restore defaults** removes every change. They apply straight away, including to the queue workers, which pick them up before each job without a restart. Times are in the shop's time zone, and a change to a schedule takes effect from its next run. The digest must be sent after the advice is refreshed. Every change is in the audit log with the old and new values.
+
+## Audit log
+
+**Audit log** (Owner only) lists who did what, and when, newest first: sign-ins, product and category changes, user changes, sales and imports, forecast runs, recommendation decisions, settings changes and report exports. Filter by area, person, period and a word in the description; open an entry's details to see what changed from and to. It is read-only: nothing can edit or delete an entry. Secrets (passwords, tokens, keys) are never shown.
 
 ## Demo data
 

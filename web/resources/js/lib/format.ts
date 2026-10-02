@@ -36,3 +36,16 @@ export function formatDate(date: string): string {
 
     return day.format(new Date(year, month - 1, dayOfMonth));
 }
+
+const compactPeso = new Intl.NumberFormat('en-PH', {
+    style: 'currency',
+    currency: 'PHP',
+    notation: 'compact',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1,
+});
+
+/** 12500 -> "₱12.5K", for chart axes where the full figure will not fit. */
+export function formatMoneyCompact(amount: number): string {
+    return compactPeso.format(amount);
+}

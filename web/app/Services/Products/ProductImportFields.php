@@ -51,9 +51,13 @@ final class ProductImportFields
     ];
 
     /**
-     * The service level a category created by an import starts with.
+     * The service level (%) a category created by an import starts with: the
+     * default service level setting.
      */
-    public const NEW_CATEGORY_SERVICE_LEVEL = '95.00';
+    public static function newCategoryServiceLevel(): string
+    {
+        return number_format((float) config('replenishment.default_service_level'), 2, '.', '');
+    }
 
     /**
      * Field => label, whether it is required, and header names it is known by

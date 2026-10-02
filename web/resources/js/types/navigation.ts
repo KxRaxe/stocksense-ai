@@ -14,4 +14,6 @@ export type NavItem = {
     isActive?: boolean;
     /** When set, the item is only shown to users holding this permission. */
     permission?: Permission;
+    /** When set, the item is shown to users holding any one of these permissions. */
+    anyPermission?: Permission[];
 };

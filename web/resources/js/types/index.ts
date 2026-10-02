@@ -1,9 +1,12 @@
 export type * from './auth';
 export type * from './catalog';
+export type * from './dashboard';
 export type * from './forecasts';
 export type * from './imports';
 export type * from './navigation';
 export type * from './replenishment';
+export type * from './reports';
 export type * from './sales';
+export type * from './system';
 export type * from './ui';
 export type * from './users';

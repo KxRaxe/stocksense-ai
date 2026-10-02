@@ -78,7 +78,7 @@ class ProductImportDefinition implements ImportDefinition
                     [
                         'value' => '1',
                         'label' => "Create categories that don't exist yet",
-                        'help' => 'Without this, a row whose category is not found is reported as a problem. New categories start at a '.(float) ProductImportFields::NEW_CATEGORY_SERVICE_LEVEL.'% service level.',
+                        'help' => 'Without this, a row whose category is not found is reported as a problem. New categories start at a '.(float) ProductImportFields::newCategoryServiceLevel().'% service level.',
                     ],
                 ],
             ],

@@ -164,7 +164,7 @@ class ProductImportPreview
 
             $notes[] = Number::format(count($newCategories)).' new '.Str::plural('category', count($newCategories))
                 .' will be created ('.implode(', ', $shown).($more > 0 ? ", and {$more} more" : '').')'
-                .' with a service level of '.(float) ProductImportFields::NEW_CATEGORY_SERVICE_LEVEL.'%. You can change that on the Categories page.';
+                .' with a service level of '.(float) ProductImportFields::newCategoryServiceLevel().'%. You can change that on the Categories page.';
         }
 
         if ($restored > 0) {

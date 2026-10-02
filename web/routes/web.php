@@ -1,23 +1,27 @@
 <?php
 
 use App\Enums\Permission;
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ForecastController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductImportController;
 use App\Http\Controllers\RecommendationController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SalesImportController;
 use App\Http\Controllers\StockController;
+use App\Http\Controllers\SystemSettingsController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'dashboard')->name('dashboard');
+    Route::get('dashboard', DashboardController::class)->name('dashboard');
 
     // Catalog changes: Owner and Manager. These come first so "products/create"
     // is not mistaken for a product id by the show route below.
@@ -98,6 +102,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('{recommendation}/cancel', [RecommendationController::class, 'cancel'])->name('cancel')->whereNumber('recommendation');
         });
 
+    // Reports: what each person may open depends on the report (`reports.view`, or
+    // `reports.inventory` for the stock report), so the controller checks per report.
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])->name('index');
+        Route::get('{report}', [ReportController::class, 'show'])->name('show')->where('report', '[a-z-]+');
+        Route::get('{report}/export/{format}', [ReportController::class, 'export'])->name('export')->where('report', '[a-z-]+')->where('format', 'xlsx|pdf');
+    });
+
     // Everyone's own notifications.
     Route::prefix('notifications')->name('notifications.')->group(function () {
         Route::get('/', [NotificationController::class, 'index'])->name('index');
@@ -116,7 +128,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('can:'.Permission::ViewSales->value)
         ->name('sales.index');
 
-    // Administration: Owner only.
+    // The audit log: Owner only, read-only.
+    Route::get('audit-log', [AuditLogController::class, 'index'])
+        ->middleware('can:'.Permission::ViewAuditLog->value)
+        ->name('audit-log.index');
+
+    // Administration: Owner only. Shop-wide settings (not the per-person ones in routes/settings.php).
+    Route::middleware('can:'.Permission::ManageSettings->value)
+        ->prefix('system-settings')
+        ->name('system-settings.')
+        ->group(function () {
+            Route::get('/', [SystemSettingsController::class, 'edit'])->name('edit');
+            Route::put('/', [SystemSettingsController::class, 'update'])->name('update');
+            Route::post('reset', [SystemSettingsController::class, 'reset'])->name('reset');
+        });
+
     Route::middleware('can:'.Permission::ManageUsers->value)->group(function () {
         Route::resource('users', UserController::class)->except(['show', 'destroy']);
         Route::patch('users/{user}/deactivate', [UserController::class, 'deactivate'])->name('users.deactivate');

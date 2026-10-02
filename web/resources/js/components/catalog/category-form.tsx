@@ -13,10 +13,17 @@ type Props = {
     /** Wayfinder form definition, e.g. `store.form()` or `update.form(id)`. */
     action: RouteFormDefinition<'post'>;
     category?: CategoryRow;
+    /** The service level a new category starts with (a system setting). */
+    defaultServiceLevel?: number;
     submitLabel: string;
 };
 
-export default function CategoryForm({ action, category, submitLabel }: Props) {
+export default function CategoryForm({
+    action,
+    category,
+    defaultServiceLevel = 95,
+    submitLabel,
+}: Props) {
     return (
         <Form {...action} className="max-w-xl space-y-6">
             {({ processing, errors }) => (
@@ -56,7 +63,9 @@ export default function CategoryForm({ action, category, submitLabel }: Props) {
                             step="0.1"
                             min="50"
                             max="99.9"
-                            defaultValue={category?.service_level ?? 95}
+                            defaultValue={
+                                category?.service_level ?? defaultServiceLevel
+                            }
                             required
                             className="max-w-40"
                         />

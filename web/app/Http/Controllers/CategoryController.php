@@ -34,7 +34,9 @@ class CategoryController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('categories/create');
+        return Inertia::render('categories/create', [
+            'defaultServiceLevel' => (float) config('replenishment.default_service_level'),
+        ]);
     }
 
     public function store(CategoryRequest $request): RedirectResponse

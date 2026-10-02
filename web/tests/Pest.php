@@ -21,3 +21,4 @@ pest()->extend(TestCase::class)
 // Helpers shared by the forecasting tests.
 require_once __DIR__.'/Support/forecasting.php';
 require_once __DIR__.'/Support/replenishment.php';
+require_once __DIR__.'/Support/reporting.php';

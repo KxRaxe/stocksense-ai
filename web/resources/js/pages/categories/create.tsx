@@ -3,7 +3,11 @@ import CategoryForm from '@/components/catalog/category-form';
 import Heading from '@/components/heading';
 import { create, index, store } from '@/routes/categories';
 
-export default function CreateCategory() {
+export default function CreateCategory({
+    defaultServiceLevel,
+}: {
+    defaultServiceLevel: number;
+}) {
     return (
         <>
             <Head title="New category" />
@@ -12,6 +16,7 @@ export default function CreateCategory() {
                 <Heading title="New category" />
                 <CategoryForm
                     action={store.form()}
+                    defaultServiceLevel={defaultServiceLevel}
                     submitLabel="Create category"
                 />
             </div>

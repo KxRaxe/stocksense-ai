@@ -16,6 +16,9 @@ return [
 
     'review_days' => (int) env('REPLENISHMENT_REVIEW_DAYS', 7),
 
+    // The service level (%) given to a new category, such as one created by a product import.
+    'default_service_level' => (float) env('DEFAULT_SERVICE_LEVEL', 95),
+
     'overstock_days' => (int) env('REPLENISHMENT_OVERSTOCK_DAYS', 90),
 
     // How far ahead to look for the day stock is expected to reach the reorder point.
