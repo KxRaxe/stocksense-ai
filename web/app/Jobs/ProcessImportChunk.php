@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Enums\ImportStatus;
 use App\Models\ImportBatch;
+use App\Services\Notifications\NotificationDispatcher;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
@@ -50,6 +51,8 @@ class ProcessImportChunk implements ShouldQueue
         }
 
         $batch->forceFill(['status' => ImportStatus::Completed, 'finished_at' => now()])->save();
+
+        $this->tell($batch);
     }
 
     public function failed(Throwable $exception): void
@@ -60,6 +63,21 @@ class ProcessImportChunk implements ShouldQueue
             'finished_at' => now(),
         ]);
 
+        $batch = ImportBatch::query()->find($this->batchId);
+
+        if ($batch !== null) {
+            $this->tell($batch);
+        }
+
         report($exception);
+    }
+
+    /**
+     * Tells the person who uploaded the file if it had problems. A failure to send
+     * must not undo an import that worked, so it is reported and not thrown.
+     */
+    private function tell(ImportBatch $batch): void
+    {
+        rescue(fn () => app(NotificationDispatcher::class)->importFinished($batch));
     }
 }

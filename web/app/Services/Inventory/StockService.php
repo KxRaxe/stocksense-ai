@@ -80,6 +80,47 @@ class StockService
     }
 
     /**
+     * Counts goods as ordered but not yet received. This is not stock: nothing
+     * goes in the ledger and `on_hand` does not change. It is what keeps a
+     * product that has been ordered from being recommended again; a restock
+     * brings it back down.
+     */
+    public function addOnOrder(Product $product, int $quantity, ?Location $location = null): void
+    {
+        if ($quantity < 1) {
+            throw new InvalidArgumentException('A quantity on order must be at least 1.');
+        }
+
+        DB::transaction(function () use ($product, $quantity, $location) {
+            $level = $this->lockLevel($product, $location ?? $this->locations->current());
+            $level->on_order += $quantity;
+            $level->save();
+        });
+    }
+
+    /**
+     * Takes goods off "on order" without receiving them, for an order that
+     * will not arrive after all. Never goes below zero.
+     *
+     * @return int How much was actually taken off
+     */
+    public function reduceOnOrder(Product $product, int $quantity, ?Location $location = null): int
+    {
+        if ($quantity < 1) {
+            throw new InvalidArgumentException('A quantity to take off the order must be at least 1.');
+        }
+
+        return DB::transaction(function () use ($product, $quantity, $location) {
+            $level = $this->lockLevel($product, $location ?? $this->locations->current());
+            $removed = min($quantity, $level->on_order);
+            $level->on_order -= $removed;
+            $level->save();
+
+            return $removed;
+        });
+    }
+
+    /**
      * Writes one ledger row and applies it to the stock level.
      *
      * @param  Model|null  $reference  The record that caused this movement (e.g. a sale)

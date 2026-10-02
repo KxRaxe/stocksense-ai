@@ -4,8 +4,10 @@ use App\Enums\Permission;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ForecastController;
 use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductImportController;
+use App\Http\Controllers\RecommendationController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SalesImportController;
 use App\Http\Controllers\StockController;
@@ -79,6 +81,30 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('forecasts/run', [ForecastController::class, 'run'])
         ->middleware('can:'.Permission::RunForecasts->value)
         ->name('forecasts.run');
+
+    // What to reorder: everyone with `recommendations.view` can look; deciding (accept, adjust,
+    // dismiss, cancel an order) needs `recommendations.decide`. The system never orders anything.
+    Route::get('recommendations', [RecommendationController::class, 'index'])
+        ->middleware('can:'.Permission::ViewRecommendations->value)
+        ->name('recommendations.index');
+    Route::middleware('can:'.Permission::DecideRecommendations->value)
+        ->prefix('recommendations')
+        ->name('recommendations.')
+        ->group(function () {
+            Route::post('refresh', [RecommendationController::class, 'refresh'])->name('refresh');
+            Route::post('{recommendation}/accept', [RecommendationController::class, 'accept'])->name('accept')->whereNumber('recommendation');
+            Route::post('{recommendation}/adjust', [RecommendationController::class, 'adjust'])->name('adjust')->whereNumber('recommendation');
+            Route::post('{recommendation}/dismiss', [RecommendationController::class, 'dismiss'])->name('dismiss')->whereNumber('recommendation');
+            Route::post('{recommendation}/cancel', [RecommendationController::class, 'cancel'])->name('cancel')->whereNumber('recommendation');
+        });
+
+    // Everyone's own notifications.
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
+        Route::post('read-all', [NotificationController::class, 'readAll'])->name('read-all');
+        Route::get('{notification}/open', [NotificationController::class, 'open'])->name('open')->whereUuid('notification');
+        Route::post('{notification}/read', [NotificationController::class, 'read'])->name('read')->whereUuid('notification');
+    });
 
     // Entering sales by hand and looking at sales history.
     Route::middleware('can:'.Permission::EnterSales->value)->group(function () {

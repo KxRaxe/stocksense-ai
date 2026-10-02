@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import {
     Boxes,
+    ClipboardCheck,
     LayoutGrid,
     Package,
     Receipt,
@@ -26,6 +27,7 @@ import { index as categoriesIndex } from '@/routes/categories';
 import { index as forecastsIndex } from '@/routes/forecasts';
 import { index as inventoryIndex } from '@/routes/inventory';
 import { index as productsIndex } from '@/routes/products';
+import { index as recommendationsIndex } from '@/routes/recommendations';
 import { index as salesIndex } from '@/routes/sales';
 import { index as usersIndex } from '@/routes/users';
 import type { NavItem } from '@/types';
@@ -60,6 +62,12 @@ const mainNavItems: NavItem[] = [
         href: forecastsIndex(),
         icon: TrendingUp,
         permission: 'forecasts.view',
+    },
+    {
+        title: 'Recommendations',
+        href: recommendationsIndex(),
+        icon: ClipboardCheck,
+        permission: 'recommendations.view',
     },
     {
         title: 'Categories',

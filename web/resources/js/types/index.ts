@@ -3,6 +3,7 @@ export type * from './catalog';
 export type * from './forecasts';
 export type * from './imports';
 export type * from './navigation';
+export type * from './replenishment';
 export type * from './sales';
 export type * from './ui';
 export type * from './users';

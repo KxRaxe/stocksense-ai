@@ -6,6 +6,7 @@ use App\Enums\ForecastStatus;
 use App\Models\ForecastRun;
 use App\Services\Forecasting\ForecastException;
 use App\Services\Forecasting\ForecastExecutor;
+use App\Services\Notifications\NotificationDispatcher;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
@@ -50,14 +51,36 @@ class RunForecastJob implements ShouldQueue
         } catch (ForecastException $e) {
             // Something the person can act on: say what it was.
             $this->markFailed($e->getMessage());
+            $this->tell();
+
+            return;
         }
+
+        $this->tell();
+
+        // The forecast is new, so reorder advice built on it is too.
+        GenerateRecommendationsJob::dispatch();
     }
 
     public function failed(Throwable $exception): void
     {
         $this->markFailed('The forecast stopped because of an unexpected error. Try again; if it keeps happening, check the logs.');
+        $this->tell();
 
         report($exception);
+    }
+
+    /**
+     * Tells the people who should know how the run went. A failure to send must
+     * not undo a forecast that worked, so it is reported and not thrown.
+     */
+    private function tell(): void
+    {
+        $run = ForecastRun::query()->find($this->runId);
+
+        if ($run !== null) {
+            rescue(fn () => app(NotificationDispatcher::class)->forecastRun($run));
+        }
     }
 
     private function markFailed(string $message): void

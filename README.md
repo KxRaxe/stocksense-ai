@@ -174,6 +174,36 @@ To judge a change to the model without going through Laravel:
 docker compose exec ml python -m scripts.accuracy_report week 8 --folds 4
 ```
 
+## Replenishment recommendations
+
+From the forecast and the stock on hand, **Recommendations** (in the sidebar) says what to reorder, how many, and by when, with the reasoning in plain words. Like forecasts, it is **advice only**: nothing is ordered for anyone. The Owner and Manager can decide; inventory staff can look.
+
+- **Risk levels.** *Critical* (expected to run out before an order could arrive), *Low* (at or below the reorder point: order now), *Watch* (will reach it within a week), and *Overstock* (months of cover; information only). The cards at the top count each and narrow the list when pressed. Tabs switch between **To decide**, **Overstock** and **Decided**; filter by risk, category or search.
+- **Each card** shows how much to order and by when, on hand, on order, the demand expected while the order arrives, safety stock, reorder point and days of cover, then a sentence working it out (for example *"Order 130 now: 10 on hand is below the 70 expected over the 7-day lead time."*). Pack size and minimum order are respected.
+- **Decisions.** *Accept*, *Change quantity* or *Dismiss*, each with an optional note; an accepted order can later be *Cancelled*. Every decision records who, when and why, and goes to the audit log. An accepted quantity counts as **on order**, so the product is not recommended again while it is on its way; recording the restock (goods received) clears it. Dismissing leaves a product alone for 7 days.
+- **Refreshing.** The advice is recalculated every morning at 06:00 (Asia/Manila), after every forecast run, and with **Recalculate**. A forecast more than 14 days old is flagged. Settings are in `web/config/replenishment.php` (review period, overstock threshold, snooze days; `REPLENISHMENT_SCHEDULE=false` switches the schedule off); they will move to the settings page.
+
+```bash
+docker compose exec app php artisan recommendations:generate --sync   # recalculate now and print what changed
+```
+
+The rules (and where they stop being reliable) are in [docs/replenishment-methodology.md](docs/replenishment-methodology.md), with a worked example you can check by hand.
+
+## Notifications
+
+Alerts reach people in the app (the bell in the header, and the **Notifications** page) and by email, so nobody has to keep an eye on the screen.
+
+| Notification | Who gets it |
+|---|---|
+| Critical stock alert (at most once a day for each product) | Owner, Manager |
+| Replenishment digest: counts by level and the most urgent items | Owner, Manager (daily, weekly on Mondays, or never) |
+| Forecast ready or failed, with its headline accuracy | Whoever started it, and the Owner |
+| Import finished with problems | Whoever uploaded the file |
+
+Each person chooses, under **Settings → Notifications**, which of these they get, whether in the app, by email, or both, and how often the digest comes. The digest goes out at 07:00 after the morning refresh; `php artisan notifications:digest` sends it by hand (add `--weekly` to include the Monday digest on any day).
+
+**Emails never contain personal data.** They open with a generic greeting, carry only product and stock figures, and link back to the app; no names, email addresses or file names. `EmailPrivacyTest` renders every email for a user with a distinctive name and address and searches the output for them, so a new email must be added to its dataset. In development all mail lands in Mailpit at http://localhost:8026.
+
 ## Demo data
 
 `php artisan db:seed` (never in production) loads a realistic shop so every screen has something to show: 5 categories, 50 products, **two years of daily sales** (about 30,000 rows, October 2024 to September 2026), and the deliveries that kept the shelves stocked. It takes about 35 seconds and sends the sales through the real import above, so seeding doubles as a test of it. The result is a stock ledger that adds up to today's stock levels, with some products low or out of stock.
@@ -190,7 +220,7 @@ MSYS_NO_PATHCONV=1 docker compose exec ml python scripts/generate_synthetic.py -
 
 ## Working with the queue workers
 
-Background jobs (imports and forecast runs) run in the `horizon` container. A worker loads the code once when it starts, so **after you change PHP code or install a package, restart it**:
+Background jobs (imports, forecast runs, recommendations and notification emails) run in the `horizon` container. A worker loads the code once when it starts, so **after you change PHP code or install a package, restart it**:
 
 ```bash
 docker compose restart horizon scheduler

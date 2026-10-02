@@ -3,11 +3,9 @@
 use App\Enums\ForecastGranularity;
 use App\Enums\ForecastStatus;
 use App\Jobs\RunForecastJob;
-use App\Models\Category;
 use App\Models\Forecast;
 use App\Models\ForecastRun;
 use App\Models\Location;
-use App\Models\Product;
 use App\Models\User;
 use App\Services\Forecasting\ForecastRunner;
 use App\Services\Inventory\LocationContext;
@@ -27,32 +25,6 @@ beforeEach(function () {
 
     config(['forecasting.ml.url' => 'http://ml.test:8000', 'forecasting.ml.token' => 'secret']);
 });
-
-/** The example response from contracts/fixtures, which is about products 20, 39 and 49. */
-function exampleAnswer(): array
-{
-    return Contracts::fixture('forecast-response');
-}
-
-/**
- * Three products with the ids the example response is about, each with some sales,
- * so the series builder has something to ask the (faked) ML service about.
- *
- * @return list<Product>
- */
-function productsFromTheExample(): array
-{
-    $category = Category::factory()->create();
-    $products = [];
-
-    foreach ([20, 39, 49] as $id) {
-        $product = Product::factory()->for($category)->create(['id' => $id]);
-        sell($product, [['2026-08-03', 5, 10], ['2026-09-14', 7, 10]]);
-        $products[] = $product;
-    }
-
-    return $products;
-}
 
 describe('starting a run', function () {
     beforeEach(fn () => Queue::fake());
