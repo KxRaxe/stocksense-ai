@@ -92,7 +92,7 @@ export default function SalesIndex({ sales, filters, totals, can }: Props) {
                     {formatMoney(totals.revenue)}
                 </p>
 
-                <div className="rounded-lg border">
+                <div className="rounded-xl border-2 bg-card shadow-brutal">
                     <Table>
                         <TableHeader>
                             <TableRow>

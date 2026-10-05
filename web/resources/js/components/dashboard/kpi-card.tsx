@@ -15,11 +15,15 @@ type Props = {
     testId: string;
 };
 
+// A toned figure sits on a fill, read in ink: the same in light and dark.
+const chip =
+    'rounded-md border-2 border-ink px-1.5 text-ink dark:border-transparent';
+
 const tones = {
     default: '',
-    good: 'text-emerald-600 dark:text-emerald-400',
-    warning: 'text-amber-600 dark:text-amber-400',
-    bad: 'text-red-600 dark:text-red-400',
+    good: `${chip} bg-ok`,
+    warning: `${chip} bg-low`,
+    bad: `${chip} bg-critical`,
 };
 
 /** One headline figure with a little context. A link when there is somewhere to look closer. */
@@ -33,12 +37,20 @@ export default function KpiCard({
 }: Props) {
     const content = (
         <>
-            <p className="text-sm text-muted-foreground">{label}</p>
-            <p
-                className={cn('mt-1 text-2xl font-semibold', tones[tone])}
-                data-test="kpi-value"
-            >
-                {value}
+            <p className="font-mono text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                {label}
+            </p>
+            <p className="mt-2">
+                <span
+                    className={cn(
+                        'inline-block font-mono text-2xl font-semibold tabular-nums',
+                        tones[tone],
+                    )}
+                    data-test="kpi-value"
+                    data-tone={tone}
+                >
+                    {value}
+                </span>
             </p>
             {children && (
                 <div className="mt-1 space-y-0.5 text-sm text-muted-foreground">
@@ -48,12 +60,12 @@ export default function KpiCard({
         </>
     );
 
-    const className = 'block rounded-lg border p-4';
+    const className = 'block rounded-xl border-2 bg-card p-4 shadow-brutal';
 
     return href ? (
         <Link
             href={href}
-            className={cn(className, 'transition-colors hover:bg-muted/50')}
+            className={cn(className, 'press hover:bg-accent/20')}
             data-test={testId}
         >
             {content}

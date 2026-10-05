@@ -149,7 +149,7 @@ export default function SalesEntryForm({ products, today }: Props) {
                                 </NativeSelect>
                                 {product && (
                                     <p
-                                        className={`text-xs ${overSold ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground'}`}
+                                        className={`text-xs ${overSold ? 'font-medium text-warning' : 'text-muted-foreground'}`}
                                     >
                                         {overSold
                                             ? `Only ${formatNumber(product.on_hand)} ${product.unit} on hand. Stock will go negative.`

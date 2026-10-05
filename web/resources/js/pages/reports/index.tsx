@@ -37,7 +37,7 @@ export default function ReportsIndex({ reports }: ReportsIndexProps) {
                             <Link
                                 key={report.key}
                                 href={show(report.key)}
-                                className="space-y-2 rounded-lg border p-5 transition-colors hover:bg-muted/50"
+                                className="press space-y-2 rounded-xl border-2 bg-card p-5 shadow-brutal hover:bg-accent/20"
                                 data-test={`report-${report.key}`}
                             >
                                 <div className="flex items-center gap-2">

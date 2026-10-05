@@ -59,7 +59,7 @@ function Stat({
     note?: string;
 }) {
     return (
-        <div className="rounded-lg border p-4">
+        <div className="rounded-xl border-2 bg-card p-4 shadow-brutal">
             <div className="text-sm text-muted-foreground">{label}</div>
             <div className="mt-1 text-2xl font-semibold tracking-tight">
                 {value}
@@ -120,7 +120,7 @@ export default function ProductForecast({
 
                 {run === null && (
                     <div
-                        className="rounded-lg border p-6 text-sm text-muted-foreground"
+                        className="rounded-xl border-2 bg-card p-6 text-sm text-muted-foreground shadow-brutal"
                         data-test="no-forecast"
                     >
                         There is no {granularity}ly forecast yet. Run one from
@@ -130,7 +130,7 @@ export default function ProductForecast({
 
                 {run !== null && forecast.length === 0 && (
                     <div
-                        className="rounded-lg border p-6 text-sm text-muted-foreground"
+                        className="rounded-xl border-2 bg-card p-6 text-sm text-muted-foreground shadow-brutal"
                         data-test="not-forecast"
                     >
                         This product is not in the latest {granularity}ly
@@ -141,11 +141,11 @@ export default function ProductForecast({
 
                 {lowConfidence && forecast.length > 0 && (
                     <div
-                        className="flex items-start gap-3 rounded-lg border border-amber-500/50 bg-amber-500/10 p-4 text-sm"
+                        className="flex items-start gap-3 rounded-xl border-2 border-ink bg-low p-4 text-sm text-ink shadow-brutal-sm dark:border-transparent"
                         role="alert"
                         data-test="low-confidence-warning"
                     >
-                        <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                        <AlertTriangle className="mt-0.5 size-4 shrink-0" />
                         <div>
                             <p className="font-medium">
                                 Low confidence: under a year of sales history
@@ -200,7 +200,7 @@ export default function ProductForecast({
                             unit={product.unit}
                         />
 
-                        <div className="rounded-lg border">
+                        <div className="rounded-xl border-2 bg-card shadow-brutal">
                             <Table>
                                 <TableHeader>
                                     <TableRow>

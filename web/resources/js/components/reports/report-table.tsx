@@ -27,7 +27,7 @@ export default function ReportTable({
     showTotals,
 }: Props) {
     return (
-        <div className="overflow-x-auto rounded-lg border">
+        <div className="overflow-x-auto rounded-xl border-2 bg-card shadow-brutal">
             <Table data-test="report-table">
                 <TableHeader>
                     <TableRow>

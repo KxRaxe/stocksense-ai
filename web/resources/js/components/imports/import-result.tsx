@@ -18,7 +18,7 @@ import type { ImportBatch } from '@/types';
 
 function Figure({ label, value }: { label: string; value: number }) {
     return (
-        <div className="rounded-lg border p-4">
+        <div className="rounded-xl border-2 bg-card p-4 shadow-brutal">
             <div className="text-sm text-muted-foreground">{label}</div>
             <div className="mt-1 text-2xl font-semibold tracking-tight">
                 {formatNumber(value)}
@@ -38,7 +38,7 @@ export default function ImportResult({ batch }: { batch: ImportBatch }) {
         <div className="space-y-8">
             {batch.status === 'failed' && (
                 <div
-                    className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm"
+                    className="rounded-xl border-2 border-ink bg-critical p-4 text-sm text-ink shadow-brutal-sm dark:border-transparent"
                     role="alert"
                 >
                     {batch.error_message}
@@ -46,7 +46,10 @@ export default function ImportResult({ batch }: { batch: ImportBatch }) {
             )}
 
             {batch.status === 'undone' && (
-                <div className="rounded-lg border p-4 text-sm" role="status">
+                <div
+                    className="rounded-xl border-2 bg-card p-4 text-sm shadow-brutal"
+                    role="status"
+                >
                     This import was undone.
                 </div>
             )}
@@ -99,7 +102,7 @@ export default function ImportResult({ batch }: { batch: ImportBatch }) {
                         {batch.rows_failed > batch.errors.length &&
                             ` (first ${batch.errors.length} of ${formatNumber(batch.rows_failed)}; the report has them all)`}
                     </p>
-                    <div className="rounded-lg border">
+                    <div className="rounded-xl border-2 bg-card shadow-brutal">
                         <Table>
                             <TableHeader>
                                 <TableRow>

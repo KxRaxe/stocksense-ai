@@ -128,27 +128,18 @@ describe('Dashboard', () => {
         });
 
         it.each([
-            [{ critical: 2, low: 1, watch: 0, needs_attention: 3 }, 'text-red'],
-            [
-                { critical: 0, low: 4, watch: 0, needs_attention: 4 },
-                'text-amber',
-            ],
-            [
-                { critical: 0, low: 0, watch: 3, needs_attention: 0 },
-                'text-emerald',
-            ],
-        ])(
-            'colours the count to match how urgent it is (%o)',
-            (risk, colour) => {
-                render(<Dashboard {...makeDashboard({ risk })} />);
+            [{ critical: 2, low: 1, watch: 0, needs_attention: 3 }, 'bad'],
+            [{ critical: 0, low: 4, watch: 0, needs_attention: 4 }, 'warning'],
+            [{ critical: 0, low: 0, watch: 3, needs_attention: 0 }, 'good'],
+        ])('colours the count to match how urgent it is (%o)', (risk, tone) => {
+            render(<Dashboard {...makeDashboard({ risk })} />);
 
-                expect(
-                    within(screen.getByTestId('kpi-risk')).getByTestId(
-                        'kpi-value',
-                    ).className,
-                ).toContain(colour);
-            },
-        );
+            expect(
+                within(screen.getByTestId('kpi-risk'))
+                    .getByTestId('kpi-value')
+                    .getAttribute('data-tone'),
+            ).toBe(tone);
+        });
 
         it('shows how accurate the forecast has been, against last year', () => {
             render(<Dashboard {...makeDashboard()} />);

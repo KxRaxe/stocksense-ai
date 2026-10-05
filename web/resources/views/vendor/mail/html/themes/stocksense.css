@@ -1,0 +1,341 @@
+/*
+ * StockSense AI email theme: the app's neo-brutalist look in what mail
+ * clients support. Hex colours (no oklch), system fonts (no web fonts), and
+ * a thick ink border in place of the hard shadow, which most clients drop.
+ *
+ * Ink #121524 · cream #f9f5e6 · violet #6639ee · yellow #f7ea3c · muted #535769
+ */
+
+/* Base */
+
+body,
+body *:not(html):not(style):not(br):not(tr):not(code) {
+    box-sizing: border-box;
+    font-family:
+        'Segoe UI',
+        -apple-system,
+        BlinkMacSystemFont,
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif,
+        'Apple Color Emoji',
+        'Segoe UI Emoji',
+        'Segoe UI Symbol';
+    position: relative;
+}
+
+body {
+    -webkit-text-size-adjust: none;
+    background-color: #f9f5e6;
+    color: #121524;
+    height: 100%;
+    line-height: 1.4;
+    margin: 0;
+    padding: 0;
+    width: 100% !important;
+}
+
+p,
+ul,
+ol,
+blockquote {
+    line-height: 1.4;
+    text-align: start;
+}
+
+a {
+    color: #6639ee;
+}
+
+a img {
+    border: none;
+}
+
+code {
+    font-family: Consolas, Menlo, monospace;
+}
+
+/* Typography */
+
+h1 {
+    color: #121524;
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 0;
+    text-align: start;
+}
+
+h2 {
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 0;
+    text-align: start;
+}
+
+h3 {
+    font-size: 14px;
+    font-weight: bold;
+    margin-top: 0;
+    text-align: left;
+}
+
+p {
+    font-size: 16px;
+    line-height: 1.5em;
+    margin-top: 0;
+    text-align: left;
+}
+
+p.sub {
+    font-size: 12px;
+}
+
+img {
+    max-width: 100%;
+}
+
+/* Layout */
+
+.wrapper {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+    background-color: #f9f5e6;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.content {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+/* Header: the app's name as a violet sticker */
+
+.header {
+    padding: 28px 0 22px;
+    text-align: center;
+}
+
+.header a {
+    background-color: #6639ee;
+    border: 2px solid #121524;
+    border-radius: 8px;
+    color: #ffffff;
+    display: inline-block;
+    font-size: 18px;
+    font-weight: bold;
+    letter-spacing: -0.01em;
+    padding: 6px 14px;
+    text-decoration: none;
+}
+
+/* Logo */
+
+.logo {
+    height: 75px;
+    margin-top: 15px;
+    margin-bottom: 10px;
+    max-height: 75px;
+    width: 75px;
+}
+
+/* Body: a white card with a thick ink edge */
+
+.body {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+    background-color: #f9f5e6;
+    border-bottom: 1px solid #f9f5e6;
+    border-top: 1px solid #f9f5e6;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.inner-body {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 570px;
+    background-color: #ffffff;
+    border: 2px solid #121524;
+    border-bottom-width: 6px;
+    border-right-width: 6px;
+    border-radius: 12px;
+    margin: 0 auto;
+    padding: 0;
+    width: 570px;
+}
+
+.inner-body a {
+    word-break: break-all;
+}
+
+/* Subcopy */
+
+.subcopy {
+    border-top: 2px dashed #121524;
+    margin-top: 25px;
+    padding-top: 25px;
+}
+
+.subcopy p {
+    color: #535769;
+    font-size: 14px;
+}
+
+/* Footer */
+
+.footer {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 570px;
+    margin: 0 auto;
+    padding: 0;
+    text-align: center;
+    width: 570px;
+}
+
+.footer p {
+    color: #535769;
+    font-size: 12px;
+    text-align: center;
+}
+
+.footer a {
+    color: #535769;
+    text-decoration: underline;
+}
+
+/* Tables: figures in a monospaced face, a heavy rule under the heading */
+
+.table table {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+    margin: 30px auto;
+    width: 100%;
+}
+
+.table th {
+    border-bottom: 2px solid #121524;
+    color: #121524;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    margin: 0;
+    padding-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.table td {
+    border-bottom: 1px solid #ede8d6;
+    color: #121524;
+    font-family: Consolas, Menlo, monospace;
+    font-size: 14px;
+    line-height: 18px;
+    margin: 0;
+    padding: 10px 0;
+}
+
+.content-cell {
+    max-width: 100vw;
+    padding: 32px;
+}
+
+/* Buttons: a chunky violet block with an ink edge */
+
+.action {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+    margin: 30px auto;
+    padding: 0;
+    text-align: center;
+    width: 100%;
+    float: unset;
+}
+
+.button {
+    -webkit-text-size-adjust: none;
+    border-radius: 8px;
+    color: #fff;
+    display: inline-block;
+    font-weight: bold;
+    overflow: hidden;
+    text-decoration: none;
+}
+
+.button-blue,
+.button-primary {
+    background-color: #6639ee;
+    border-bottom: 10px solid #6639ee;
+    border-left: 20px solid #6639ee;
+    border-right: 20px solid #6639ee;
+    border-top: 10px solid #6639ee;
+    box-shadow:
+        0 0 0 2px #121524,
+        4px 4px 0 2px #121524;
+}
+
+.button-green,
+.button-success {
+    background-color: #137738;
+    border-bottom: 10px solid #137738;
+    border-left: 20px solid #137738;
+    border-right: 20px solid #137738;
+    border-top: 10px solid #137738;
+    box-shadow:
+        0 0 0 2px #121524,
+        4px 4px 0 2px #121524;
+}
+
+.button-red,
+.button-error {
+    background-color: #d01d21;
+    border-bottom: 10px solid #d01d21;
+    border-left: 20px solid #d01d21;
+    border-right: 20px solid #d01d21;
+    border-top: 10px solid #d01d21;
+    box-shadow:
+        0 0 0 2px #121524,
+        4px 4px 0 2px #121524;
+}
+
+/* Panels: a yellow note with an ink edge */
+
+.panel {
+    border-left: #121524 solid 6px;
+    margin: 21px 0;
+}
+
+.panel-content {
+    background-color: #f7ea3c;
+    color: #121524;
+    padding: 16px;
+}
+
+.panel-content p {
+    color: #121524;
+}
+
+.panel-item {
+    padding: 0;
+}
+
+.panel-item p:last-of-type {
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+/* Utilities */
+
+.break-all {
+    word-break: break-all;
+}

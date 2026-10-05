@@ -48,7 +48,7 @@ export default function RecommendationCard({ row, canDecide }: Props) {
 
     return (
         <article
-            className="space-y-4 rounded-lg border p-4"
+            className="space-y-4 rounded-xl border-2 bg-card p-4 shadow-brutal"
             data-test={`recommendation-${row.id}`}
         >
             <div className="flex flex-wrap items-start justify-between gap-3">

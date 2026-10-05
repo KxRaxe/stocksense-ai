@@ -10,26 +10,23 @@ export const riskStyles: Record<
     { className: string; meaning: string }
 > = {
     critical: {
-        className: 'border-transparent bg-red-600 text-white',
+        className: 'bg-critical text-ink',
         meaning: 'May run out before a new order could arrive',
     },
     low: {
-        className:
-            'border-transparent bg-amber-500/15 text-amber-800 dark:text-amber-400',
+        className: 'bg-low text-ink',
         meaning: 'At or below the reorder point',
     },
     watch: {
-        className:
-            'border-transparent bg-sky-500/15 text-sky-700 dark:text-sky-400',
+        className: 'bg-watch text-ink',
         meaning: 'Will reach the reorder point within a week',
     },
     ok: {
-        className: 'text-foreground',
+        className: 'bg-ok text-ink',
         meaning: 'Enough stock for now',
     },
     overstock: {
-        className:
-            'border-transparent bg-violet-500/15 text-violet-700 dark:text-violet-400',
+        className: 'bg-overstock text-ink',
         meaning: 'More stock than is likely to sell soon',
     },
 };

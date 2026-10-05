@@ -71,7 +71,7 @@ export default function RecommendationSummary({ counts, filters }: Props) {
                     preserveScroll
                     title={card.hint}
                     className={cn(
-                        'rounded-lg border p-3 transition-colors hover:bg-muted/50',
+                        'press rounded-xl border-2 bg-card p-3 shadow-brutal hover:bg-accent/20',
                         card.active && 'border-foreground/40 bg-muted/50',
                     )}
                     aria-current={card.active ? 'true' : undefined}

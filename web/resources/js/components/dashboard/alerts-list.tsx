@@ -23,7 +23,10 @@ export default function AlertsList({ alerts, total }: Props) {
 
     return (
         <div className="space-y-3">
-            <ul className="divide-y rounded-lg border" data-test="alerts">
+            <ul
+                className="divide-y divide-border/20 rounded-xl border-2 bg-card shadow-brutal"
+                data-test="alerts"
+            >
                 {alerts.map((alert) => (
                     <li
                         key={alert.id}

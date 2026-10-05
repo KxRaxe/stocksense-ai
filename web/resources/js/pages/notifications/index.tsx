@@ -54,7 +54,7 @@ export default function NotificationsIndex({ notifications }: Props) {
 
                 {notifications.data.length === 0 ? (
                     <div
-                        className="space-y-2 rounded-lg border p-8 text-center"
+                        className="space-y-2 rounded-xl border-2 bg-card p-8 text-center shadow-brutal"
                         data-test="no-notifications"
                     >
                         <Bell className="mx-auto size-8 text-muted-foreground" />
@@ -65,7 +65,7 @@ export default function NotificationsIndex({ notifications }: Props) {
                         </p>
                     </div>
                 ) : (
-                    <ul className="divide-y rounded-lg border">
+                    <ul className="divide-y divide-border/20 rounded-xl border-2 bg-card shadow-brutal">
                         {notifications.data.map((item) => (
                             <li
                                 key={item.id}

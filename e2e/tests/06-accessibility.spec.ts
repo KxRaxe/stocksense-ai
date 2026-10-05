@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 import { authFile } from '../support/accounts';
 
 /**
@@ -20,24 +20,59 @@ const pages = [
     { name: 'the notification settings', path: '/settings/notifications', signedIn: true },
 ];
 
-for (const { name, path, signedIn } of pages) {
-    test.describe(name, () => {
-        test.use({ storageState: signedIn ? authFile('owner') : { cookies: [], origins: [] } });
-
-        test('has no serious accessibility problems', async ({ page }) => {
-            await page.goto(path);
-            await page.waitForLoadState('networkidle');
-
-            const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
-
-            const serious = results.violations.filter((violation) => violation.impact === 'serious' || violation.impact === 'critical');
-
-            expect(
-                serious.map((violation) => `${violation.id} (${violation.impact}): ${violation.help} - ${violation.nodes.length} element(s), e.g. ${violation.nodes[0]?.target.join(' ')}`),
-            ).toEqual([]);
-        });
-    });
+/** Starts the page in a chosen theme, the way a returning visitor would arrive. */
+async function useTheme(page: Page, mode: 'light' | 'dark') {
+    const { baseURL } = test.info().project.use;
+    await page.context().addCookies([{ name: 'appearance', value: mode, url: baseURL ?? 'http://localhost:8090' }]);
+    await page.addInitScript((value) => localStorage.setItem('appearance', value), mode);
 }
+
+for (const mode of ['light', 'dark'] as const) {
+    for (const { name, path, signedIn } of pages) {
+        test.describe(`${name} in ${mode} mode`, () => {
+            test.use({ storageState: signedIn ? authFile('owner') : { cookies: [], origins: [] } });
+
+            test('has no serious accessibility problems', async ({ page }) => {
+                await useTheme(page, mode);
+                await page.goto(path);
+                await page.waitForLoadState('networkidle');
+
+                await expect(page.locator('html')).toHaveClass(mode === 'dark' ? /\bdark\b/ : /^(?!.*\bdark\b)/);
+
+                const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+
+                const serious = results.violations.filter((violation) => violation.impact === 'serious' || violation.impact === 'critical');
+
+                expect(
+                    serious.map((violation) => `${violation.id} (${violation.impact}): ${violation.help} - ${violation.nodes.length} element(s), e.g. ${violation.nodes[0]?.target.join(' ')}`),
+                ).toEqual([]);
+            });
+        });
+    }
+}
+
+test.describe('the theme switch', () => {
+    test.use({ storageState: authFile('owner') });
+
+    test('flips the whole app between light and dark, and remembers the choice', async ({ page }) => {
+        // No useTheme() here: its init script would put the theme back on every page load.
+        // The browser prefers light, so the app starts light.
+        await page.goto('/dashboard');
+
+        const html = page.locator('html');
+        await expect(html).not.toHaveClass(/\bdark\b/);
+
+        await page.getByRole('button', { name: 'Switch to dark mode' }).click();
+        await expect(html).toHaveClass(/\bdark\b/);
+
+        // A new page load (the cookie tells the server) keeps it dark, with no flash of light.
+        await page.goto('/products');
+        await expect(html).toHaveClass(/\bdark\b/);
+
+        await page.getByRole('button', { name: 'Switch to light mode' }).click();
+        await expect(html).not.toHaveClass(/\bdark\b/);
+    });
+});
 
 test.describe('with the keyboard', () => {
     test.use({ storageState: authFile('owner') });

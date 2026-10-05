@@ -54,7 +54,7 @@ export default function CategoriesIndex({ categories, can }: Props) {
                     )}
                 </div>
 
-                <div className="rounded-lg border">
+                <div className="rounded-xl border-2 bg-card shadow-brutal">
                     <Table>
                         <TableHeader>
                             <TableRow>

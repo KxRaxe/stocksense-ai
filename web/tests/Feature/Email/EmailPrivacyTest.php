@@ -169,3 +169,13 @@ it('lets the person type their email on the reset page', function () {
             ->where('token', 'one-time-token')
             ->where('email', null));
 });
+
+it('is drawn in the StockSense theme', function () {
+    $this->seed(RolesAndPermissionsSeeder::class);
+    $user = User::factory()->owner()->create();
+
+    $html = implode("\n", sentMailParts($user, new SetUpAccountNotification('one-time-token')));
+
+    // The theme's violet button and ink card edge, inlined into the email.
+    expect($html)->toContain('#6639ee')->toContain('#121524');
+});

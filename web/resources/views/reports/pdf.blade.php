@@ -4,28 +4,34 @@
     <meta charset="utf-8">
     <title>{{ $title }}</title>
     <style>
+        /* The app's neo-brutalist look in what dompdf draws: ink outlines, a thick
+           bottom-right edge for the hard shadow (no box-shadow here), violet and
+           yellow blocks. DejaVu has the peso sign. */
         @page { margin: 28px 30px 40px 30px; }
-        body { font-family: 'DejaVu Sans', sans-serif; font-size: 8.5px; color: #1f2937; }
-        h1 { font-size: 16px; margin: 0 0 2px 0; }
-        .brand { font-size: 8px; color: #6b7280; margin-bottom: 8px; }
-        .meta { font-size: 9px; color: #4b5563; margin: 0 0 10px 0; }
-        .summary { width: 100%; border-collapse: separate; border-spacing: 6px 0; margin: 0 -6px 12px -6px; }
-        .summary td { border: 1px solid #d1d5db; padding: 6px 8px; width: 20%; vertical-align: top; }
-        .summary .label { font-size: 7.5px; color: #6b7280; }
-        .summary .value { font-size: 12px; font-weight: bold; margin-top: 2px; }
-        table.data { width: 100%; border-collapse: collapse; }
-        table.data th { background: #e5e7eb; text-align: left; padding: 4px 5px; border-bottom: 1px solid #9ca3af; font-size: 8px; }
-        table.data td { padding: 3px 5px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
-        table.data tr.total td { font-weight: bold; border-top: 1px solid #6b7280; border-bottom: none; }
-        .num { text-align: right; white-space: nowrap; }
+        body { font-family: 'DejaVu Sans', sans-serif; font-size: 8.5px; color: #121524; }
+        .brand { margin-bottom: 10px; }
+        .brand .logo { background: #6639ee; color: #ffffff; border: 1.5px solid #121524; padding: 2px 6px; font-weight: bold; font-size: 9px; }
+        .brand .tag { background: #f7ea3c; color: #121524; border: 1.5px solid #121524; padding: 1px 3px; font-family: 'DejaVu Sans Mono', monospace; font-weight: bold; font-size: 7px; }
+        h1 { display: inline; font-size: 17px; margin: 0; background: #f7ea3c; padding: 0 4px; }
+        .meta { font-size: 9px; color: #535769; margin: 6px 0 12px 0; }
+        .summary { width: 100%; border-collapse: separate; border-spacing: 6px 0; margin: 0 -6px 14px -6px; }
+        .summary td { border: 1.5px solid #121524; border-right-width: 3.5px; border-bottom-width: 3.5px; background: #ffffff; padding: 6px 8px; width: 20%; vertical-align: top; }
+        .summary .label { font-size: 6.5px; color: #535769; text-transform: uppercase; letter-spacing: 0.4px; font-weight: bold; }
+        .summary .value { font-family: 'DejaVu Sans Mono', monospace; font-size: 12px; font-weight: bold; margin-top: 3px; }
+        table.data { width: 100%; border-collapse: collapse; border: 1.5px solid #121524; }
+        table.data th { background: #121524; color: #f9f5e6; text-align: left; padding: 4px 5px; font-size: 7px; text-transform: uppercase; letter-spacing: 0.3px; }
+        table.data td { padding: 3px 5px; border-bottom: 0.5px solid #d9d3bf; vertical-align: top; }
+        table.data tbody tr:nth-child(even) td { background: #f9f5e6; }
+        table.data tr.total td { font-weight: bold; background: #f7ea3c; border-top: 1.5px solid #121524; border-bottom: none; }
+        .num { text-align: right; white-space: nowrap; font-family: 'DejaVu Sans Mono', monospace; }
         thead { display: table-header-group; }
         tr { page-break-inside: avoid; }
-        .notes { margin-top: 12px; font-size: 8px; color: #4b5563; }
+        .notes { margin-top: 12px; font-size: 8px; color: #535769; }
         .notes li { margin-bottom: 3px; }
-        .empty { padding: 18px; text-align: center; color: #6b7280; border: 1px solid #d1d5db; }
-        .footer { position: fixed; bottom: -26px; left: 0; right: 0; font-size: 7.5px; color: #6b7280; }
+        .empty { padding: 18px; text-align: center; color: #535769; border: 1.5px dashed #121524; }
+        .footer { position: fixed; bottom: -26px; left: 0; right: 0; font-size: 7.5px; color: #535769; border-top: 1px solid #121524; padding-top: 3px; }
         .footer .page:after { content: "Page " counter(page); }
-        .footer .page { float: right; }
+        .footer .page { float: right; font-family: 'DejaVu Sans Mono', monospace; }
     </style>
 </head>
 <body>
@@ -34,7 +40,7 @@
         <span class="page"></span>
     </div>
 
-    <div class="brand">StockSense AI</div>
+    <div class="brand"><span class="logo">StockSense</span> <span class="tag">AI</span></div>
     <h1>{{ $title }}</h1>
     @if ($filters !== '')
         <p class="meta">{{ $filters }}</p>

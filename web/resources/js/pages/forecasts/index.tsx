@@ -63,7 +63,7 @@ function Summary({ run }: { run: ForecastRunSummary }) {
 
     return (
         <div
-            className="grid gap-4 rounded-lg border p-4 text-sm sm:grid-cols-2"
+            className="grid gap-4 rounded-xl border-2 bg-card p-4 text-sm shadow-brutal sm:grid-cols-2"
             data-test="run-summary"
         >
             <div className="space-y-1">
@@ -178,7 +178,7 @@ export default function ForecastsIndex({
 
                 {failure && !activeRun && (
                     <div
-                        className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm"
+                        className="rounded-xl border-2 border-ink bg-critical p-4 text-sm text-ink shadow-brutal-sm dark:border-transparent"
                         role="alert"
                         data-test="run-failure"
                     >
@@ -192,7 +192,7 @@ export default function ForecastsIndex({
                 {run === null || products === null ? (
                     !activeRun && (
                         <div
-                            className="space-y-2 rounded-lg border p-8 text-center"
+                            className="space-y-2 rounded-xl border-2 bg-card p-8 text-center shadow-brutal"
                             data-test="no-forecast"
                         >
                             <LineChart className="mx-auto size-8 text-muted-foreground" />
@@ -217,7 +217,7 @@ export default function ForecastsIndex({
                             categories={categories}
                         />
 
-                        <div className="rounded-lg border">
+                        <div className="rounded-xl border-2 bg-card shadow-brutal">
                             <Table>
                                 <TableHeader>
                                     <TableRow>

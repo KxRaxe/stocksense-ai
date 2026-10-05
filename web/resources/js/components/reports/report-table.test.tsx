@@ -35,6 +35,25 @@ describe('ReportTable', () => {
         ).toEqual(['Product', 'Units sold', 'Revenue', 'Last sold']);
     });
 
+    it('can be scrolled sideways with the keyboard when it is wider than the page', () => {
+        render(
+            <ReportTable
+                columns={columns}
+                rows={rows}
+                totals={null}
+                showTotals
+            />,
+        );
+
+        // A scroll box must take focus, or keyboard users cannot reach what overflows.
+        expect(
+            screen
+                .getByRole('table')
+                .closest<HTMLElement>('[data-slot="table-container"]')
+                ?.tabIndex,
+        ).toBe(0);
+    });
+
     it('writes each value by its kind, and a gap as a dash', () => {
         render(
             <ReportTable

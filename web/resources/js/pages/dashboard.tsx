@@ -34,7 +34,10 @@ function Panel({
     testId: string;
 }) {
     return (
-        <section className="space-y-3 rounded-lg border p-4" data-test={testId}>
+        <section
+            className="space-y-3 rounded-xl border-2 bg-card p-4 shadow-brutal"
+            data-test={testId}
+        >
             <div>
                 <h3 className="font-medium">{title}</h3>
                 {description && (
@@ -121,7 +124,7 @@ export default function Dashboard({
 
                 {nothingToShow && (
                     <p
-                        className="rounded-lg border p-8 text-center text-sm text-muted-foreground"
+                        className="rounded-xl border-2 bg-card p-8 text-center text-sm text-muted-foreground shadow-brutal"
                         data-test="nothing-to-show"
                     >
                         There is nothing for your account to show here yet. Ask
@@ -193,10 +196,10 @@ export default function Dashboard({
 
                 {forecast?.stale && (
                     <p
-                        className="flex items-start gap-2 rounded-lg border border-amber-500/50 bg-amber-500/10 p-3 text-sm"
+                        className="flex items-start gap-2 rounded-xl border-2 border-ink bg-low p-3 text-sm text-ink shadow-brutal-sm dark:border-transparent"
                         data-test="stale-forecast"
                     >
-                        <TriangleAlert className="mt-0.5 size-4 shrink-0 text-amber-600" />
+                        <TriangleAlert className="mt-0.5 size-4 shrink-0" />
                         The forecast is {forecast.age_days} days old, so the
                         advice built on it may be out of date.
                     </p>

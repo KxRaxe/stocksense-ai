@@ -31,7 +31,7 @@ type Props = {
 
 function Stat({ label, value }: { label: string; value: string }) {
     return (
-        <div className="rounded-lg border p-4">
+        <div className="rounded-xl border-2 bg-card p-4 shadow-brutal">
             <div className="text-sm text-muted-foreground">{label}</div>
             <div className="mt-1 text-2xl font-semibold tracking-tight">
                 {value}
@@ -194,7 +194,7 @@ export default function ShowProduct({ product, stock, movements, can }: Props) {
                         title="Stock history"
                         description="The 25 most recent changes, newest first."
                     />
-                    <div className="rounded-lg border">
+                    <div className="rounded-xl border-2 bg-card shadow-brutal">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -235,7 +235,7 @@ export default function ShowProduct({ product, stock, movements, can }: Props) {
                                             className={`text-right font-medium ${
                                                 movement.quantity < 0
                                                     ? 'text-destructive'
-                                                    : 'text-emerald-600 dark:text-emerald-400'
+                                                    : 'text-success'
                                             }`}
                                         >
                                             {movement.quantity > 0 ? '+' : ''}

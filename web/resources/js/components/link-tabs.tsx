@@ -15,7 +15,7 @@ type Props = {
 export default function LinkTabs({ label, tabs, current, testPrefix }: Props) {
     return (
         <nav
-            className="inline-flex flex-wrap rounded-lg bg-muted p-1 text-sm"
+            className="inline-flex flex-wrap gap-1 rounded-xl border-2 bg-muted p-1 text-sm"
             role="tablist"
             aria-label={label}
         >
@@ -29,10 +29,10 @@ export default function LinkTabs({ label, tabs, current, testPrefix }: Props) {
                         role="tab"
                         aria-selected={selected}
                         preserveScroll
-                        className={`rounded-md px-3 py-1 font-medium transition-colors ${
+                        className={`rounded-lg border-2 px-3 py-1 font-semibold transition-colors ${
                             selected
-                                ? 'bg-background shadow-sm'
-                                : 'text-foreground/70 hover:text-foreground'
+                                ? 'border-ink bg-accent text-ink shadow-brutal-sm dark:border-transparent'
+                                : 'border-transparent text-foreground/75 hover:bg-card hover:text-foreground'
                         }`}
                         data-test={`${testPrefix}-${tab.key}`}
                     >

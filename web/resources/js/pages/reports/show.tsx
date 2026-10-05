@@ -90,7 +90,7 @@ export default function ReportShow({
                         {summary.map((item) => (
                             <div
                                 key={item.label}
-                                className="rounded-lg border p-3"
+                                className="rounded-xl border-2 bg-card p-3 shadow-brutal"
                             >
                                 <p className="text-xs text-muted-foreground">
                                     {item.label}

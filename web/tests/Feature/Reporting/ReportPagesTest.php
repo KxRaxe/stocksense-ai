@@ -349,6 +349,7 @@ describe('what goes into the PDF', function () {
         $html = view('reports.pdf', app(ReportPdf::class)->data('Sales', '6 Sep 2026 to 5 Oct 2026', '5 Oct 2026, 8:00 am', $result()))->render();
 
         expect($html)->toContain('<h1>Sales</h1>')
+            ->toContain('<span class="logo">StockSense</span> <span class="tag">AI</span>')
             ->toContain('6 Sep 2026 to 5 Oct 2026')
             ->toContain('₱1,508.50')
             ->toContain('<th class="num">Units</th>')

@@ -36,7 +36,7 @@ type Tone = ImportPreviewData['figures'][number]['tone'];
 const tones: Record<Tone, { icon: React.ReactNode; text: string }> = {
     good: {
         icon: <CheckCircle2 className="size-4" />,
-        text: 'text-emerald-600 dark:text-emerald-400',
+        text: 'text-success',
     },
     neutral: {
         icon: <Copy className="size-4" />,
@@ -44,7 +44,7 @@ const tones: Record<Tone, { icon: React.ReactNode; text: string }> = {
     },
     warn: {
         icon: <AlertTriangle className="size-4" />,
-        text: 'text-amber-600 dark:text-amber-400',
+        text: 'text-warning',
     },
 };
 
@@ -58,14 +58,14 @@ function Figure({
     tone: Tone;
 }) {
     return (
-        <div className="rounded-lg border p-4">
+        <div className="rounded-xl border-2 bg-card p-4 shadow-brutal-sm">
             <div
                 className={`flex items-center gap-2 text-sm ${tones[tone].text}`}
             >
                 {tones[tone].icon}
                 {label}
             </div>
-            <div className="mt-1 text-2xl font-semibold tracking-tight">
+            <div className="mt-1 font-mono text-2xl font-semibold tabular-nums">
                 {formatNumber(value)}
             </div>
         </div>
@@ -100,7 +100,7 @@ export default function ImportPreview({
 
             {preview.notes.length > 0 && (
                 <ul
-                    className="space-y-2 rounded-lg border bg-muted/40 p-4 text-sm"
+                    className="space-y-2 rounded-xl border-2 bg-muted/40 p-4 text-sm shadow-brutal-sm"
                     data-test="preview-notes"
                 >
                     {preview.notes.map((note) => (
@@ -121,7 +121,7 @@ export default function ImportPreview({
             >
                 {({ errors, isDirty, processing }) => (
                     <>
-                        <div className="space-y-4 rounded-lg border p-4">
+                        <div className="space-y-4 rounded-xl border-2 bg-card p-4 shadow-brutal">
                             <p className="font-medium">
                                 Which column is which?
                             </p>
@@ -185,7 +185,7 @@ export default function ImportPreview({
                             </div>
 
                             {missing.length > 0 && (
-                                <p className="text-sm text-amber-600 dark:text-amber-400">
+                                <p className="text-sm font-medium text-warning">
                                     Choose a column for{' '}
                                     {missing
                                         .map((field) => field.label)
@@ -258,7 +258,7 @@ export default function ImportPreview({
                             ` (first ${preview.problems.length} of ${formatNumber(preview.invalid_rows)})`}
                     </p>
                     <ul
-                        className="space-y-1 rounded-lg border p-3 text-sm"
+                        className="space-y-1 rounded-xl border-2 bg-card p-3 text-sm shadow-brutal"
                         data-test="preview-problems"
                     >
                         {preview.problems.map((problem) => (
@@ -275,7 +275,7 @@ export default function ImportPreview({
 
             <div className="space-y-2">
                 <p className="font-medium">First rows of your file</p>
-                <div className="rounded-lg border">
+                <div className="rounded-xl border-2 bg-card shadow-brutal">
                     <Table>
                         <TableHeader>
                             <TableRow>

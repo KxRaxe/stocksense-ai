@@ -35,7 +35,7 @@ export default function UploadImportForm({
 }: Props) {
     return (
         <>
-            <div className="max-w-2xl space-y-3 rounded-lg border p-4 text-sm">
+            <div className="max-w-2xl space-y-3 rounded-xl border-2 bg-card p-4 text-sm shadow-brutal">
                 <p className="font-medium">What the file needs</p>
                 <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
                     {requirements}

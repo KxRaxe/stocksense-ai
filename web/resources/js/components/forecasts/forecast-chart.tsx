@@ -65,7 +65,7 @@ function ChartTooltip({ active, payload }: TooltipProps) {
     }
 
     return (
-        <div className="rounded-lg border bg-background p-3 text-sm shadow-md">
+        <div className="rounded-lg border-2 bg-card p-3 text-sm shadow-brutal-sm">
             <p className="font-medium">{formatDate(row.period)}</p>
             {row.band ? (
                 <p>

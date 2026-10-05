@@ -48,7 +48,7 @@ export default function RunProgress({ activeRun, granularity }: Props) {
 
     return (
         <div
-            className="flex items-start gap-3 rounded-lg border p-4 text-sm"
+            className="flex items-start gap-3 rounded-xl border-2 bg-card p-4 text-sm shadow-brutal"
             role="status"
             data-test="run-progress"
         >

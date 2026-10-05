@@ -79,7 +79,7 @@ export default function NotificationSettingsForm({
                 return (
                     <fieldset
                         key={type.type}
-                        className="space-y-3 rounded-lg border p-4"
+                        className="space-y-3 rounded-xl border-2 bg-card p-4 shadow-brutal"
                         data-test={`setting-${type.type}`}
                     >
                         <legend className="px-1 text-sm font-medium">

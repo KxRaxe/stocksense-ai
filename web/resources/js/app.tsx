@@ -30,7 +30,8 @@ void createInertiaApp({
         );
     },
     progress: {
-        color: '#4B5563',
+        // The light theme's primary violet.
+        color: '#6639ee',
     },
 });
 

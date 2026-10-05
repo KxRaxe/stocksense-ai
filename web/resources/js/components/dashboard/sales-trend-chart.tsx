@@ -29,7 +29,7 @@ function WeekTooltip({ active, payload }: TooltipProps) {
     }
 
     return (
-        <div className="rounded-lg border bg-background p-3 text-sm shadow-md">
+        <div className="rounded-lg border-2 bg-card p-3 text-sm shadow-brutal-sm">
             <p className="font-medium">Week of {formatDate(week.period)}</p>
             <p>{formatMoney(week.revenue)}</p>
             <p className="text-muted-foreground">

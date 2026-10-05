@@ -4,9 +4,11 @@ import { cn } from '@/lib/utils';
 
 function Table({ className, ...props }: React.ComponentProps<'table'>) {
     return (
+        // Focusable, so a keyboard user can scroll a table wider than the screen.
         <div
             data-slot="table-container"
             className="relative w-full overflow-x-auto"
+            tabIndex={0}
         >
             <table
                 data-slot="table"
@@ -21,7 +23,7 @@ function TableHeader({ className, ...props }: React.ComponentProps<'thead'>) {
     return (
         <thead
             data-slot="table-header"
-            className={cn('[&_tr]:border-b', className)}
+            className={cn('bg-muted [&_tr]:border-b-2', className)}
             {...props}
         />
     );
@@ -42,7 +44,7 @@ function TableRow({ className, ...props }: React.ComponentProps<'tr'>) {
         <tr
             data-slot="table-row"
             className={cn(
-                'border-b transition-colors hover:bg-muted/50',
+                'border-b border-border/20 transition-colors hover:bg-accent/30',
                 className,
             )}
             {...props}
@@ -55,7 +57,7 @@ function TableHead({ className, ...props }: React.ComponentProps<'th'>) {
         <th
             data-slot="table-head"
             className={cn(
-                'h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground',
+                'h-10 px-2 text-left align-middle font-mono text-xs font-semibold tracking-wide whitespace-nowrap text-foreground uppercase',
                 className,
             )}
             {...props}

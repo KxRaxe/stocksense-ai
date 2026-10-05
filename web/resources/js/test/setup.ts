@@ -20,3 +20,17 @@ class ResizeObserverStub {
 }
 
 globalThis.ResizeObserver ??= ResizeObserverStub;
+
+// jsdom has no matchMedia; the theme hook asks it whether the system is dark.
+// Here the system is always light.
+window.matchMedia ??= (query: string) =>
+    ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        addListener: () => {},
+        removeListener: () => {},
+        dispatchEvent: () => false,
+    }) as MediaQueryList;

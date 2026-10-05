@@ -40,13 +40,13 @@ function Basis({ forecast }: { forecast: ForecastBasis }) {
         <p
             className={`flex items-start gap-2 text-sm ${
                 forecast.stale
-                    ? 'rounded-lg border border-amber-500/50 bg-amber-500/10 p-3'
+                    ? 'rounded-xl border-2 border-ink bg-low p-3 text-ink shadow-brutal-sm dark:border-transparent'
                     : 'text-muted-foreground'
             }`}
             data-test="forecast-basis"
         >
             {forecast.stale && (
-                <TriangleAlert className="mt-0.5 size-4 shrink-0 text-amber-600" />
+                <TriangleAlert className="mt-0.5 size-4 shrink-0" />
             )}
             <span>
                 Based on the{' '}
@@ -105,7 +105,7 @@ export default function RecommendationsIndex({
 
                 {forecast === null ? (
                     <div
-                        className="space-y-2 rounded-lg border p-8 text-center"
+                        className="space-y-2 rounded-xl border-2 bg-card p-8 text-center shadow-brutal"
                         data-test="no-forecast"
                     >
                         <ClipboardCheck className="mx-auto size-8 text-muted-foreground" />
@@ -154,7 +154,7 @@ export default function RecommendationsIndex({
 
                         {recommendations.data.length === 0 ? (
                             <p
-                                className="rounded-lg border p-8 text-center text-sm text-muted-foreground"
+                                className="rounded-xl border-2 bg-card p-8 text-center text-sm text-muted-foreground shadow-brutal"
                                 data-test="no-recommendations"
                             >
                                 {hasFilter(filters)

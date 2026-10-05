@@ -68,7 +68,7 @@ export default function AuditLog({
                     users={users}
                 />
 
-                <div className="overflow-x-auto rounded-lg border">
+                <div className="overflow-x-auto rounded-xl border-2 bg-card shadow-brutal">
                     <Table data-test="audit-table">
                         <TableHeader>
                             <TableRow>

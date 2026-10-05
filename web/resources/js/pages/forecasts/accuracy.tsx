@@ -97,7 +97,7 @@ export default function ForecastAccuracy({
 
                 {run === null ? (
                     <div
-                        className="rounded-lg border p-8 text-center text-sm text-muted-foreground"
+                        className="rounded-xl border-2 bg-card p-8 text-center text-sm text-muted-foreground shadow-brutal"
                         data-test="no-accuracy"
                     >
                         There is no {granularity}ly forecast to measure yet. Run
@@ -171,7 +171,7 @@ export default function ForecastAccuracy({
                             </Section>
                         ) : (
                             <div
-                                className="rounded-lg border p-6 text-sm text-muted-foreground"
+                                className="rounded-xl border-2 bg-card p-6 text-sm text-muted-foreground shadow-brutal"
                                 data-test="not-measured"
                             >
                                 Accuracy could not be measured for this run:

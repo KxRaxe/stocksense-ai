@@ -123,7 +123,7 @@ export default function SettingsForm({
                 {groups.map((group) => (
                     <fieldset
                         key={group.name}
-                        className="space-y-6 rounded-lg border p-5"
+                        className="space-y-6 rounded-xl border-2 bg-card p-5 shadow-brutal"
                         data-test={`group-${group.name}`}
                     >
                         <legend className="px-1 text-sm font-medium">

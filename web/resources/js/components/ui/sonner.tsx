@@ -19,6 +19,11 @@ function Toaster({ ...props }: ToasterProps) {
                     '--normal-border': 'var(--border)',
                 } as React.CSSProperties
             }
+            toastOptions={{
+                classNames: {
+                    toast: 'border-2! rounded-xl! shadow-brutal! font-sans!',
+                },
+            }}
             {...props}
         />
     );

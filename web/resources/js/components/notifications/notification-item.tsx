@@ -42,7 +42,7 @@ export function NotificationContent({ item }: { item: Item }) {
             </span>
             {!item.read && (
                 <span
-                    className="mt-1.5 size-2 shrink-0 rounded-full bg-sky-500"
+                    className="mt-1.5 size-2.5 shrink-0 rounded-full border-2 border-ink bg-primary dark:border-transparent"
                     role="img"
                     aria-label="Unread"
                     data-test="unread-dot"

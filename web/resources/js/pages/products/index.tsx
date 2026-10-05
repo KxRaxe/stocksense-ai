@@ -97,7 +97,7 @@ export default function ProductsIndex({
                     </div>
                 )}
 
-                <div className="rounded-lg border">
+                <div className="rounded-xl border-2 bg-card shadow-brutal">
                     <Table>
                         <TableHeader>
                             <TableRow>

@@ -13,10 +13,14 @@ export default function Heading({
                 className={
                     variant === 'small'
                         ? 'mb-0.5 text-base font-medium'
-                        : 'text-xl font-semibold tracking-tight'
+                        : 'text-2xl font-bold tracking-tight'
                 }
             >
-                {title}
+                {variant === 'small' ? (
+                    title
+                ) : (
+                    <span className="highlight">{title}</span>
+                )}
             </h2>
             {description && (
                 <p className="text-sm text-muted-foreground">{description}</p>
