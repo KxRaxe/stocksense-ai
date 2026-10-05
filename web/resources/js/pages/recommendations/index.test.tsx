@@ -232,6 +232,27 @@ describe('Recommendations page', () => {
         expect(screen.getByTestId('recommendation-1')).toBeTruthy();
     });
 
+    it('links to each group, with the current one selected', () => {
+        render(
+            <RecommendationsIndex
+                {...props({ filters: { ...noFilters, view: 'overstock' } })}
+            />,
+        );
+
+        expect(screen.getByTestId('view-todo').getAttribute('href')).toBe(
+            '/recommendations?view=todo',
+        );
+        expect(screen.getByTestId('view-decided').getAttribute('href')).toBe(
+            '/recommendations?view=decided',
+        );
+        expect(
+            screen.getByTestId('view-overstock').getAttribute('aria-selected'),
+        ).toBe('true');
+        expect(
+            screen.getByTestId('view-todo').getAttribute('aria-selected'),
+        ).toBe('false');
+    });
+
     it('shows the counts and how to read the numbers', () => {
         render(<RecommendationsIndex {...props()} />);
 

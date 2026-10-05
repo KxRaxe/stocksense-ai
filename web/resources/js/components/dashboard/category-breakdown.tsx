@@ -1,5 +1,4 @@
-import { formatPercent } from '@/lib/forecast';
-import { formatMoney } from '@/lib/format';
+import { formatMoney, formatPercent } from '@/lib/format';
 import type { CategoryShare } from '@/types';
 
 /** Each category's share of the revenue, as a bar and a figure. */

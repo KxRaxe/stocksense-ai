@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
-import { useListQuery } from '@/hooks/use-list-query';
+import { useDebouncedSearch, useListQuery } from '@/hooks/use-list-query';
 import type { ForecastFilters as Filters, Option } from '@/types';
 
 type Props = {
@@ -22,21 +21,9 @@ export default function ForecastFilters({
     filters,
     categories,
 }: Props) {
-    const [search, setSearch] = useState(filters.search);
     // The granularity is part of the page, so every change keeps it.
     const apply = useListQuery(url, { ...filters, granularity });
-
-    useEffect(() => {
-        if (search === filters.search) {
-            return;
-        }
-
-        const timer = setTimeout(() => apply({ search }), 300);
-
-        return () => clearTimeout(timer);
-        // `apply` always reads the latest filters, so it is not a dependency.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [search]);
+    const [search, setSearch] = useDebouncedSearch(filters.search, apply);
 
     return (
         <div className="flex flex-wrap gap-3">

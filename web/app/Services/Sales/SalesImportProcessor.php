@@ -5,51 +5,20 @@ namespace App\Services\Sales;
 use App\Models\ImportBatch;
 use App\Models\Product;
 use App\Services\Imports\ImportProcessor;
-use App\Services\Imports\ImportRowsFile;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Facades\DB;
 
 /**
- * Imports the next slice of a file: validates each row, skips the ones that
- * were imported before, and records the rest as sales. A slice is all-or-
- * nothing, and the batch remembers how far it got, so a slice that is run
- * twice does no harm.
+ * Imports the next slice of a sales file: validates each row, skips the ones
+ * that were imported before, and records the rest as sales.
  */
-class SalesImportProcessor implements ImportProcessor
+class SalesImportProcessor extends ImportProcessor
 {
     public function __construct(
         private readonly SalesService $sales,
         private readonly DuplicateFinder $duplicates,
     ) {}
 
-    public function processNext(ImportBatch $batch, int $offset): bool
-    {
-        // Already done (for example a job that was retried): nothing to do.
-        if ($batch->rows_processed !== $offset) {
-            return $batch->rows_processed < $batch->rows_total;
-        }
-
-        $file = new ImportRowsFile($batch);
-        $rows = iterator_to_array($file->read($offset, config('imports.chunk_size')), false);
-
-        if ($rows === []) {
-            return false;
-        }
-
-        $failed = DB::transaction(fn () => $this->importSlice($batch, $rows));
-
-        // Written after the slice is safely saved, so a failed slice leaves no
-        // half-finished report behind.
-        $file->appendErrors($failed);
-
-        return $batch->rows_processed < $batch->rows_total;
-    }
-
-    /**
-     * @param  list<array{0: int, 1: list<mixed>}>  $rows
-     * @return list<array{row: int, messages: list<string>, cells: list<mixed>}> The rows that failed
-     */
-    private function importSlice(ImportBatch $batch, array $rows): array
+    protected function importSlice(ImportBatch $batch, array $rows): array
     {
         $settings = $batch->settings;
 
@@ -61,18 +30,9 @@ class SalesImportProcessor implements ImportProcessor
 
         $validator = new SalesRowValidator($products, $settings['columns'], (string) $batch->option('date_format'), CarbonImmutable::today());
 
-        $parsed = [];
-        $failed = [];
-
-        foreach ($rows as [$number, $cells]) {
-            $result = $validator->validate($number, $cells);
-
-            if ($result instanceof ParsedSalesRow) {
-                $parsed[] = $result;
-            } else {
-                $failed[] = ['row' => $number, 'messages' => $result, 'cells' => $cells];
-            }
-        }
+        [$valid, $invalid] = $validator->validateAll($rows);
+        $parsed = array_values($valid);
+        $failed = $this->failedRows($rows, $invalid);
 
         $known = $this->duplicates->existing($parsed, $batch->id);
 
@@ -82,21 +42,12 @@ class SalesImportProcessor implements ImportProcessor
 
         $this->sales->recordMany($new, $batch, $batch->user, (bool) $batch->option('adjust_stock'));
 
-        $kept = $batch->errors ?? [];
-        foreach ($failed as $problem) {
-            if (count($kept) >= config('imports.stored_errors')) {
-                break;
-            }
-
-            $kept[] = ['row' => $problem['row'], 'messages' => $problem['messages']];
-        }
-
         $batch->forceFill([
             'rows_processed' => $batch->rows_processed + count($rows),
             'rows_ok' => $batch->rows_ok + $imported,
             'rows_duplicate' => $batch->rows_duplicate + $skipped,
             'rows_failed' => $batch->rows_failed + count($failed),
-            'errors' => $kept === [] ? null : $kept,
+            'errors' => $this->keptErrors($batch, $failed),
         ])->save();
 
         return $failed;

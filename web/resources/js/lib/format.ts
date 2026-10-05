@@ -49,3 +49,15 @@ const compactPeso = new Intl.NumberFormat('en-PH', {
 export function formatMoneyCompact(amount: number): string {
     return compactPeso.format(amount);
 }
+
+/** A percentage with one decimal, or a dash when there is none. */
+export function formatPercent(value: number | null): string {
+    return value === null ? '-' : `${value.toFixed(1)}%`;
+}
+
+/** Units with up to one decimal: 12 -> "12", 12.46 -> "12.5". */
+export function formatUnits(value: number): string {
+    return new Intl.NumberFormat('en-PH', { maximumFractionDigits: 1 }).format(
+        value,
+    );
+}

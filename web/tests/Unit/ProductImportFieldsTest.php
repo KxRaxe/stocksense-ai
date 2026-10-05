@@ -1,15 +1,21 @@
 <?php
 
+use App\Services\Imports\HeaderGuesser;
 use App\Services\Products\ProductImportFields;
+
+function guessProducts(array $headers): array
+{
+    return HeaderGuesser::guess(ProductImportFields::all(), $headers);
+}
 
 it('matches the columns of the example file', function () {
     $headers = ['sku', 'name', 'category', 'unit', 'unit_cost', 'unit_price', 'lead_time_days', 'moq', 'pack_size', 'reorder_point', 'safety_stock', 'opening_stock'];
 
-    expect(ProductImportFields::guess($headers))->toBe(array_combine($headers, range(0, 11)));
+    expect(guessProducts($headers))->toBe(array_combine($headers, range(0, 11)));
 });
 
 it('matches the headers people usually give', function () {
-    $columns = ProductImportFields::guess(['Item Code', 'Product Name', 'Department', 'UOM', 'Cost Price', 'SRP', 'Lead Time', 'Min Order Qty', 'Case Size', 'Reorder Level', 'Buffer Stock', 'On Hand']);
+    $columns = guessProducts(['Item Code', 'Product Name', 'Department', 'UOM', 'Cost Price', 'SRP', 'Lead Time', 'Min Order Qty', 'Case Size', 'Reorder Level', 'Buffer Stock', 'On Hand']);
 
     expect($columns)->toBe([
         'sku' => 0, 'name' => 1, 'category' => 2, 'unit' => 3, 'unit_cost' => 4, 'unit_price' => 5,
@@ -18,7 +24,7 @@ it('matches the headers people usually give', function () {
 });
 
 it('leaves a field unmatched when no header looks like it', function () {
-    $columns = ProductImportFields::guess(['sku', 'name', 'category']);
+    $columns = guessProducts(['sku', 'name', 'category']);
 
     expect($columns['sku'])->toBe(0)
         ->and($columns['unit_price'])->toBeNull()
@@ -26,7 +32,7 @@ it('leaves a field unmatched when no header looks like it', function () {
 });
 
 it('never gives one column to two fields', function () {
-    $columns = ProductImportFields::guess(['code', 'item']);
+    $columns = guessProducts(['code', 'item']);
 
     expect($columns['sku'])->toBe(0)
         ->and($columns['name'])->toBe(1)

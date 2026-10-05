@@ -2,11 +2,8 @@
 
 namespace App\Services\Sales;
 
-use App\Services\Imports\HeaderGuesser;
-
 /**
- * The columns a sales file can carry, and how to guess which column of an
- * uploaded file is which from its header names.
+ * The columns a sales file can carry (HeaderGuesser matches them to a file's headers).
  */
 final class SalesImportFields
 {
@@ -57,24 +54,5 @@ final class SalesImportFields
                 'aliases' => ['unitprice', 'price', 'sellingprice', 'priceperunit', 'srp', 'saleprice'],
             ],
         ];
-    }
-
-    /**
-     * @return list<string>
-     */
-    public static function required(): array
-    {
-        return array_keys(array_filter(self::all(), fn (array $field) => $field['required']));
-    }
-
-    /**
-     * Matches each field to the column whose header looks like it, or null.
-     *
-     * @param  list<string>  $headers
-     * @return array<string, int|null>
-     */
-    public static function guess(array $headers): array
-    {
-        return HeaderGuesser::guess(self::all(), $headers);
     }
 }

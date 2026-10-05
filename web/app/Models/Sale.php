@@ -56,14 +56,6 @@ class Sale extends Model
     }
 
     /**
-     * @return BelongsTo<ImportBatch, $this>
-     */
-    public function importBatch(): BelongsTo
-    {
-        return $this->belongsTo(ImportBatch::class);
-    }
-
-    /**
      * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo

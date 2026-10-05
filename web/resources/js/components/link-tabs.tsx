@@ -1,40 +1,42 @@
 import { Link } from '@inertiajs/react';
-import { show } from '@/routes/reports';
+
+type Tab = { key: string; label: string; href: string };
 
 type Props = {
-    reports: { key: string; title: string }[];
+    /** What the tabs choose between, for screen readers. */
+    label: string;
+    tabs: Tab[];
     current: string;
+    /** `data-test` of each tab is `${testPrefix}-${key}`. */
+    testPrefix: string;
 };
 
-/** Switch between the reports this person can open. */
-export default function ReportTabs({ reports, current }: Props) {
-    if (reports.length < 2) {
-        return null;
-    }
-
+/** A row of tabs where each tab is a link, so the choice lives in the URL. */
+export default function LinkTabs({ label, tabs, current, testPrefix }: Props) {
     return (
         <nav
             className="inline-flex flex-wrap rounded-lg bg-muted p-1 text-sm"
-            aria-label="Reports"
             role="tablist"
+            aria-label={label}
         >
-            {reports.map((report) => {
-                const selected = report.key === current;
+            {tabs.map((tab) => {
+                const selected = tab.key === current;
 
                 return (
                     <Link
-                        key={report.key}
-                        href={show(report.key)}
+                        key={tab.key}
+                        href={tab.href}
                         role="tab"
                         aria-selected={selected}
+                        preserveScroll
                         className={`rounded-md px-3 py-1 font-medium transition-colors ${
                             selected
                                 ? 'bg-background shadow-sm'
                                 : 'text-foreground/70 hover:text-foreground'
                         }`}
-                        data-test={`report-tab-${report.key}`}
+                        data-test={`${testPrefix}-${tab.key}`}
                     >
-                        {report.title}
+                        {tab.label}
                     </Link>
                 );
             })}

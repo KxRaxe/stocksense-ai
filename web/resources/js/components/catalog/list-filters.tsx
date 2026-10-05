@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
-import { useListQuery } from '@/hooks/use-list-query';
+import { useDebouncedSearch, useListQuery } from '@/hooks/use-list-query';
 import type { Option } from '@/types';
 
 type Choice = { value: string; label: string };
@@ -26,20 +25,11 @@ export default function ListFilters({
     categories,
     extra,
 }: Props) {
-    const [search, setSearch] = useState(String(filters.search ?? ''));
     const apply = useListQuery(url, filters);
-
-    useEffect(() => {
-        if (search === String(filters.search ?? '')) {
-            return;
-        }
-
-        const timer = setTimeout(() => apply({ search }), 300);
-
-        return () => clearTimeout(timer);
-        // `apply` always reads the latest filters, so it is not a dependency.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [search]);
+    const [search, setSearch] = useDebouncedSearch(
+        String(filters.search ?? ''),
+        apply,
+    );
 
     return (
         <div className="flex flex-wrap gap-3">

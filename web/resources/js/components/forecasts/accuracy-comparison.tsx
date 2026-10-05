@@ -7,8 +7,8 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { formatNumber } from '@/lib/format';
-import { formatPercent, formatUnits, periodNoun } from '@/lib/forecast';
+import { formatNumber, formatPercent, formatUnits } from '@/lib/format';
+import { periodNoun } from '@/lib/forecast';
 import type { BaselineMetrics, ForecastGranularity, MetricSet } from '@/types';
 
 type Props = {

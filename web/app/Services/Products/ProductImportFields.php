@@ -2,11 +2,8 @@
 
 namespace App\Services\Products;
 
-use App\Services\Imports\HeaderGuesser;
-
 /**
- * The columns a product file can carry, and how to guess which column of an
- * uploaded file is which from its header names.
+ * The columns a product file can carry (HeaderGuesser matches them to a file's headers).
  */
 final class ProductImportFields
 {
@@ -129,16 +126,5 @@ final class ProductImportFields
                 'aliases' => ['openingstock', 'stock', 'onhand', 'stockonhand', 'quantityonhand', 'qtyonhand', 'currentstock', 'initialstock', 'quantity', 'qty'],
             ],
         ];
-    }
-
-    /**
-     * Matches each field to the column whose header looks like it, or null.
-     *
-     * @param  list<string>  $headers
-     * @return array<string, int|null>
-     */
-    public static function guess(array $headers): array
-    {
-        return HeaderGuesser::guess(self::all(), $headers);
     }
 }

@@ -35,22 +35,6 @@ enum RecommendationStatus: string
     }
 
     /**
-     * Still current: each product has at most one open recommendation.
-     */
-    public function isOpen(): bool
-    {
-        return $this === self::Pending || $this === self::Info;
-    }
-
-    /**
-     * Someone made a decision about it.
-     */
-    public function isDecided(): bool
-    {
-        return in_array($this, [self::Accepted, self::Adjusted, self::Dismissed, self::Cancelled], true);
-    }
-
-    /**
      * An order the person agreed to place and that has not been cancelled.
      */
     public function isOrdered(): bool

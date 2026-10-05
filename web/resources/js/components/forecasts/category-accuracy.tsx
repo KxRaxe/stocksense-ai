@@ -1,3 +1,4 @@
+import { formatPercent } from '@/lib/format';
 import {
     Bar,
     BarChart,
@@ -16,7 +17,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { formatPercent, periodNoun } from '@/lib/forecast';
+import { periodNoun } from '@/lib/forecast';
 import type { CategoryAccuracy, ForecastGranularity } from '@/types';
 
 type Props = {

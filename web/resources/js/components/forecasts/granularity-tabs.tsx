@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import LinkTabs from '@/components/link-tabs';
 import type { ForecastGranularity, GranularityOption } from '@/types';
 
 type Props = {
@@ -8,35 +8,18 @@ type Props = {
     href: (granularity: ForecastGranularity) => string;
 };
 
-/** Weekly / Monthly switch. Each option is a link, so the choice is in the URL. */
+/** Weekly / Monthly switch. */
 export default function GranularityTabs({ granularity, options, href }: Props) {
     return (
-        <div
-            className="inline-flex rounded-lg bg-muted p-1 text-sm"
-            role="tablist"
-            aria-label="Forecast period"
-        >
-            {options.map((option) => {
-                const selected = option.value === granularity;
-
-                return (
-                    <Link
-                        key={option.value}
-                        href={href(option.value)}
-                        role="tab"
-                        aria-selected={selected}
-                        preserveScroll
-                        className={`rounded-md px-3 py-1 font-medium transition-colors ${
-                            selected
-                                ? 'bg-background shadow-sm'
-                                : 'text-foreground/70 hover:text-foreground'
-                        }`}
-                        data-test={`granularity-${option.value}`}
-                    >
-                        {option.label}
-                    </Link>
-                );
-            })}
-        </div>
+        <LinkTabs
+            label="Forecast period"
+            testPrefix="granularity"
+            current={granularity}
+            tabs={options.map((option) => ({
+                key: option.value,
+                label: option.label,
+                href: href(option.value),
+            }))}
+        />
     );
 }

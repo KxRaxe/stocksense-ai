@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type Query = Record<string, string | number | null>;
 
@@ -28,4 +28,29 @@ export function useListQuery(url: string, current: Query) {
             replace: true,
         });
     };
+}
+
+/**
+ * The text in a search box, applied with `apply` once typing pauses for 300 ms.
+ * `current` is the search the list is showing now.
+ */
+export function useDebouncedSearch(
+    current: string,
+    apply: (changes: Query) => void,
+) {
+    const [search, setSearch] = useState(current);
+
+    useEffect(() => {
+        if (search === current) {
+            return;
+        }
+
+        const timer = setTimeout(() => apply({ search }), 300);
+
+        return () => clearTimeout(timer);
+        // `apply` always reads the latest filters, so it is not a dependency.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [search]);
+
+    return [search, setSearch] as const;
 }

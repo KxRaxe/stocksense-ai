@@ -1,20 +1,10 @@
-import { formatDate } from '@/lib/format';
+import { formatDate, formatUnits } from '@/lib/format';
 import type { ForecastGranularity, Headline } from '@/types';
 
-const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-];
+// en-US, not en-PH: the en-PH locale data abbreviates September as "Sept".
+const monthName = new Intl.DateTimeFormat('en-US', { month: 'short' });
+const month = (number: number): string =>
+    monthName.format(new Date(2000, number - 1, 1));
 
 /**
  * A period's start as a short label: "Sep 28" for a week, "Oct 2026" for a
@@ -24,11 +14,11 @@ export function periodLabel(
     start: string,
     granularity: ForecastGranularity,
 ): string {
-    const [year, month, day] = start.split('-').map(Number);
+    const [year, monthNumber, day] = start.split('-').map(Number);
 
     return granularity === 'month'
-        ? `${months[month - 1]} ${year}`
-        : `${months[month - 1]} ${day}`;
+        ? `${month(monthNumber)} ${year}`
+        : `${month(monthNumber)} ${day}`;
 }
 
 /** "week" -> "weeks", "month" -> "months", or the singular for one. */
@@ -37,18 +27,6 @@ export function periodNoun(
     count = 2,
 ): string {
     return count === 1 ? granularity : `${granularity}s`;
-}
-
-/** A percentage with one decimal, or a dash when there is none. */
-export function formatPercent(value: number | null): string {
-    return value === null ? '-' : `${value.toFixed(1)}%`;
-}
-
-/** Units with up to one decimal: 12 -> "12", 12.46 -> "12.5". */
-export function formatUnits(value: number): string {
-    return new Intl.NumberFormat('en-PH', { maximumFractionDigits: 1 }).format(
-        value,
-    );
 }
 
 /** "+12.0%" or "-5.5%". */

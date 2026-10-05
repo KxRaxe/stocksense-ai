@@ -1,3 +1,4 @@
+import { todayLocal } from '@/lib/replenishment';
 import { Form } from '@inertiajs/react';
 import { useState } from 'react';
 import InputError from '@/components/input-error';
@@ -24,8 +25,6 @@ type Props = {
 };
 
 /** Today's date as YYYY-MM-DD in the browser's own time zone. */
-const today = () => new Date().toLocaleDateString('en-CA');
-
 /** Record goods received from a supplier. */
 export function RestockDialog({ productId, productName, unit }: Props) {
     const [open, setOpen] = useState(false);
@@ -74,8 +73,8 @@ export function RestockDialog({ productId, productName, unit }: Props) {
                                     id="restock-date"
                                     name="received_on"
                                     type="date"
-                                    max={today()}
-                                    defaultValue={today()}
+                                    max={todayLocal()}
+                                    defaultValue={todayLocal()}
                                 />
                                 <InputError message={errors.received_on} />
                             </div>

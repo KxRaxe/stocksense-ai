@@ -43,12 +43,3 @@ export type Auth = {
     role: Role | null;
     permissions: Permission[];
 };
-
-export type TwoFactorSetupData = {
-    svg: string;
-    url: string;
-};
-
-export type TwoFactorSecretKey = {
-    secretKey: string;
-};

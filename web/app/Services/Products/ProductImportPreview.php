@@ -57,20 +57,7 @@ class ProductImportPreview
             $batch->id,
         );
 
-        /** @var array<int, ParsedProductRow> $valid Keyed by row number */
-        $valid = [];
-        /** @var array<int, list<string>> $invalid Keyed by row number */
-        $invalid = [];
-
-        foreach ($rows as [$number, $cells]) {
-            $result = $validator->validate($number, $cells);
-
-            if ($result instanceof ParsedProductRow) {
-                $valid[$number] = $result;
-            } else {
-                $invalid[$number] = $result;
-            }
-        }
+        [$valid, $invalid] = $validator->validateAll($rows);
 
         $counts = [ParsedProductRow::CREATE => 0, ParsedProductRow::UPDATE => 0, ParsedProductRow::SKIP => 0];
         $newCategories = [];

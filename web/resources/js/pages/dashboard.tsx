@@ -9,8 +9,13 @@ import SalesTrendChart from '@/components/dashboard/sales-trend-chart';
 import ForecastChart from '@/components/forecasts/forecast-chart';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
-import { formatChange, formatPercent } from '@/lib/forecast';
-import { formatDate, formatMoney, formatNumber } from '@/lib/format';
+import { formatChange } from '@/lib/forecast';
+import {
+    formatDate,
+    formatMoney,
+    formatNumber,
+    formatPercent,
+} from '@/lib/format';
 import { dashboard } from '@/routes';
 import { accuracy, index as forecastsIndex } from '@/routes/forecasts';
 import { index as inventoryIndex } from '@/routes/inventory';

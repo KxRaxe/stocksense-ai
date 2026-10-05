@@ -46,20 +46,7 @@ class SalesImportPreview
 
         $validator = new SalesRowValidator($products, $settings['columns'], (string) $batch->option('date_format'), CarbonImmutable::today());
 
-        /** @var array<int, ParsedSalesRow> $valid Keyed by row number */
-        $valid = [];
-        /** @var array<int, list<string>> $invalid Keyed by row number */
-        $invalid = [];
-
-        foreach ($rows as [$number, $cells]) {
-            $result = $validator->validate($number, $cells);
-
-            if ($result instanceof ParsedSalesRow) {
-                $valid[$number] = $result;
-            } else {
-                $invalid[$number] = $result;
-            }
-        }
+        [$valid, $invalid] = $validator->validateAll($rows);
 
         $known = [];
         foreach (array_chunk($valid, 1000) as $slice) {

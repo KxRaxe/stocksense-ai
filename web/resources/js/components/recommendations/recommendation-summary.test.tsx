@@ -2,7 +2,6 @@ import { render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import RecommendationSummary from '@/components/recommendations/recommendation-summary';
-import ViewTabs from '@/components/recommendations/view-tabs';
 import { noFilters } from '@/test/replenishment';
 import type { RecommendationCounts } from '@/types';
 
@@ -107,27 +106,5 @@ describe('RecommendationSummary', () => {
         );
 
         expect(card('critical').getAttribute('aria-current')).toBeNull();
-    });
-});
-
-describe('ViewTabs', () => {
-    it('links to each group, with the current one selected', () => {
-        render(<ViewTabs view="overstock" />);
-
-        expect(screen.getByTestId('view-todo').getAttribute('href')).toBe(
-            '/recommendations?view=todo',
-        );
-        expect(screen.getByTestId('view-overstock').getAttribute('href')).toBe(
-            '/recommendations?view=overstock',
-        );
-        expect(screen.getByTestId('view-decided').getAttribute('href')).toBe(
-            '/recommendations?view=decided',
-        );
-        expect(
-            screen.getByTestId('view-overstock').getAttribute('aria-selected'),
-        ).toBe('true');
-        expect(
-            screen.getByTestId('view-todo').getAttribute('aria-selected'),
-        ).toBe('false');
     });
 });

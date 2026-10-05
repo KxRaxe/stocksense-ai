@@ -1,9 +1,10 @@
-import { formatUnits } from '@/lib/forecast';
 import {
     formatDate,
     formatDateTime,
     formatMoney,
     formatNumber,
+    formatPercent,
+    formatUnits,
 } from '@/lib/format';
 import type { ColumnType, ReportCell } from '@/types';
 
@@ -21,7 +22,7 @@ export function formatCell(value: ReportCell, type: ColumnType): string {
         case 'decimal':
             return formatUnits(Number(value));
         case 'percent':
-            return `${Number(value).toFixed(1)}%`;
+            return formatPercent(Number(value));
         case 'date':
             return formatDate(String(value));
         case 'datetime':

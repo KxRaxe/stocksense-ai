@@ -3,6 +3,7 @@
 namespace App\Services\Sales;
 
 use App\Models\Product;
+use App\Services\Imports\ParsesImportRows;
 use App\Services\Imports\RowProblem;
 use Carbon\CarbonImmutable;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
@@ -14,11 +15,12 @@ use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
  */
 class SalesRowValidator
 {
+    /** @use ParsesImportRows<ParsedSalesRow> */
+    use ParsesImportRows;
+
     private const EARLIEST_DATE = '2000-01-01';
 
     private const MAX_QUANTITY = 1_000_000;
-
-    private const MAX_PRICE = 9_999_999_999.99;
 
     /**
      * @param  array<string, Product>  $products  Products keyed by upper-case SKU
@@ -59,50 +61,6 @@ class SalesRowValidator
         /** @var int $quantity */
         /** @var numeric-string $price */
         return new ParsedSalesRow($row, $product, $date, $quantity, $price);
-    }
-
-    /**
-     * The upper-case SKUs a set of rows mentions, so their products can be
-     * loaded in one query.
-     *
-     * @param  iterable<list<mixed>>  $rows
-     * @param  array<string, int|null>  $columns
-     * @return list<string>
-     */
-    public static function skusIn(iterable $rows, array $columns): array
-    {
-        $index = $columns[SalesImportFields::SKU] ?? null;
-
-        if ($index === null) {
-            return [];
-        }
-
-        $skus = [];
-
-        foreach ($rows as $cells) {
-            $sku = strtoupper(trim((string) ($cells[$index] ?? '')));
-
-            if ($sku !== '') {
-                $skus[$sku] = true;
-            }
-        }
-
-        return array_keys($skus);
-    }
-
-    /**
-     * @param  list<mixed>  $cells
-     */
-    private function cell(array $cells, string $field): mixed
-    {
-        $index = $this->columns[$field] ?? null;
-
-        return $index === null ? null : ($cells[$index] ?? null);
-    }
-
-    private function isBlank(mixed $value): bool
-    {
-        return $value === null || (is_string($value) && trim($value) === '');
     }
 
     private function parseDate(mixed $value): CarbonImmutable|RowProblem
@@ -174,33 +132,7 @@ class SalesRowValidator
 
     private function parseQuantity(mixed $value): int|RowProblem
     {
-        if ($this->isBlank($value)) {
-            return new RowProblem('Quantity is missing.');
-        }
-
-        $text = is_string($value) ? str_replace([',', ' '], '', trim($value)) : $value;
-
-        if (! is_numeric($text)) {
-            return new RowProblem("Quantity '{$value}' is not a number.");
-        }
-
-        $number = (float) $text;
-
-        if (abs($number - round($number)) > 1e-9) {
-            return new RowProblem("Quantity '{$value}' is not a whole number.");
-        }
-
-        $quantity = (int) round($number);
-
-        if ($quantity < 1) {
-            return new RowProblem('Quantity must be at least 1.');
-        }
-
-        if ($quantity > self::MAX_QUANTITY) {
-            return new RowProblem('Quantity is too large.');
-        }
-
-        return $quantity;
+        return $this->parseWhole($value, 'Quantity', 1, self::MAX_QUANTITY) ?? new RowProblem('Quantity is missing.');
     }
 
     /**
@@ -210,29 +142,8 @@ class SalesRowValidator
      */
     private function parsePrice(mixed $value, Product|RowProblem $product): string|RowProblem
     {
-        if ($this->isBlank($value)) {
-            // Without a valid product there is nothing to fall back on; the SKU
-            // problem is already reported, so this value is never used.
-            return $product instanceof Product ? $product->unit_price : '0.00';
-        }
-
-        // Allow a currency sign or code and thousands separators: "₱1,250.50".
-        $text = is_string($value) ? preg_replace('/[^\d.\-]/u', '', str_replace(',', '', $value)) : $value;
-
-        if ($text === '' || ! is_numeric($text)) {
-            return new RowProblem("Unit price '{$value}' is not a number.");
-        }
-
-        $price = (float) $text;
-
-        if ($price < 0) {
-            return new RowProblem('Unit price cannot be negative.');
-        }
-
-        if ($price > self::MAX_PRICE) {
-            return new RowProblem('Unit price is too large.');
-        }
-
-        return number_format($price, 2, '.', '');
+        // Without a valid product there is nothing to fall back on; the SKU
+        // problem is already reported, so the fallback is never used.
+        return $this->parseMoney($value, 'Unit price') ?? ($product instanceof Product ? $product->unit_price : '0.00');
     }
 }

@@ -1,8 +1,7 @@
 import { Link } from '@inertiajs/react';
 import RiskBadge from '@/components/recommendations/risk-badge';
 import { Button } from '@/components/ui/button';
-import { formatUnits } from '@/lib/forecast';
-import { formatNumber } from '@/lib/format';
+import { formatNumber, formatUnits } from '@/lib/format';
 import { index } from '@/routes/recommendations';
 import type { DashboardAlert } from '@/types';
 

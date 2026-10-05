@@ -8,8 +8,8 @@ import {
     XAxis,
     YAxis,
 } from 'recharts';
-import { formatDate } from '@/lib/format';
-import { formatUnits, periodLabel } from '@/lib/forecast';
+import { formatDate, formatUnits } from '@/lib/format';
+import { periodLabel } from '@/lib/forecast';
 import type { ForecastGranularity, ForecastPoint, HistoryPoint } from '@/types';
 
 export type ChartRow = {

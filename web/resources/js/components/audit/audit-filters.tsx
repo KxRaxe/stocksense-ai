@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
-import { useListQuery } from '@/hooks/use-list-query';
+import { useDebouncedSearch, useListQuery } from '@/hooks/use-list-query';
 import type { AuditFilters as Filters, Option } from '@/types';
 
 type Props = {
@@ -17,20 +16,8 @@ type Props = {
  * reload the list as they change and live in the address.
  */
 export default function AuditFilters({ url, filters, areas, users }: Props) {
-    const [search, setSearch] = useState(filters.search);
     const apply = useListQuery(url, filters);
-
-    useEffect(() => {
-        if (search === filters.search) {
-            return;
-        }
-
-        const timer = setTimeout(() => apply({ search }), 300);
-
-        return () => clearTimeout(timer);
-        // `apply` always reads the latest filters, so it is not a dependency.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [search]);
+    const [search, setSearch] = useDebouncedSearch(filters.search, apply);
 
     return (
         <div

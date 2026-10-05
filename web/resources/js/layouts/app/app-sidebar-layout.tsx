@@ -1,20 +1,22 @@
-import { AppContent } from '@/components/app-content';
-import { AppShell } from '@/components/app-shell';
+import { usePage } from '@inertiajs/react';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import type { AppLayoutProps } from '@/types';
 
 export default function AppSidebarLayout({
     children,
     breadcrumbs = [],
 }: AppLayoutProps) {
+    const isOpen = usePage().props.sidebarOpen;
+
     return (
-        <AppShell variant="sidebar">
+        <SidebarProvider defaultOpen={isOpen}>
             <AppSidebar />
-            <AppContent variant="sidebar" className="min-w-0 overflow-x-clip">
+            <SidebarInset className="min-w-0 overflow-x-clip">
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
                 {children}
-            </AppContent>
-        </AppShell>
+            </SidebarInset>
+        </SidebarProvider>
     );
 }

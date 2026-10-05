@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Enums\NotificationType;
+use Illuminate\Support\Str;
 
 /**
  * Products expected to run out before a new order could arrive. One message
@@ -27,7 +28,7 @@ class CriticalStockNotification extends StockSenseNotification
     {
         $count = count($this->items);
 
-        return "Critical stock: {$count} ".$this->plural($count, 'product').' may run out';
+        return "Critical stock: {$count} ".Str::plural('product', $count).' may run out';
     }
 
     protected function summary(): string
@@ -51,7 +52,7 @@ class CriticalStockNotification extends StockSenseNotification
     protected function lines(): array
     {
         $count = count($this->items);
-        $lines = ["{$count} ".$this->plural($count, 'product').' '.($count === 1 ? 'is' : 'are').' expected to run out before a new order could arrive.'];
+        $lines = ["{$count} ".Str::plural('product', $count).' '.($count === 1 ? 'is' : 'are').' expected to run out before a new order could arrive.'];
 
         foreach (array_slice($this->items, 0, self::LISTED) as $item) {
             $expected = number_format((float) $item['expected'], 0);

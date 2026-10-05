@@ -1,11 +1,11 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { ClipboardCheck, RefreshCw, TriangleAlert } from 'lucide-react';
 import Heading from '@/components/heading';
+import LinkTabs from '@/components/link-tabs';
 import Pagination from '@/components/pagination';
 import RecommendationCard from '@/components/recommendations/recommendation-card';
 import RecommendationFilters from '@/components/recommendations/recommendation-filters';
 import RecommendationSummary from '@/components/recommendations/recommendation-summary';
-import ViewTabs from '@/components/recommendations/view-tabs';
 import { Button } from '@/components/ui/button';
 import { index as forecastsIndex } from '@/routes/forecasts';
 import { index, refresh } from '@/routes/recommendations';
@@ -15,6 +15,12 @@ import type {
     RecommendationsProps,
     RecommendationView,
 } from '@/types';
+
+const views: { key: RecommendationView; label: string }[] = [
+    { key: 'todo', label: 'To decide' },
+    { key: 'overstock', label: 'Overstock' },
+    { key: 'decided', label: 'Decided' },
+];
 
 const emptyText: Record<RecommendationView, string> = {
     todo: 'Nothing needs ordering right now.',
@@ -128,7 +134,16 @@ export default function RecommendationsIndex({
                         />
 
                         <div className="flex flex-wrap items-center justify-between gap-3">
-                            <ViewTabs view={filters.view} />
+                            <LinkTabs
+                                label="Show"
+                                testPrefix="view"
+                                current={filters.view}
+                                tabs={views.map((view) => ({
+                                    ...view,
+                                    href: index({ query: { view: view.key } })
+                                        .url,
+                                }))}
+                            />
                         </div>
 
                         <RecommendationFilters

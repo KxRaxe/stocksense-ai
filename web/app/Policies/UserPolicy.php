@@ -7,21 +7,6 @@ use App\Models\User;
 
 class UserPolicy
 {
-    public function viewAny(User $actor): bool
-    {
-        return $this->canManage($actor);
-    }
-
-    public function create(User $actor): bool
-    {
-        return $this->canManage($actor);
-    }
-
-    public function update(User $actor, User $target): bool
-    {
-        return $this->canManage($actor);
-    }
-
     /**
      * Owners cannot change their own role, so they cannot lock themselves out
      * of administration by accident.

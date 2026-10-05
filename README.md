@@ -13,7 +13,10 @@ Requires Docker with Compose v2. Nothing else needs to be installed on the host.
 ```bash
 docker compose up -d --build
 docker compose exec app php artisan migrate
+docker compose exec app php artisan db:seed
 ```
+
+`db:seed` loads the demo shop (about 35 seconds) and the three demo accounts below. Without it there is nobody to sign in as.
 
 The first start installs Composer and npm dependencies inside the containers, so allow a few minutes. After that, `npm install` runs only when `package-lock.json` changes.
 

@@ -39,18 +39,4 @@ enum RiskLevel: string
     {
         return in_array($this, [self::Critical, self::Low, self::Watch], true);
     }
-
-    /**
-     * Sort order, most urgent first.
-     */
-    public function severity(): int
-    {
-        return match ($this) {
-            self::Critical => 1,
-            self::Low => 2,
-            self::Watch => 3,
-            self::Overstock => 4,
-            self::Ok => 5,
-        };
-    }
 }

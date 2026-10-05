@@ -2,8 +2,6 @@
 
 namespace App\Services\Sales;
 
-use App\Enums\ImportType;
-use App\Enums\Permission;
 use App\Enums\StockMovementType;
 use App\Models\ImportBatch;
 use App\Models\Location;
@@ -30,24 +28,9 @@ class SalesImportDefinition implements ImportDefinition
         private readonly StockService $stock,
     ) {}
 
-    public function type(): ImportType
-    {
-        return ImportType::Sales;
-    }
-
-    public function permission(): Permission
-    {
-        return Permission::ImportSales;
-    }
-
     public function fields(): array
     {
         return SalesImportFields::all();
-    }
-
-    public function guess(array $headers): array
-    {
-        return SalesImportFields::guess($headers);
     }
 
     public function options(): array

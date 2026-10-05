@@ -1,10 +1,9 @@
+import { formatPercent, formatUnits } from '@/lib/format';
 import { describe, expect, it } from 'vitest';
 import {
     featureLabel,
     formatChange,
-    formatPercent,
     formatRange,
-    formatUnits,
     periodLabel,
     periodNoun,
     verdict,

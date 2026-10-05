@@ -7,54 +7,18 @@ use App\Models\Category;
 use App\Models\ImportBatch;
 use App\Models\Product;
 use App\Services\Imports\ImportProcessor;
-use App\Services\Imports\ImportRowsFile;
 use App\Services\Inventory\StockService;
-use Illuminate\Support\Facades\DB;
-use Spatie\Activitylog\Support\CauserResolver;
 
 /**
  * Imports the next slice of a product file: validates each row, then creates
  * the new products (with their opening stock), updates or skips the ones that
- * already exist, as the person chose. A slice is all-or-nothing, and the batch
- * remembers how far it got, so a slice that is run twice does no harm.
+ * already exist, as the person chose.
  */
-class ProductImportProcessor implements ImportProcessor
+class ProductImportProcessor extends ImportProcessor
 {
     public function __construct(private readonly StockService $stock) {}
 
-    public function processNext(ImportBatch $batch, int $offset): bool
-    {
-        // Already done (for example a job that was retried): nothing to do.
-        if ($batch->rows_processed !== $offset) {
-            return $batch->rows_processed < $batch->rows_total;
-        }
-
-        $file = new ImportRowsFile($batch);
-        $rows = iterator_to_array($file->read($offset, config('imports.chunk_size')), false);
-
-        if ($rows === []) {
-            return false;
-        }
-
-        // The queue has no signed-in person, so say whose changes these are for
-        // the audit log.
-        $failed = app(CauserResolver::class)->withCauser(
-            $batch->user,
-            fn () => DB::transaction(fn () => $this->importSlice($batch, $rows)),
-        );
-
-        // Written after the slice is safely saved, so a failed slice leaves no
-        // half-finished report behind.
-        $file->appendErrors($failed);
-
-        return $batch->rows_processed < $batch->rows_total;
-    }
-
-    /**
-     * @param  list<array{0: int, 1: list<mixed>}>  $rows
-     * @return list<array{row: int, messages: list<string>, cells: list<mixed>}> The rows that failed
-     */
-    private function importSlice(ImportBatch $batch, array $rows): array
+    protected function importSlice(ImportBatch $batch, array $rows): array
     {
         $settings = $batch->settings;
 
@@ -76,18 +40,8 @@ class ProductImportProcessor implements ImportProcessor
             $batch->id,
         );
 
-        $parsed = [];
-        $failed = [];
-
-        foreach ($rows as [$number, $cells]) {
-            $result = $validator->validate($number, $cells);
-
-            if ($result instanceof ParsedProductRow) {
-                $parsed[] = $result;
-            } else {
-                $failed[] = ['row' => $number, 'messages' => $result, 'cells' => $cells];
-            }
-        }
+        [$parsed, $invalid] = $validator->validateAll($rows);
+        $failed = $this->failedRows($rows, $invalid);
 
         $created = 0;
         $updated = 0;
@@ -142,22 +96,13 @@ class ProductImportProcessor implements ImportProcessor
 
         $this->stock->recordMany($openingStock);
 
-        $kept = $batch->errors ?? [];
-        foreach ($failed as $problem) {
-            if (count($kept) >= config('imports.stored_errors')) {
-                break;
-            }
-
-            $kept[] = ['row' => $problem['row'], 'messages' => $problem['messages']];
-        }
-
         $batch->forceFill([
             'rows_processed' => $batch->rows_processed + count($rows),
             'rows_ok' => $batch->rows_ok + $created + $updated,
             'rows_updated' => $batch->rows_updated + $updated,
             'rows_duplicate' => $batch->rows_duplicate + $skipped,
             'rows_failed' => $batch->rows_failed + count($failed),
-            'errors' => $kept === [] ? null : $kept,
+            'errors' => $this->keptErrors($batch, $failed),
         ])->save();
 
         return $failed;

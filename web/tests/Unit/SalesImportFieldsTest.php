@@ -1,9 +1,15 @@
 <?php
 
+use App\Services\Imports\HeaderGuesser;
 use App\Services\Sales\SalesImportFields;
 
+function guessSales(array $headers): array
+{
+    return HeaderGuesser::guess(SalesImportFields::all(), $headers);
+}
+
 it('matches columns to fields by their headers', function (array $headers, array $expected) {
-    expect(SalesImportFields::guess($headers))->toBe($expected);
+    expect(guessSales($headers))->toBe($expected);
 })->with([
     'the template' => [
         ['date', 'sku', 'quantity', 'unit_price'],
@@ -29,7 +35,7 @@ it('matches columns to fields by their headers', function (array $headers, array
 
 it('never gives one column to two fields', function () {
     // "Price" could also read as a quantity-ish column; each column is used once.
-    $columns = SalesImportFields::guess(['code', 'code', 'qty']);
+    $columns = guessSales(['code', 'code', 'qty']);
 
     expect($columns['sku'])->toBe(0)
         ->and(array_filter($columns, fn ($index) => $index !== null))->toHaveCount(count(array_unique(array_filter($columns, fn ($i) => $i !== null))));
@@ -37,9 +43,9 @@ it('never gives one column to two fields', function () {
 
 it('prefers the more specific header', function () {
     // "unit price" beats the vaguer "price" when both are present.
-    expect(SalesImportFields::guess(['date', 'sku', 'qty', 'price', 'unit price'])['unit_price'])->toBe(4);
+    expect(guessSales(['date', 'sku', 'qty', 'price', 'unit price'])['unit_price'])->toBe(4);
 });
 
 it('knows which fields are required', function () {
-    expect(SalesImportFields::required())->toBe(['date', 'sku', 'quantity']);
+    expect(array_keys(array_filter(SalesImportFields::all(), fn (array $field) => $field['required'])))->toBe(['date', 'sku', 'quantity']);
 });

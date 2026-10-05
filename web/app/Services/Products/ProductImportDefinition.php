@@ -2,8 +2,6 @@
 
 namespace App\Services\Products;
 
-use App\Enums\ImportType;
-use App\Enums\Permission;
 use App\Models\Category;
 use App\Models\ImportBatch;
 use App\Models\Product;
@@ -28,24 +26,9 @@ class ProductImportDefinition implements ImportDefinition
         private readonly ProductImportPreview $preview,
     ) {}
 
-    public function type(): ImportType
-    {
-        return ImportType::Products;
-    }
-
-    public function permission(): Permission
-    {
-        return Permission::ManageCatalog;
-    }
-
     public function fields(): array
     {
         return ProductImportFields::all();
-    }
-
-    public function guess(array $headers): array
-    {
-        return ProductImportFields::guess($headers);
     }
 
     public function options(): array

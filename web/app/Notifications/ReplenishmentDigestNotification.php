@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Enums\NotificationType;
+use Illuminate\Support\Str;
 
 /**
  * A summary of what needs ordering: how many products are at each level of
@@ -35,7 +36,7 @@ class ReplenishmentDigestNotification extends StockSenseNotification
     {
         $count = $this->toOrder();
 
-        return "Replenishment digest: {$count} ".$this->plural($count, 'product').' to order';
+        return "Replenishment digest: {$count} ".Str::plural('product', $count).' to order';
     }
 
     protected function summary(): string
@@ -68,7 +69,7 @@ class ReplenishmentDigestNotification extends StockSenseNotification
         }
 
         if ($this->counts['overstock'] > 0) {
-            $lines[] = "{$this->counts['overstock']} ".$this->plural($this->counts['overstock'], 'product').' '.($this->counts['overstock'] === 1 ? 'has' : 'have').' more stock than needed.';
+            $lines[] = "{$this->counts['overstock']} ".Str::plural('product', $this->counts['overstock']).' '.($this->counts['overstock'] === 1 ? 'has' : 'have').' more stock than needed.';
         }
 
         if ($this->forecastAgeDays !== null && $this->forecastAgeDays > (int) config('replenishment.stale_forecast_days')) {

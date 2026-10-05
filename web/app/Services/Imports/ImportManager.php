@@ -40,7 +40,7 @@ class ImportManager
                 'status' => ImportStatus::Preview,
                 'settings' => [
                     'headers' => $parsed['headers'],
-                    'columns' => $definition->guess($parsed['headers']),
+                    'columns' => HeaderGuesser::guess($definition->fields(), $parsed['headers']),
                     ...$definition->initialOptions($input),
                 ],
                 'user_id' => $user->getKey(),
@@ -85,7 +85,7 @@ class ImportManager
             ->causedBy($user)
             ->event('import_started')
             ->withProperties(['filename' => $batch->filename, 'rows' => $batch->rows_total])
-            ->log(ucfirst($batch->type->label()).' import started');
+            ->log(ucfirst($batch->type->value).' import started');
 
         ProcessImportChunk::dispatch($batch->id, 0);
     }
@@ -115,7 +115,7 @@ class ImportManager
                 ->causedBy($user)
                 ->event('import_undone')
                 ->withProperties(['filename' => $batch->filename])
-                ->log(ucfirst($batch->type->label()).' import undone');
+                ->log(ucfirst($batch->type->value).' import undone');
         });
     }
 }

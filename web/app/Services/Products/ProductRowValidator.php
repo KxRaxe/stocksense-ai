@@ -3,6 +3,7 @@
 namespace App\Services\Products;
 
 use App\Models\Product;
+use App\Services\Imports\ParsesImportRows;
 use App\Services\Imports\RowProblem;
 
 /**
@@ -17,7 +18,8 @@ use App\Services\Imports\RowProblem;
  */
 class ProductRowValidator
 {
-    private const MAX_MONEY = 9_999_999_999.99;
+    /** @use ParsesImportRows<ParsedProductRow> */
+    use ParsesImportRows;
 
     /** @var array<string, true> New SKUs an earlier row of this file has already claimed */
     private array $claimed = [];
@@ -165,50 +167,6 @@ class ProductRowValidator
         );
     }
 
-    /**
-     * The upper-case SKUs a set of rows mentions, so their products can be
-     * loaded in one query.
-     *
-     * @param  iterable<list<mixed>>  $rows
-     * @param  array<string, int|null>  $columns
-     * @return list<string>
-     */
-    public static function skusIn(iterable $rows, array $columns): array
-    {
-        $index = $columns[ProductImportFields::SKU] ?? null;
-
-        if ($index === null) {
-            return [];
-        }
-
-        $skus = [];
-
-        foreach ($rows as $cells) {
-            $sku = strtoupper(trim((string) ($cells[$index] ?? '')));
-
-            if ($sku !== '') {
-                $skus[$sku] = true;
-            }
-        }
-
-        return array_keys($skus);
-    }
-
-    /**
-     * @param  list<mixed>  $cells
-     */
-    private function cell(array $cells, string $field): mixed
-    {
-        $index = $this->columns[$field] ?? null;
-
-        return $index === null ? null : ($cells[$index] ?? null);
-    }
-
-    private function isBlank(mixed $value): bool
-    {
-        return $value === null || (is_string($value) && trim($value) === '');
-    }
-
     private function parseSku(mixed $value): string|RowProblem
     {
         if ($this->isBlank($value)) {
@@ -247,65 +205,5 @@ class ProductRowValidator
 
         return $this->categories[mb_strtolower($name)]
             ?? ($this->createCategories ? $name : new RowProblem("Unknown category '{$name}'."));
-    }
-
-    /**
-     * @return numeric-string|RowProblem|null
-     */
-    private function parseMoney(mixed $value, string $label): string|RowProblem|null
-    {
-        if ($this->isBlank($value)) {
-            return null;
-        }
-
-        // Allow a currency sign or code and thousands separators: "₱1,250.50".
-        $text = is_string($value) ? preg_replace('/[^\d.\-]/u', '', str_replace(',', '', $value)) : $value;
-
-        if ($text === '' || ! is_numeric($text)) {
-            return new RowProblem("{$label} '{$value}' is not a number.");
-        }
-
-        $amount = (float) $text;
-
-        if ($amount < 0) {
-            return new RowProblem("{$label} cannot be negative.");
-        }
-
-        if ($amount > self::MAX_MONEY) {
-            return new RowProblem("{$label} is too large.");
-        }
-
-        return number_format($amount, 2, '.', '');
-    }
-
-    private function parseWhole(mixed $value, string $label, int $min, int $max): int|RowProblem|null
-    {
-        if ($this->isBlank($value)) {
-            return null;
-        }
-
-        $text = is_string($value) ? str_replace([',', ' '], '', trim($value)) : $value;
-
-        if (! is_numeric($text)) {
-            return new RowProblem("{$label} '{$value}' is not a number.");
-        }
-
-        $number = (float) $text;
-
-        if (abs($number - round($number)) > 1e-9) {
-            return new RowProblem("{$label} '{$value}' is not a whole number.");
-        }
-
-        $whole = (int) round($number);
-
-        if ($whole < $min) {
-            return new RowProblem("{$label} must be at least {$min}.");
-        }
-
-        if ($whole > $max) {
-            return new RowProblem("{$label} is too large.");
-        }
-
-        return $whole;
     }
 }

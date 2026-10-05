@@ -1,9 +1,8 @@
 import { X } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
-import { useListQuery } from '@/hooks/use-list-query';
+import { useDebouncedSearch, useListQuery } from '@/hooks/use-list-query';
 import type { SalesFilters as Filters } from '@/types';
 
 type Props = {
@@ -17,20 +16,8 @@ type Props = {
  * for a pause in typing; everything else applies straight away.
  */
 export default function SalesFilters({ url, filters }: Props) {
-    const [search, setSearch] = useState(filters.search);
     const apply = useListQuery(url, filters);
-
-    useEffect(() => {
-        if (search === filters.search) {
-            return;
-        }
-
-        const timer = setTimeout(() => apply({ search }), 300);
-
-        return () => clearTimeout(timer);
-        // `apply` always reads the latest filters, so it is not a dependency.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [search]);
+    const [search, setSearch] = useDebouncedSearch(filters.search, apply);
 
     return (
         <div className="space-y-3">

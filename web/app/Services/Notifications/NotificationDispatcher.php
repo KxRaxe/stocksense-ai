@@ -182,7 +182,7 @@ class NotificationDispatcher
             $batch->rows_ok,
             $batch->rows_failed,
             $stopped,
-            route("{$batch->type->routePrefix()}.imports.show", $batch, absolute: false),
+            route("{$batch->type->value}.imports.show", $batch, absolute: false),
         ));
     }
 

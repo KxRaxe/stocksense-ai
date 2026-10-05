@@ -73,7 +73,7 @@ abstract class ImportController extends Controller
             foreach ($rows as $row) {
                 $out->fputcsv($row);
             }
-        }, "{$this->type()->routePrefix()}-import-template.csv", ['Content-Type' => 'text/csv']);
+        }, "{$this->type()->value}-import-template.csv", ['Content-Type' => 'text/csv']);
     }
 
     public function store(UploadImportFileRequest $request): RedirectResponse
@@ -86,7 +86,7 @@ abstract class ImportController extends Controller
             throw ValidationException::withMessages(['file' => $e->getMessage()]);
         }
 
-        return to_route("{$this->type()->routePrefix()}.imports.show", $batch);
+        return to_route("{$this->type()->value}.imports.show", $batch);
     }
 
     public function show(ImportBatch $batch): Response
@@ -214,7 +214,7 @@ abstract class ImportController extends Controller
 
     private function page(string $name): string
     {
-        return "{$this->type()->routePrefix()}/imports/{$name}";
+        return "{$this->type()->value}/imports/{$name}";
     }
 
     /**
@@ -224,7 +224,7 @@ abstract class ImportController extends Controller
      */
     private function link(string $name, array|ImportBatch $parameters = []): string
     {
-        return route("{$this->type()->routePrefix()}.imports.{$name}", $parameters, absolute: false);
+        return route("{$this->type()->value}.imports.{$name}", $parameters, absolute: false);
     }
 
     /**

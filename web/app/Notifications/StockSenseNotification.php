@@ -89,12 +89,4 @@ abstract class StockSenseNotification extends Notification implements ShouldQueu
             'url' => $this->path(),
         ];
     }
-
-    /**
-     * "product" or "products" for a count.
-     */
-    protected function plural(int $count, string $singular, ?string $plural = null): string
-    {
-        return $count === 1 ? $singular : ($plural ?? $singular.'s');
-    }
 }

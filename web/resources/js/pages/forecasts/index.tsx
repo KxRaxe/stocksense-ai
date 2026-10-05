@@ -16,13 +16,16 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { formatDateTime, formatNumber } from '@/lib/format';
+import {
+    formatDateTime,
+    formatNumber,
+    formatPercent,
+    formatUnits,
+} from '@/lib/format';
 import {
     asOfLabel,
     formatChange,
-    formatPercent,
     formatRange,
-    formatUnits,
     periodLabel,
     periodNoun,
 } from '@/lib/forecast';

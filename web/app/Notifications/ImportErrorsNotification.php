@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Enums\ImportType;
 use App\Enums\NotificationType;
+use Illuminate\Support\Str;
 
 /**
  * A file the person imported finished with rows that could not be imported
@@ -31,7 +32,7 @@ class ImportErrorsNotification extends StockSenseNotification
 
     private function name(): string
     {
-        return ucfirst($this->kind->label())." import #{$this->batchId}";
+        return ucfirst($this->kind->value)." import #{$this->batchId}";
     }
 
     protected function title(): string
@@ -43,7 +44,7 @@ class ImportErrorsNotification extends StockSenseNotification
     {
         return $this->stopped
             ? 'It stopped before it finished. What was imported so far can be undone.'
-            : number_format($this->failed).' '.$this->plural($this->failed, 'row').' could not be imported.';
+            : number_format($this->failed).' '.Str::plural('row', $this->failed).' could not be imported.';
     }
 
     protected function path(): string
@@ -60,9 +61,9 @@ class ImportErrorsNotification extends StockSenseNotification
     {
         $lines = [$this->stopped
             ? "{$this->name()} stopped before it finished because of an unexpected error."
-            : "{$this->name()} finished, but ".number_format($this->failed).' '.$this->plural($this->failed, 'row').' could not be imported.'];
+            : "{$this->name()} finished, but ".number_format($this->failed).' '.Str::plural('row', $this->failed).' could not be imported.'];
 
-        $lines[] = number_format($this->imported).' '.$this->plural($this->imported, 'row').' went in.';
+        $lines[] = number_format($this->imported).' '.Str::plural('row', $this->imported).' went in.';
         $lines[] = $this->stopped
             ? 'You can undo the import and try again.'
             : 'The import page lists each problem and has an error report you can download, fix and upload again.';

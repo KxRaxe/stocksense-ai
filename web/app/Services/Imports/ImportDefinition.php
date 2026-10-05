@@ -2,8 +2,6 @@
 
 namespace App\Services\Imports;
 
-use App\Enums\ImportType;
-use App\Enums\Permission;
 use App\Models\ImportBatch;
 use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -16,13 +14,6 @@ use Illuminate\Contracts\Validation\ValidationRule;
  */
 interface ImportDefinition
 {
-    public function type(): ImportType;
-
-    /**
-     * Who may import this kind of file.
-     */
-    public function permission(): Permission;
-
     /**
      * The columns a file can carry: field => label, whether it is required, and
      * the header names it is known by (lower case, letters and digits only, best
@@ -31,14 +22,6 @@ interface ImportDefinition
      * @return array<string, array{label: string, required: bool, aliases: list<string>}>
      */
     public function fields(): array;
-
-    /**
-     * Matches each field to the file column whose header looks like it.
-     *
-     * @param  list<string>  $headers
-     * @return array<string, int|null>
-     */
-    public function guess(array $headers): array;
 
     /**
      * The choices the person can make, as form descriptors. Those with

@@ -4,10 +4,10 @@ import Heading from '@/components/heading';
 import Pagination from '@/components/pagination';
 import ReportFilters from '@/components/reports/report-filters';
 import ReportTable from '@/components/reports/report-table';
-import ReportTabs from '@/components/reports/report-tabs';
+import LinkTabs from '@/components/link-tabs';
 import { Button } from '@/components/ui/button';
 import { formatCell } from '@/lib/reports';
-import { index } from '@/routes/reports';
+import { index, show } from '@/routes/reports';
 import type { ReportShowProps } from '@/types';
 
 export default function ReportShow({
@@ -50,7 +50,18 @@ export default function ReportShow({
                     </div>
                 </div>
 
-                <ReportTabs reports={reports} current={report.key} />
+                {reports.length > 1 && (
+                    <LinkTabs
+                        label="Reports"
+                        testPrefix="report-tab"
+                        current={report.key}
+                        tabs={reports.map((item) => ({
+                            key: item.key,
+                            label: item.title,
+                            href: show(item.key).url,
+                        }))}
+                    />
+                )}
 
                 <ReportFilters
                     // A new key when the report or its filters change, so the form shows them.
