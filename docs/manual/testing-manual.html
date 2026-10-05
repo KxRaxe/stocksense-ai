@@ -206,6 +206,7 @@ footer.end { margin-top: 60px; text-align: center; color: var(--muted); font-siz
         <li><a href="#part-b">Part B · Test cases</a>
             <ol>
                 <li><a href="#m-smoke">Smoke test</a></li>
+                <li><a href="#m-landing">The front page</a></li>
                 <li><a href="#m-auth">Signing in and your account</a></li>
                 <li><a href="#m-theme">Light and dark mode</a></li>
                 <li><a href="#m-roles">Roles and permissions</a></li>
@@ -407,7 +408,9 @@ Importing sales through the import pipeline...
         </tbody>
     </table>
     <p>The <b>first</b> page after a start can take up to a minute while the screens are built, and stays blank until then. That is normal. Later pages are quick.</p>
-    <figure><img src="img/01-login.png" alt="The StockSense AI sign-in page: a white card on a cream grid, with email and password fields and a violet Log in button"><figcaption>The sign-in page. The button in the top-right corner switches between light and dark mode.</figcaption></figure>
+    <p>You land on the <b>front page</b>, which explains what StockSense AI does. Click <b>Sign in</b> (top right) to reach the sign-in page.</p>
+    <figure><img src="img/00-landing.png" alt="The StockSense AI front page: the headline Know what to reorder, how much, and when, a Sign in button, and a picture of the dashboard"><figcaption>The front page. The moon/sun button next to Sign in switches between light and dark mode.</figcaption></figure>
+    <figure><img src="img/01-login.png" alt="The StockSense AI sign-in page: a white card on a cream grid, with email and password fields and a violet Log in button"><figcaption>The sign-in page.</figcaption></figure>
 </div></div>
 
 <div class="step"><div class="n">9</div><div>
@@ -420,7 +423,7 @@ docker compose start</code></pre>
     <p>Docker Desktop must be running first. You do not need to build or seed again.</p>
 </div></div>
 
-<div class="box ok"><p><b>Ready.</b> If the sign-in page appears, set-up is done. Go to the <a href="#m-smoke">smoke test</a>.</p></div>
+<div class="box ok"><p><b>Ready.</b> If the front page appears, set-up is done. Go to the <a href="#m-smoke">smoke test</a>.</p></div>
 </section>
 
 <section id="trouble">
@@ -448,7 +451,7 @@ memory=6GB</code></pre></td></tr>
 </section>
 <section id="part-b" class="page-break">
 <h2><span class="mark">Part B · Test cases</span></h2>
-<p>138 test cases in 18 groups. Sign in as the role shown on each case (<a href="#app-accounts">accounts</a>). Unless a case says otherwise, start from the dashboard.</p>
+<p>143 test cases in 19 groups. Sign in as the role shown on each case (<a href="#app-accounts">accounts</a>). Unless a case says otherwise, start from the dashboard.</p>
 <section id="m-smoke" class="">
 <h3>B1. Smoke test (5 minutes)</h3>
 <p class="module-intro">A quick check that the whole system is alive before the detailed tests. If any of these fail, fix the set-up first (see Troubleshooting).</p>
@@ -466,7 +469,7 @@ memory=6GB</code></pre></td></tr>
     <div class="body">
         
         <ol><li>Open <code>http://localhost:8080</code>.</li></ol>
-        <div class="exp"><span class="lbl">Expected result</span>Within about 30 seconds the sign-in page appears: a white card titled <b>Log in to your account</b>, on a cream grid background.</div>
+        <div class="exp"><span class="lbl">Expected result</span>Within about a minute the front page appears: the headline <b>Know what to reorder, how much, and when.</b>, a <b>Sign in</b> button and a picture of the dashboard, on a cream grid background.</div>
     </div>
     <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SMK-02"></div></div>
 </article>
@@ -492,7 +495,7 @@ memory=6GB</code></pre></td></tr>
     <header><span class="id">SMK-05</span><h4>A demo account can sign in</h4><span class="tag guest">Signed out</span></header>
     <div class="body">
         <p class="pre"><b>Before you start:</b> The demo shop is loaded (Part A, step 7).</p>
-        <ol><li>On the sign-in page enter <code>owner@stocksense.test</code> and <code>password</code>.</li><li>Click <b>Log in</b>.</li></ol>
+        <ol><li>On the front page click <b>Sign in</b>.</li><li>Enter <code>owner@stocksense.test</code> and <code>password</code>, then click <b>Log in</b>.</li></ol>
         <div class="exp"><span class="lbl">Expected result</span>The <b>Dashboard</b> opens with four figure cards (sales, stock value, needs ordering, forecast error) and charts. The menu on the left shows Dashboard, Products, Inventory, Sales, Forecasts, Recommendations, Reports, Categories, Users, Audit log and System settings.</div>
     </div>
     <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SMK-05"></div></div>
@@ -507,8 +510,57 @@ memory=6GB</code></pre></td></tr>
     <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SMK-06"></div></div>
 </article>
 </section>
+<section id="m-landing" class="page-break">
+<h3>B2. The front page</h3>
+<p class="module-intro">What a visitor sees at <code>http://localhost:8080</code> before signing in: what the app does, for shop owners and for the curious.</p>
+<article class="tc" id="LND-01">
+    <header><span class="id">LND-01</span><h4>It explains the app</h4><span class="tag guest">Signed out</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> You are signed out.</p>
+        <ol><li>Open <code>http://localhost:8080</code>.</li><li>Scroll through the whole page.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>In order: the headline and a dashboard picture; <b>Stock is a guessing game</b> (three problems); <b>How it works</b> (four numbered steps and an example of the advice); <b>Everything a small shop needs</b> (eight features); <b>Under the hood</b> (the forecast, privacy and security, the technologies); <b>One shop, three roles</b>; <b>Good to know</b> (questions); and a violet <b>Ready when you are</b> box. It says clearly that the app never places orders.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for LND-01"></div></div>
+</article>
+<article class="tc" id="LND-02">
+    <header><span class="id">LND-02</span><h4>Every Sign in button leads to the sign-in page</h4><span class="tag guest">Signed out</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> You are signed out.</p>
+        <ol><li>Click <b>Sign in</b> in the top bar. Go back. Click <b>Sign in</b> next to the headline. Go back. Click <b>Sign in</b> in the violet box at the bottom.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Each one opens the sign-in page.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for LND-02"></div></div>
+</article>
+<article class="tc" id="LND-03">
+    <header><span class="id">LND-03</span><h4>The top links and the questions</h4><span class="tag guest">Signed out</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> You are signed out, on a computer screen (the top links are hidden on a phone).</p>
+        <ol><li>Click <b>How it works</b>, <b>Features</b>, <b>Under the hood</b> and <b>FAQ</b> in the top bar.</li><li>Under <b>Good to know</b>, click each question.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Each link scrolls to its section. Each question opens to show its answer, and closes again when clicked.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for LND-03"></div></div>
+</article>
+<article class="tc" id="LND-04">
+    <header><span class="id">LND-04</span><h4>Demo accounts are offered only on a test copy</h4><span class="tag guest">Signed out</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> You are signed out.</p>
+        <ol><li>Look under the two buttons next to the headline.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A dashed box lists the three demo accounts and the password. (On a real, production installation this box does not appear, because the demo accounts do not exist there.)</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for LND-04"></div></div>
+</article>
+<article class="tc" id="LND-05">
+    <header><span class="id">LND-05</span><h4>Signed in, you skip the front page</h4><span class="tag any">Any role</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> You are signed in.</p>
+        <ol><li>Open <code>http://localhost:8080</code>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>You go straight to the <b>Dashboard</b>. After you sign out, you return to the front page.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for LND-05"></div></div>
+</article>
+</section>
 <section id="m-auth" class="page-break">
-<h3>B2. Signing in and your account</h3>
+<h3>B3. Signing in and your account</h3>
 <p class="module-intro">Sign-in, sign-out, password reset by email, profile and security settings. The demo password is <code>password</code> for all three accounts.</p>
 <article class="tc" id="AUTH-01">
     <header><span class="id">AUTH-01</span><h4>Sign in with the right password</h4><span class="tag guest">Signed out</span></header>
@@ -560,7 +612,7 @@ memory=6GB</code></pre></td></tr>
     <div class="body">
         <p class="pre"><b>Before you start:</b> You are signed in.</p>
         <ol><li>Click your name at the bottom of the left menu.</li><li>Click <b>Log out</b>.</li><li>Press the browser's Back button.</li></ol>
-        <div class="exp"><span class="lbl">Expected result</span>You are taken to the sign-in page. Going back does not show the app; any page you open asks you to sign in again.</div>
+        <div class="exp"><span class="lbl">Expected result</span>You are taken to the front page. Going back does not show the app; any page you open asks you to sign in again.</div>
     </div>
     <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for AUTH-06"></div></div>
 </article>
@@ -647,7 +699,7 @@ memory=6GB</code></pre></td></tr>
 </article>
 </section>
 <section id="m-theme" class="page-break">
-<h3>B3. Light and dark mode</h3>
+<h3>B4. Light and dark mode</h3>
 <p class="module-intro">The app has a light theme (cream paper, ink outlines) and a dark theme (deep ink, violet shadows). You can switch with the button at the top right of every page, or choose in Settings → Appearance.</p>
 <figure><img src="img/03-dashboard-dark.png" alt="The dashboard in dark mode. The sun/moon button at the top right switches modes."><figcaption>The dashboard in dark mode. The sun/moon button at the top right switches modes.</figcaption></figure>
 <article class="tc" id="THM-01">
@@ -669,11 +721,11 @@ memory=6GB</code></pre></td></tr>
     <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for THM-02"></div></div>
 </article>
 <article class="tc" id="THM-03">
-    <header><span class="id">THM-03</span><h4>Switch on the sign-in page</h4><span class="tag guest">Signed out</span></header>
+    <header><span class="id">THM-03</span><h4>Switch on the front page and the sign-in page</h4><span class="tag guest">Signed out</span></header>
     <div class="body">
         <p class="pre"><b>Before you start:</b> Signed out.</p>
-        <ol><li>Click the button at the top right of the sign-in page.</li></ol>
-        <div class="exp"><span class="lbl">Expected result</span>The sign-in page switches between light and dark.</div>
+        <ol><li>Click the moon/sun button next to <b>Sign in</b> on the front page. Then open the sign-in page and click the button in its top-right corner.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Both pages switch between light and dark, and the choice carries over from one to the other.</div>
     </div>
     <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for THM-03"></div></div>
 </article>
@@ -697,7 +749,7 @@ memory=6GB</code></pre></td></tr>
 </article>
 </section>
 <section id="m-roles" class="page-break">
-<h3>B4. Roles and permissions</h3>
+<h3>B5. Roles and permissions</h3>
 <p class="module-intro">There are three roles. Each sees only the menu items it may use, and the server blocks the rest even if someone types the address. Use this table, then check it with the tests below.</p>
 
 <table class="grid">
@@ -797,7 +849,7 @@ memory=6GB</code></pre></td></tr>
 </article>
 </section>
 <section id="m-users" class="page-break">
-<h3>B5. Users</h3>
+<h3>B6. Users</h3>
 <p class="module-intro">Only the Owner manages people. Nobody is ever sent a password: a new person gets an email link to choose their own.</p>
 <article class="tc" id="USR-01">
     <header><span class="id">USR-01</span><h4>Add a person</h4><span class="tag owner">Owner</span></header>
@@ -891,7 +943,7 @@ memory=6GB</code></pre></td></tr>
 </article>
 </section>
 <section id="m-categories" class="page-break">
-<h3>B6. Categories</h3>
+<h3>B7. Categories</h3>
 <p class="module-intro">Categories group products and set a <b>service level</b>: how often you want to have stock when a customer asks (higher means more safety stock).</p>
 <article class="tc" id="CAT-01">
     <header><span class="id">CAT-01</span><h4>Add a category</h4><span class="tag manager">Manager</span></header>
@@ -949,7 +1001,7 @@ memory=6GB</code></pre></td></tr>
 </article>
 </section>
 <section id="m-products" class="page-break">
-<h3>B7. Products</h3>
+<h3>B8. Products</h3>
 <p class="module-intro">Each product has a SKU (the shop's own code, stored in capitals), cost and price, and reordering details. Products are never deleted, only archived, so their history stays.</p>
 <figure><img src="img/05-product.png" alt="A product page: stock figures, the details, the stock ledger, and buttons to record a delivery or a stock count."><figcaption>A product page: stock figures, the details, the stock ledger, and buttons to record a delivery or a stock count.</figcaption></figure>
 <article class="tc" id="PRD-01">
@@ -1040,7 +1092,7 @@ TS-203,Bad price,Personal care,pc,10.00,-18.00,5,1,1,,5</code></pre></div>
 </article>
 </section>
 <section id="m-inventory" class="page-break">
-<h3>B8. Stock and inventory</h3>
+<h3>B9. Stock and inventory</h3>
 <p class="module-intro">Stock is a ledger: every change is a line with who, when and why, and the stock on hand is the total of those lines.</p>
 <article class="tc" id="INV-01">
     <header><span class="id">INV-01</span><h4>The stock overview</h4><span class="tag staff">Inventory staff</span></header>
@@ -1098,7 +1150,7 @@ TS-203,Bad price,Personal care,pc,10.00,-18.00,5,1,1,,5</code></pre></div>
 </article>
 </section>
 <section id="m-sales" class="page-break">
-<h3>B9. Sales and imports</h3>
+<h3>B10. Sales and imports</h3>
 <p class="module-intro">Sales are what the forecasts learn from. You can type them in or import a file. <b>Use yesterday's date</b> in the files below (a sale cannot be in the future). Write dates as <code>YYYY-MM-DD</code>, for example <code>2026-10-04</code>.</p>
 <figure><img src="img/07-import-preview.png" alt="An import preview: what will be imported, what will be skipped as a repeat, and what is wrong."><figcaption>An import preview: what will be imported, what will be skipped as a repeat, and what is wrong.</figcaption></figure>
 <article class="tc" id="SAL-01">
@@ -1219,7 +1271,7 @@ TS-203,Bad price,Personal care,pc,10.00,-18.00,5,1,1,,5</code></pre></div>
 </article>
 </section>
 <section id="m-forecasts" class="page-break">
-<h3>B10. Forecasts</h3>
+<h3>B11. Forecasts</h3>
 <p class="module-intro">The forecasting model (XGBoost) predicts each product's sales, week by week or month by month, with a likely range. Products with under a year of history get a simpler average and a <b>Low confidence</b> label. A run trains a real model: from under a minute to a few minutes, depending on the computer.</p>
 <figure><img src="img/09-forecasts.png" alt="The forecasts page after a weekly run: how far ahead it looks, how accurate it has been, and every product's forecast."><figcaption>The forecasts page after a weekly run: how far ahead it looks, how accurate it has been, and every product's forecast.</figcaption></figure>
 <article class="tc" id="FOR-01">
@@ -1305,7 +1357,7 @@ TS-203,Bad price,Personal care,pc,10.00,-18.00,5,1,1,,5</code></pre></div>
 </article>
 </section>
 <section id="m-recs" class="page-break">
-<h3>B11. Recommendations</h3>
+<h3>B12. Recommendations</h3>
 <p class="module-intro">The advice: what to order, how much and by when, with a risk level and a sentence explaining why. The app never orders anything; it only records what you decide.</p>
 <figure><img src="img/10-recommendations.png" alt="Recommendations: counts by risk level, the To decide / Overstock / Decided tabs, filters, and one card per product."><figcaption>Recommendations: counts by risk level, the To decide / Overstock / Decided tabs, filters, and one card per product.</figcaption></figure>
 <article class="tc" id="REC-01">
@@ -1418,7 +1470,7 @@ TS-203,Bad price,Personal care,pc,10.00,-18.00,5,1,1,,5</code></pre></div>
 </article>
 </section>
 <section id="m-notify" class="page-break">
-<h3>B12. Notifications and email</h3>
+<h3>B13. Notifications and email</h3>
 <p class="module-intro">Notifications appear under the bell and, if you choose, by email. In this set-up every email goes to Mailpit (<code>http://localhost:8026</code>), never to a real inbox. <b>No email may ever contain a person's name or email address.</b></p>
 <article class="tc" id="NOT-01">
     <header><span class="id">NOT-01</span><h4>The bell</h4><span class="tag manager">Manager</span></header>
@@ -1494,7 +1546,7 @@ TS-203,Bad price,Personal care,pc,10.00,-18.00,5,1,1,,5</code></pre></div>
 </article>
 </section>
 <section id="m-dashboard" class="page-break">
-<h3>B13. Dashboard</h3>
+<h3>B14. Dashboard</h3>
 <p class="module-intro">The first page after signing in: how the shop is doing over the last 30 days compared with the 30 before.</p>
 <figure><img src="img/02-dashboard.png" alt="The dashboard (Owner): headline figures, weekly sales, where the sales come from, and more below."><figcaption>The dashboard (Owner): headline figures, weekly sales, where the sales come from, and more below.</figcaption></figure>
 <article class="tc" id="DSH-01">
@@ -1535,7 +1587,7 @@ TS-203,Bad price,Personal care,pc,10.00,-18.00,5,1,1,,5</code></pre></div>
 </article>
 </section>
 <section id="m-reports" class="page-break">
-<h3>B14. Reports</h3>
+<h3>B15. Reports</h3>
 <p class="module-intro">Four reports, each on screen with filters, and downloadable as Excel (real numbers you can add up) or PDF (for printing).</p>
 <figure><img src="img/12-report.png" alt="The sales report with its filters, summary figures and the Excel and PDF buttons."><figcaption>The sales report with its filters, summary figures and the Excel and PDF buttons.</figcaption></figure>
 <article class="tc" id="RPT-01">
@@ -1594,7 +1646,7 @@ TS-203,Bad price,Personal care,pc,10.00,-18.00,5,1,1,,5</code></pre></div>
 </article>
 </section>
 <section id="m-settings" class="page-break">
-<h3>B15. System settings</h3>
+<h3>B16. System settings</h3>
 <p class="module-intro">Owner only. How the advice is worked out and when things run automatically. Each setting shows its default; changes apply at once, including to background jobs.</p>
 <article class="tc" id="SET-01">
     <header><span class="id">SET-01</span><h4>Change a setting</h4><span class="tag owner">Owner</span></header>
@@ -1652,7 +1704,7 @@ TS-203,Bad price,Personal care,pc,10.00,-18.00,5,1,1,,5</code></pre></div>
 </article>
 </section>
 <section id="m-audit" class="page-break">
-<h3>B16. Audit log</h3>
+<h3>B17. Audit log</h3>
 <p class="module-intro">Owner only. Who did what and when, with what changed. It can be read but never edited.</p>
 <article class="tc" id="AUD-01">
     <header><span class="id">AUD-01</span><h4>Your actions are there</h4><span class="tag owner">Owner</span></header>
@@ -1692,7 +1744,7 @@ TS-203,Bad price,Personal care,pc,10.00,-18.00,5,1,1,,5</code></pre></div>
 </article>
 </section>
 <section id="m-security" class="page-break">
-<h3>B17. Security spot checks</h3>
+<h3>B18. Security spot checks</h3>
 <p class="module-intro">Simple checks anyone can do with the browser. They do not replace a professional security test.</p>
 <article class="tc" id="SEC-01">
     <header><span class="id">SEC-01</span><h4>Protective headers</h4><span class="tag guest">Signed out</span></header>
@@ -1741,7 +1793,7 @@ TS-203,Bad price,Personal care,pc,10.00,-18.00,5,1,1,,5</code></pre></div>
 </article>
 </section>
 <section id="m-perf" class="page-break">
-<h3>B18. Speed, devices and browsers</h3>
+<h3>B19. Speed, devices and browsers</h3>
 <p class="module-intro">How quick and how portable it feels. Write your measurements in the Remarks.</p>
 <article class="tc" id="PRF-01">
     <header><span class="id">PRF-01</span><h4>Page speed</h4><span class="tag owner">Owner</span></header>
@@ -1888,24 +1940,25 @@ TS-203,Bad price,Personal care,pc,10.00,-18.00,5,1,1,,5</code></pre></div>
     <thead><tr><th>Module</th><th>Cases</th><th>Pass</th><th>Fail</th><th>Blocked</th></tr></thead>
     <tbody id="summary-rows">
         <tr><td>B1. Smoke test (5 minutes)</td><td>6</td><td></td><td></td><td></td></tr>
-        <tr><td>B2. Signing in and your account</td><td>15</td><td></td><td></td><td></td></tr>
-        <tr><td>B3. Light and dark mode</td><td>5</td><td></td><td></td><td></td></tr>
-        <tr><td>B4. Roles and permissions</td><td>9</td><td></td><td></td><td></td></tr>
-        <tr><td>B5. Users</td><td>10</td><td></td><td></td><td></td></tr>
-        <tr><td>B6. Categories</td><td>6</td><td></td><td></td><td></td></tr>
-        <tr><td>B7. Products</td><td>9</td><td></td><td></td><td></td></tr>
-        <tr><td>B8. Stock and inventory</td><td>6</td><td></td><td></td><td></td></tr>
-        <tr><td>B9. Sales and imports</td><td>12</td><td></td><td></td><td></td></tr>
-        <tr><td>B10. Forecasts</td><td>9</td><td></td><td></td><td></td></tr>
-        <tr><td>B11. Recommendations</td><td>12</td><td></td><td></td><td></td></tr>
-        <tr><td>B12. Notifications and email</td><td>8</td><td></td><td></td><td></td></tr>
-        <tr><td>B13. Dashboard</td><td>4</td><td></td><td></td><td></td></tr>
-        <tr><td>B14. Reports</td><td>6</td><td></td><td></td><td></td></tr>
-        <tr><td>B15. System settings</td><td>6</td><td></td><td></td><td></td></tr>
-        <tr><td>B16. Audit log</td><td>4</td><td></td><td></td><td></td></tr>
-        <tr><td>B17. Security spot checks</td><td>5</td><td></td><td></td><td></td></tr>
-        <tr><td>B18. Speed, devices and browsers</td><td>6</td><td></td><td></td><td></td></tr>
-        <tr><td><b>Total</b></td><td><b>138</b></td><td></td><td></td><td></td></tr>
+        <tr><td>B2. The front page</td><td>5</td><td></td><td></td><td></td></tr>
+        <tr><td>B3. Signing in and your account</td><td>15</td><td></td><td></td><td></td></tr>
+        <tr><td>B4. Light and dark mode</td><td>5</td><td></td><td></td><td></td></tr>
+        <tr><td>B5. Roles and permissions</td><td>9</td><td></td><td></td><td></td></tr>
+        <tr><td>B6. Users</td><td>10</td><td></td><td></td><td></td></tr>
+        <tr><td>B7. Categories</td><td>6</td><td></td><td></td><td></td></tr>
+        <tr><td>B8. Products</td><td>9</td><td></td><td></td><td></td></tr>
+        <tr><td>B9. Stock and inventory</td><td>6</td><td></td><td></td><td></td></tr>
+        <tr><td>B10. Sales and imports</td><td>12</td><td></td><td></td><td></td></tr>
+        <tr><td>B11. Forecasts</td><td>9</td><td></td><td></td><td></td></tr>
+        <tr><td>B12. Recommendations</td><td>12</td><td></td><td></td><td></td></tr>
+        <tr><td>B13. Notifications and email</td><td>8</td><td></td><td></td><td></td></tr>
+        <tr><td>B14. Dashboard</td><td>4</td><td></td><td></td><td></td></tr>
+        <tr><td>B15. Reports</td><td>6</td><td></td><td></td><td></td></tr>
+        <tr><td>B16. System settings</td><td>6</td><td></td><td></td><td></td></tr>
+        <tr><td>B17. Audit log</td><td>4</td><td></td><td></td><td></td></tr>
+        <tr><td>B18. Security spot checks</td><td>5</td><td></td><td></td><td></td></tr>
+        <tr><td>B19. Speed, devices and browsers</td><td>6</td><td></td><td></td><td></td></tr>
+        <tr><td><b>Total</b></td><td><b>143</b></td><td></td><td></td><td></td></tr>
     </tbody>
 </table>
 <div class="card">

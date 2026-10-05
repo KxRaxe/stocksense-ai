@@ -24,7 +24,7 @@ The first page load after Vite starts or restarts can take up to about 30 second
 
 | What | URL |
 |---|---|
-| Web app | http://localhost:8080 |
+| Web app (front page; **Sign in** at the top right) | http://localhost:8080 |
 | Vite dev server (hot reload) | http://localhost:5173 |
 | ML service docs (Swagger) | http://localhost:8001/docs |
 | Mailpit (catches all outgoing email) | http://localhost:8026 |

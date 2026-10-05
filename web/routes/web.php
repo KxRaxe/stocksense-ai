@@ -16,9 +16,14 @@ use App\Http\Controllers\SalesImportController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\SystemSettingsController;
 use App\Http\Controllers\UserController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
-Route::redirect('/', '/dashboard')->name('home');
+// The public front page; someone already signed in goes straight to work.
+Route::get('/', fn (Request $request) => $request->user()
+    ? to_route('dashboard')
+    : Inertia::render('welcome', ['demo' => ! app()->isProduction()]))->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');

@@ -60,7 +60,9 @@ test.describe('signing in', () => {
         await page.getByTestId('sidebar-menu-button').click();
         await page.getByTestId('logout-button').click();
 
-        await expect(page).toHaveURL(/\/login$/);
+        // Signing out leads back to the front page.
+        await expect(page).toHaveURL(/:\d+\/$/);
+        await expect(page.getByTestId('landing-sign-in')).toBeVisible();
 
         // Signed out means signed out: going back does not show the page again.
         await page.goto('/dashboard');

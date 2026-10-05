@@ -6,12 +6,12 @@ How StockSense AI is tested, what each kind of test is for, how to run it, and w
 
 | Layer | Tests | Tool | What it proves | Runs |
 |---|---:|---|---|---|
-| PHP unit and feature | 1,537 | Pest, on a real PostgreSQL | Business rules, every permission, every page's data, imports, forecasting plumbing, replenishment maths, notifications, reports and exports, settings, security controls | CI on every push |
-| Frontend components and pages | 360 | Vitest + Testing Library | Every screen's rendering and behaviour: forms, dialogs, charts, tables, filters, role-dependent content | CI on every push |
+| PHP unit and feature | 1,543 | Pest, on a real PostgreSQL | Business rules, every permission, every page's data, imports, forecasting plumbing, replenishment maths, notifications, reports and exports, settings, security controls | CI on every push |
+| Frontend components and pages | 365 | Vitest + Testing Library | Every screen's rendering and behaviour: forms, dialogs, charts, tables, filters, role-dependent content | CI on every push |
 | ML service | 204 | pytest | Features without leakage, metric maths, baselines, the model's accuracy, the API, the contract | CI on every push |
 | Contract | both sides | JSON Schema | Laravel's requests and the ML service's answers match the same schemas and examples | Inside the PHP and ML suites |
 | Static analysis | | Larastan (level 7), Pint, `tsc`, oxlint, ruff, mypy | Types and style, before anything runs | CI on every push |
-| **End to end** | **72** | Playwright, in a real browser, against the production stack | The whole product as a person uses it, including roles, onboarding, security headers and accessibility | CI on pull requests to `main` |
+| **End to end** | **78** | Playwright, in a real browser, against the production stack | The whole product as a person uses it, including roles, onboarding, security headers and accessibility | CI on pull requests to `main` |
 | **Load** | 3 scripts | k6, against the production stack | Speed and stability under many users at once | By hand (see below) |
 | Dependency audits | 3 | composer, npm, pip-audit | No known vulnerabilities in what is depended on | CI on every push |
 
@@ -95,7 +95,7 @@ The end-to-end suite earned its place here. Running it against the production st
 
 ### Usability and accessibility
 
-- Automated checks with **axe (WCAG 2.1 A and AA)** on ten pages in `e2e/06-accessibility`, **in both light and dark mode**: **no serious or critical violations**. It found low-contrast text (amber "Low" badges, muted tab labels on a muted background at 4.4:1 against the required 4.5:1), which was fixed.
+- Automated checks with **axe (WCAG 2.1 A and AA)** on eleven pages (the front page included) in `e2e/06-accessibility`, **in both light and dark mode**: **no serious or critical violations**. It found low-contrast text (amber "Low" badges, muted tab labels on a muted background at 4.4:1 against the required 4.5:1), which was fixed.
 - Keyboard checks: focus is visible, and dialogs trap focus and close with Escape.
 - Plain language is a design rule, tested where it can be: errors name what to do; every recommendation carries a sentence of reasoning; emails and reports explain how to read them.
 - Automated checks cannot find every problem (they cannot judge whether a label makes sense, or whether the page is pleasant to use with a screen reader). **A screen-reader pass and the user acceptance questionnaire with real staff are not done** and belong to the thesis's survey work.
@@ -130,7 +130,7 @@ The model beats both baselines overall and beats last year's number in four of f
 
 ## User acceptance testing
 
-People test it too. The [student testing manual](manual/testing-manual.html) ([PDF](manual/StockSense-AI-Testing-Manual.pdf)) takes a tester from installing WSL 2 and Docker Desktop on Windows to running the app, then through 138 test cases covering every function and all three roles, each with steps, the expected result and pass/fail/blocked boxes. It ends with an ISO/IEC 25010 rating sheet (the eight characteristics, 1 to 5), a bug report form and a sign-off sheet. Testers use an ID instead of their name. The manual's screenshots and PDF are rebuilt from the running app with `npm run manual` in `e2e/`.
+People test it too. The [student testing manual](manual/testing-manual.html) ([PDF](manual/StockSense-AI-Testing-Manual.pdf)) takes a tester from installing WSL 2 and Docker Desktop on Windows to running the app, then through 143 test cases covering every function and all three roles, each with steps, the expected result and pass/fail/blocked boxes. It ends with an ISO/IEC 25010 rating sheet (the eight characteristics, 1 to 5), a bug report form and a sign-off sheet. Testers use an ID instead of their name. The manual's screenshots and PDF are rebuilt from the running app with `npm run manual` in `e2e/`.
 
 ## What is not tested
 

@@ -4,12 +4,12 @@ Playwright tests that drive a real browser through the application, the way a pe
 
 | Spec | What it covers |
 |---|---|
-| `01-sign-in` | Pages ask for a login; no public sign-up; a wrong password is refused without saying which part was wrong; sign in and out; five wrong tries are throttled with a message |
-| `02-security` | Security headers and the content security policy; nothing private is reachable (`/.env`, `/.git`, `vendor/`, DevTools); session cookie flags; assets are cached and not sniffed; **17 pages and the charts, dialogs and menus load with nothing blocked by the policy** |
+| `01-sign-in` | Pages ask for a login; no public sign-up; a wrong password is refused without saying which part was wrong; sign in and out (signing out leads to the front page); five wrong tries are throttled with a message |
+| `02-security` | Security headers and the content security policy; nothing private is reachable (`/.env`, `/.git`, `vendor/`, DevTools); session cookie flags; assets are cached and not sniffed; **17 pages and the charts, dialogs and menus, and the public front page with its pictures, load with nothing blocked by the policy** |
 | `03-roles` | For each of Owner, Manager and Inventory staff: what the menu shows, what the server opens (200), and what it refuses (403), checked against the access matrix; staff cannot start a forecast even by calling the server directly |
 | `04-onboarding` | The Owner adds a person; they are emailed a set-up **link, not a password**; the email contains nothing personal; the link carries only a token; they choose a password, sign in with the right role; the link works once; deactivating them shuts them out at once |
 | `05-journey` | The whole story as the Owner: import a sales file with a preview, import a file with problems and download its error report, run a forecast, see its accuracy, get recommendations with reasoning, accept one (it counts as on order), record the goods arriving (on order clears), export a report as Excel and PDF, filter it, change a system setting and restore it, find all of it in the audit log, and see the alerts in the app and by email with nothing personal in them |
-| `06-accessibility` | axe (WCAG 2.1 A and AA) on ten pages, **in light and in dark mode**; the theme switch flips the whole app and is remembered across page loads; keyboard focus and dialogs |
+| `06-accessibility` | axe (WCAG 2.1 A and AA) on eleven pages including the front page, **in light and in dark mode**; the theme switch flips the whole app and is remembered across page loads; keyboard focus and dialogs |
 
 ## Running them
 

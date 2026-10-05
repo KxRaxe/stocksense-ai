@@ -8,6 +8,7 @@ import { authFile } from '../support/accounts';
  * with a keyboard and a screen reader. Anything serious or critical fails the test.
  */
 const pages = [
+    { name: 'the front page', path: '/', signedIn: false },
     { name: 'the login page', path: '/login', signedIn: false },
     { name: 'the dashboard', path: '/dashboard', signedIn: true },
     { name: 'the product list', path: '/products', signedIn: true },

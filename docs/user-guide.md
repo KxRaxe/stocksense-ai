@@ -4,6 +4,8 @@ StockSense AI helps a shop decide **what to reorder, how much, and when**. It lo
 
 ## Signing in
 
+The app's address opens a front page that explains what it does; **Sign in** is at the top right. Once signed in, the address takes you straight to the dashboard.
+
 You are added by the shop's Owner, who sends you an email with a link. Open it, **choose your own password**, then sign in. Nobody is ever sent a password.
 
 - Passwords need at least 12 characters, with upper and lower case, a number and a symbol.

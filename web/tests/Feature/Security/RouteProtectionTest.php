@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
  * so a forgotten `auth` shows up in review rather than in production.
  */
 const PUBLIC_ROUTES = [
-    'home',                    // redirects to the dashboard, which then asks for a login
+    'home',                    // the public front page (no shop data); signed in, it redirects to the dashboard
     'login',
     'login.store',
     'password.request',

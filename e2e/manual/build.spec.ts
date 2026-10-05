@@ -27,6 +27,11 @@ async function useTheme(page: Page, mode: 'light' | 'dark') {
 test('screenshots', async ({ page }) => {
     await useTheme(page, 'light');
 
+    await page.goto('/');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await settle(page);
+    await page.screenshot({ path: shot('00-landing') });
+
     await page.goto('/login');
     await expect(page.getByRole('button', { name: 'Log in' })).toBeVisible();
     await settle(page);

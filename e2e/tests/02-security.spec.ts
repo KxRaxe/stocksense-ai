@@ -117,6 +117,24 @@ async function watchForViolations(page: Page) {
     };
 }
 
+test.describe('the public front page under the content security policy', () => {
+    test.use({ storageState: { cookies: [], origins: [] } });
+
+    test('loads, with its pictures, and nothing blocked', async ({ page }) => {
+        const watch = await watchForViolations(page);
+
+        await page.goto('/');
+        await expect(page.getByRole('heading', { level: 1 })).toContainText('what to reorder');
+        await page.waitForLoadState('networkidle');
+
+        const pictures = await page.locator('img:visible').evaluateAll((images) => images.map((image) => (image as HTMLImageElement).naturalWidth));
+
+        expect(pictures.length).toBeGreaterThan(0);
+        expect(pictures.every((width) => width > 0), 'every picture should load').toBe(true);
+        expect(await watch.violations()).toEqual([]);
+    });
+});
+
 test.describe('the pages under the content security policy', () => {
     test.use({ storageState: authFile('owner') });
 
