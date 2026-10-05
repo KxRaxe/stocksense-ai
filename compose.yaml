@@ -36,7 +36,10 @@ services:
       interval: 10s
       timeout: 3s
       retries: 10
-      start_period: 40s
+      # The first start installs Composer packages over the bind mount, which can
+      # take several minutes; failures before it is up do not count.
+      start_period: 15m
+      start_interval: 5s
 
   web:
     image: nginx:1.27-alpine
