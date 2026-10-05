@@ -9,7 +9,7 @@ Playwright tests that drive a real browser through the application, the way a pe
 | `03-roles` | For each of Owner, Manager and Inventory staff: what the menu shows, what the server opens (200), and what it refuses (403), checked against the access matrix; staff cannot start a forecast even by calling the server directly |
 | `04-onboarding` | The Owner adds a person; they are emailed a set-up **link, not a password**; the email contains nothing personal; the link carries only a token; they choose a password, sign in with the right role; the link works once; deactivating them shuts them out at once |
 | `05-journey` | The whole story as the Owner: import a sales file with a preview, import a file with problems and download its error report, run a forecast, see its accuracy, get recommendations with reasoning, accept one (it counts as on order), record the goods arriving (on order clears), export a report as Excel and PDF, filter it, change a system setting and restore it, find all of it in the audit log, and see the alerts in the app and by email with nothing personal in them |
-| `06-accessibility` | axe (WCAG 2.1 A and AA) on ten pages; keyboard focus and dialogs |
+| `06-accessibility` | axe (WCAG 2.1 A and AA) on ten pages, **in light and in dark mode**; the theme switch flips the whole app and is remembered across page loads; keyboard focus and dialogs |
 
 ## Running them
 
@@ -37,3 +37,14 @@ Point the tests somewhere else with `E2E_BASE_URL` and `E2E_MAILPIT_URL`.
 - The demo accounts (`owner@`, `manager@`, `staff@stocksense.test`, password `password`) exist only because the seed command is run with `ALLOW_DEMO_DATA=true`. The production stack refuses to create them, and the start-up check fails if that flag is left on.
 - The tests run in order on one worker, because they share a database and some depend on what earlier ones did (the journey needs the forecast it makes). Each role signs in once, in `global-setup.ts`; signing in is rate limited and has its own tests.
 - Every test cleans up what would affect another: settings are put back, the notification choice is restored, and the user the onboarding spec creates is deactivated.
+
+## The student testing manual
+
+`manual/` is not a test suite: it builds [`docs/manual`](../docs/manual) from the running **development** stack. It signs in as the demo Owner, takes the screenshots the manual shows, then prints `testing-manual.html` to `StockSense-AI-Testing-Manual.pdf`.
+
+```bash
+docker compose up -d            # in the repository root, with the demo shop seeded and a weekly forecast made
+npm run manual                  # about two minutes
+```
+
+Edit the manual in `docs/manual/testing-manual.html`, then run `npm run manual` again to refresh the screenshots and the PDF.

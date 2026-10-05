@@ -4,7 +4,7 @@ An AI-assisted sales forecasting and inventory replenishment recommendation syst
 
 **Stack:** Laravel 13 + React 19 (Inertia 3, TypeScript, Tailwind 4, Vite+ / Vite 8, Wayfinder, Fortify) · PostgreSQL 17 · Redis + Horizon · Python/FastAPI + XGBoost (forecasting service) · everything runs in Docker.
 
-**Documentation:** [architecture](docs/architecture.md) · [user guide](docs/user-guide.md) · [deployment](docs/deployment.md) · [security](docs/security.md) · [testing and results](docs/testing.md) · [forecasting method](docs/ml-methodology.md) · [replenishment method](docs/replenishment-methodology.md) · [multi-branch plan](docs/future-multi-branch.md)
+**Documentation:** [architecture](docs/architecture.md) · [user guide](docs/user-guide.md) · [student testing manual](docs/manual/testing-manual.html) ([PDF](docs/manual/StockSense-AI-Testing-Manual.pdf)) · [deployment](docs/deployment.md) · [security](docs/security.md) · [testing and results](docs/testing.md) · [forecasting method](docs/ml-methodology.md) · [replenishment method](docs/replenishment-methodology.md) · [multi-branch plan](docs/future-multi-branch.md)
 
 ## Quick start
 

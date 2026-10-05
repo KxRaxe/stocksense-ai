@@ -2,6 +2,12 @@
 
 StockSense AI was built in phases, each committed to `develop`. This is what each one added.
 
+## After the first release
+
+- **New look, light and dark.** A neo-brutalist theme: ink outlines, hard offset shadows, cream "paper" in light mode and deep ink with violet shadows in dark mode, violet, yellow and mint blocks, Space Grotesk with JetBrains Mono for figures, a graph-paper backdrop, buttons that press down, a highlighter under page titles. A light/dark switch sits in the top bar and on the sign-in page; Settings → Appearance still offers "System". Status colours (critical, low, watch, OK, overstock) are theme tokens that meet WCAG AA in both modes. Emails and report PDFs share the look. The end-to-end accessibility checks now run in both modes.
+- **Leaner code** after an over-engineering audit: unused layouts, components, config and dependencies removed (about 2,000 lines and 9 packages); the sales and product imports share one base for parsing and processing; one tab component and one debounced-search hook replace their copies.
+- **Student testing manual** (`docs/manual`, HTML and PDF): installing WSL 2, Docker Desktop and the app on Windows, 138 test cases covering every function and role, an ISO/IEC 25010 rating sheet, a bug report form and a sign-off sheet. Rebuilt from the running app with `npm run manual` in `e2e/`.
+
 ## First release (the MVP)
 
 ### Phase 7: hardening and release

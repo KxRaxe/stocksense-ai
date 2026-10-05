@@ -11,7 +11,8 @@
         "test": "playwright test",
         "test:ui": "playwright test --ui",
         "report": "playwright show-report",
-        "types:check": "tsc --noEmit"
+        "types:check": "tsc --noEmit",
+        "manual": "playwright test -c manual"
     },
     "devDependencies": {
         "@axe-core/playwright": "^4.10.0",

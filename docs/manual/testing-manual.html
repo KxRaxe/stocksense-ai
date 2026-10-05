@@ -1,0 +1,2032 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StockSense AI · Student Testing Manual</title>
+<meta name="description" content="How to install StockSense AI on a Windows PC with Docker and test every function, with test cases, an ISO/IEC 25010 rating sheet and a bug report form.">
+<style>
+/* StockSense AI testing manual: the app's neo-brutalist look. Ink outlines,
+   hard offset shadows, cream paper, violet and yellow blocks. Light and dark
+   follow the reader's system; print is always light, on A4. */
+:root {
+    --ink: #121524;
+    --paper: #f9f5e6;
+    --card: #ffffff;
+    --text: #121524;
+    --muted: #535769;
+    --line: #121524;
+    --violet: #6639ee;
+    --on-violet: #ffffff;
+    --yellow: #f7ea3c;
+    --mint: #7be9cd;
+    --red: #ff645f;
+    --amber: #ffb84f;
+    --sky: #81dcff;
+    --green: #82ec9c;
+    --lilac: #d5b2fe;
+    --shadow: #121524;
+    --code-bg: #121524;
+    --code-text: #f9f5e6;
+    --grid: rgba(18, 21, 36, 0.06);
+    --mark: #f7ea3c;
+    color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --paper: #0c0e1c;
+        --card: #171b30;
+        --text: #f6f2e3;
+        --muted: #abb0c5;
+        --line: #9fa2be;
+        --violet: #ab95ff;
+        --on-violet: #0c0e1c;
+        --shadow: #5031a1;
+        --code-bg: #05060d;
+        --grid: rgba(246, 242, 227, 0.05);
+        --mark: #5031a1;
+        color-scheme: dark;
+    }
+}
+* { box-sizing: border-box; }
+html { background: var(--paper); }
+body {
+    margin: 0;
+    color: var(--text);
+    font: 16px/1.55 'Segoe UI', system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--paper);
+    background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 24px 24px;
+}
+main { max-width: 980px; margin: 0 auto; padding: 24px 16px 80px; }
+h1, h2, h3, h4 { line-height: 1.2; letter-spacing: -0.01em; }
+h2 { font-size: 1.7rem; margin: 2.2em 0 0.6em; }
+h3 { font-size: 1.25rem; margin: 1.8em 0 0.5em; }
+h4 { font-size: 1.02rem; margin: 0; }
+.mark { background: linear-gradient(transparent 58%, var(--mark) 58%, var(--mark) 92%, transparent 92%); padding: 0 0.15em; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+a { color: var(--violet); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+code, kbd, pre, .mono { font-family: 'JetBrains Mono', Consolas, 'Cascadia Mono', Menlo, monospace; }
+code { font-size: 0.9em; background: var(--card); border: 1.5px solid var(--line); border-radius: 6px; padding: 0 5px; }
+kbd { font-size: 0.85em; border: 2px solid var(--line); border-bottom-width: 4px; border-radius: 6px; padding: 0 6px; background: var(--card); }
+.card, .tc, .box, table.grid, figure { background: var(--card); border: 2px solid var(--line); border-radius: 14px; box-shadow: 4px 4px 0 var(--shadow); }
+.card { padding: 18px 20px; margin: 18px 0; }
+.sticker { display: inline-block; transform: rotate(-3deg); background: var(--yellow); color: var(--ink); border: 2px solid var(--ink); border-radius: 6px; padding: 0 8px; font: 700 0.75rem/1.6 Consolas, monospace; letter-spacing: 0.05em; text-transform: uppercase; }
+.tag { display: inline-block; border: 2px solid var(--ink); border-radius: 999px; padding: 0 9px; font-size: 0.78rem; font-weight: 700; color: var(--ink); white-space: nowrap; }
+.tag.owner { background: var(--lilac); } .tag.manager { background: var(--sky); } .tag.staff { background: var(--green); } .tag.any { background: var(--card); color: var(--text); border-color: var(--line); } .tag.guest { background: var(--amber); }
+
+/* Cover */
+.cover { display: grid; gap: 18px; padding: 34px 28px; margin-top: 8px; }
+.cover .logo { display: flex; align-items: center; gap: 14px; }
+.cover .tile { position: relative; width: 64px; height: 64px; display: grid; place-items: center; background: var(--violet); color: var(--on-violet); border: 2px solid var(--ink); border-radius: 14px; box-shadow: 4px 4px 0 var(--shadow); font: 800 28px/1 Consolas, monospace; }
+.cover .tile .sticker { position: absolute; top: -12px; right: -18px; font-size: 0.7rem; transform: rotate(12deg); }
+.cover h1 { font-size: clamp(2rem, 6vw, 3.2rem); margin: 0; }
+.cover p { margin: 0; color: var(--muted); font-size: 1.1rem; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.facts div { border: 2px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--paper); }
+.facts b { display: block; font: 700 0.72rem/1.4 Consolas, monospace; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+
+/* Contents */
+nav.toc ol { padding-left: 1.2em; margin: 0; }
+nav.toc ol ol { columns: 2 220px; margin: 4px 0 6px; }
+nav.toc li { margin: 2px 0; }
+nav.toc ol ol li { break-inside: avoid; }
+
+/* Steps and commands */
+.step { display: grid; grid-template-columns: 44px 1fr; gap: 14px; margin: 22px 0; }
+.step > .n { width: 44px; height: 44px; display: grid; place-items: center; background: var(--yellow); color: var(--ink); border: 2px solid var(--ink); border-radius: 10px; box-shadow: 3px 3px 0 var(--shadow); font: 800 1.1rem/1 Consolas, monospace; }
+.step > div { min-width: 0; }
+.step > div > :first-child { margin-top: 0; }
+pre { position: relative; background: var(--code-bg); color: var(--code-text); border: 2px solid var(--ink); border-radius: 10px; box-shadow: 4px 4px 0 var(--shadow); padding: 14px 16px; overflow-x: auto; font-size: 0.86rem; line-height: 1.5; white-space: pre; }
+pre code { background: none; border: 0; padding: 0; color: inherit; font-size: inherit; border-radius: 0; }
+pre .c { color: #8a8fa8; }
+pre.out { background: var(--card); color: var(--text); border-style: dashed; box-shadow: none; }
+pre.out::before { content: 'You should see'; display: block; font: 700 0.68rem/1.6 Consolas, monospace; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+button.copy { position: absolute; top: 8px; right: 8px; font: 700 0.72rem/1 Consolas, monospace; background: var(--yellow); color: var(--ink); border: 2px solid var(--ink); border-radius: 6px; padding: 5px 8px; cursor: pointer; box-shadow: 2px 2px 0 var(--ink); }
+button.copy:active { transform: translate(2px, 2px); box-shadow: none; }
+.box { padding: 12px 16px 12px 52px; margin: 16px 0; position: relative; }
+.box::before { position: absolute; left: 14px; top: 11px; width: 26px; height: 26px; display: grid; place-items: center; border: 2px solid var(--ink); border-radius: 7px; font: 800 0.9rem/1 Consolas, monospace; color: var(--ink); }
+.box.tip::before { content: 'i'; background: var(--sky); }
+.box.warn::before { content: '!'; background: var(--amber); }
+.box.stop::before { content: '×'; background: var(--red); }
+.box.ok::before { content: '✓'; background: var(--green); }
+.box > :first-child { margin-top: 0; } .box > :last-child { margin-bottom: 0; }
+
+/* Tables */
+table.grid { border-collapse: separate; border-spacing: 0; width: 100%; overflow: hidden; margin: 14px 0; font-size: 0.92rem; }
+table.grid th { background: var(--ink); color: var(--paper); text-align: left; font: 700 0.72rem/1.4 Consolas, monospace; letter-spacing: 0.05em; text-transform: uppercase; padding: 9px 10px; }
+@media (prefers-color-scheme: dark) { table.grid th { background: #2b3050; color: var(--text); } }
+table.grid td { padding: 8px 10px; border-top: 1px solid color-mix(in srgb, var(--line) 25%, transparent); vertical-align: top; }
+table.grid tr:nth-child(even) td { background: color-mix(in srgb, var(--paper) 55%, var(--card)); }
+.yes { font-weight: 800; } .no { color: var(--muted); }
+
+/* Figures */
+figure { margin: 18px 0; padding: 10px; }
+figure img { display: block; width: 100%; height: auto; border: 1.5px solid var(--line); border-radius: 8px; }
+figcaption { font-size: 0.86rem; color: var(--muted); padding: 8px 4px 0; }
+
+/* Test cases */
+.module-intro { color: var(--muted); }
+.tc { margin: 18px 0; padding: 0; overflow: hidden; break-inside: avoid; page-break-inside: avoid; }
+.tc > header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 14px; border-bottom: 2px solid var(--line); background: color-mix(in srgb, var(--paper) 70%, var(--card)); }
+.tc .id { font: 800 0.8rem/1 Consolas, monospace; background: var(--violet); color: var(--on-violet); border: 2px solid var(--ink); border-radius: 6px; padding: 5px 7px; }
+.tc h4 { flex: 1 1 260px; }
+.tc .body { padding: 10px 16px 4px; display: grid; gap: 4px 18px; grid-template-columns: minmax(0, 1fr); }
+.tc .pre { font-size: 0.88rem; color: var(--muted); margin: 0; }
+.tc ol { margin: 4px 0; padding-left: 1.3em; }
+.tc .exp { margin: 4px 0 10px; padding: 8px 12px; border-left: 5px solid var(--violet); background: color-mix(in srgb, var(--violet) 9%, var(--card)); border-radius: 0 8px 8px 0; }
+.tc .exp .lbl { font: 700 0.72rem/1.6 Consolas, monospace; letter-spacing: 0.05em; text-transform: uppercase; display: block; color: var(--muted); }
+.tc .result { display: grid; grid-template-columns: auto auto auto 1fr; gap: 10px; align-items: center; padding: 10px 16px; border-top: 2px dashed color-mix(in srgb, var(--line) 50%, transparent); font-size: 0.9rem; }
+.tc .result label { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; white-space: nowrap; }
+.tc .result input { width: 18px; height: 18px; accent-color: var(--violet); }
+.tc .result .remarks { border-bottom: 1.5px solid var(--line); min-height: 24px; display: flex; align-items: end; gap: 8px; }
+.tc .result .remarks span { font-size: 0.8rem; color: var(--muted); }
+.tc .result .remarks input { width: 100%; height: auto; border: 0; background: transparent; color: var(--text); font: inherit; outline-offset: 2px; }
+
+/* Rating sheet */
+table.rate td.q { width: 60%; }
+table.rate td.s { text-align: center; font: 700 0.9rem/1 Consolas, monospace; white-space: nowrap; }
+table.rate td.s span { display: inline-block; width: 26px; height: 26px; line-height: 22px; border: 2px solid var(--line); border-radius: 50%; margin: 0 1px; }
+.lines { border-bottom: 1.5px solid var(--line); height: 30px; }
+.form-row { display: grid; grid-template-columns: 180px 1fr; gap: 10px; align-items: end; margin: 10px 0; }
+.form-row b { font: 700 0.75rem/1.4 Consolas, monospace; text-transform: uppercase; letter-spacing: 0.05em; }
+.form-row .line { border-bottom: 1.5px solid var(--line); min-height: 28px; }
+
+.page-break { break-before: page; page-break-before: always; }
+footer.end { margin-top: 60px; text-align: center; color: var(--muted); font-size: 0.85rem; }
+
+@media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .tc .result { grid-template-columns: auto auto auto; }
+    .tc .result .remarks { grid-column: 1 / -1; }
+    .form-row { grid-template-columns: 1fr; }
+}
+
+@page { size: A4; margin: 14mm 13mm 16mm; }
+@media print {
+    :root { --paper: #ffffff; --card: #ffffff; --text: #121524; --muted: #4a4e60; --line: #121524; --violet: #6639ee; --on-violet: #fff; --shadow: #121524; --code-bg: #121524; --mark: #f7ea3c; color-scheme: light; }
+    body { background: #fff; font-size: 10.5pt; }
+    main { max-width: none; padding: 0; }
+    button.copy { display: none; }
+    .card, .tc, .box, table.grid, figure, pre { box-shadow: 2.5px 2.5px 0 var(--shadow); }
+    h2 { break-after: avoid; } h3 { break-after: avoid; }
+    pre { white-space: pre-wrap; word-break: break-all; }
+    a[href^="http"]:not(.bare)::after { content: ' (' attr(href) ')'; font-size: 0.8em; color: var(--muted); word-break: break-all; }
+    figure { break-inside: avoid; }
+    table.grid tr { break-inside: avoid; }
+    .tc .result input[type="text"] { display: none; }
+}
+</style>
+</head>
+<body>
+<main>
+
+<section class="card cover" aria-labelledby="title">
+    <div class="logo">
+        <div class="tile" aria-hidden="true">S<span class="sticker">AI</span></div>
+        <div>
+            <h1 id="title"><span class="mark">StockSense AI</span></h1>
+            <p>Student testing manual: install it, test every function, rate it</p>
+        </div>
+    </div>
+    <div class="facts">
+        <div><b>For</b>Student testers and evaluators</div>
+        <div><b>Your computer</b>Windows 10 (22H2) or 11, 64-bit</div>
+        <div><b>Time</b>About 1 hour to set up, 3 to 4 hours to test</div>
+        <div><b>You hand in</b>Test results, rating sheet, bug reports</div>
+    </div>
+    <p style="color:var(--text)">StockSense AI is a web app that helps a small shop decide <b>what to reorder, how much and when</b>. It forecasts sales with a machine-learning model (XGBoost) and turns the forecast into replenishment advice. It only advises: it never places orders. You will run the whole system on your own computer and check, one function at a time, that it does what it should.</p>
+</section>
+
+<nav class="card toc" aria-label="Contents">
+    <h2 style="margin-top:0">Contents</h2>
+    <ol>
+        <li><a href="#how">How to use this manual</a></li>
+        <li><a href="#part-a">Part A · Set up your computer</a></li>
+        <li><a href="#trouble">Troubleshooting</a></li>
+        <li><a href="#part-b">Part B · Test cases</a>
+            <ol>
+                <li><a href="#m-smoke">Smoke test</a></li>
+                <li><a href="#m-auth">Signing in and your account</a></li>
+                <li><a href="#m-theme">Light and dark mode</a></li>
+                <li><a href="#m-roles">Roles and permissions</a></li>
+                <li><a href="#m-users">Users</a></li>
+                <li><a href="#m-categories">Categories</a></li>
+                <li><a href="#m-products">Products</a></li>
+                <li><a href="#m-inventory">Stock and inventory</a></li>
+                <li><a href="#m-sales">Sales and imports</a></li>
+                <li><a href="#m-forecasts">Forecasts</a></li>
+                <li><a href="#m-recs">Recommendations</a></li>
+                <li><a href="#m-notify">Notifications and email</a></li>
+                <li><a href="#m-dashboard">Dashboard</a></li>
+                <li><a href="#m-reports">Reports</a></li>
+                <li><a href="#m-settings">System settings</a></li>
+                <li><a href="#m-audit">Audit log</a></li>
+                <li><a href="#m-security">Security spot checks</a></li>
+                <li><a href="#m-perf">Speed, devices and browsers</a></li>
+            </ol>
+        </li>
+        <li><a href="#part-c">Part C · Rating sheet, bug reports, sign-off</a></li>
+        <li><a href="#appendix">Appendices</a></li>
+    </ol>
+</nav>
+
+<section id="how">
+<h2><span class="mark">How to use this manual</span></h2>
+<p>Work through it in order. <b>Part A</b> gets the app running on your computer. <b>Part B</b> is the test cases: each one tells you who to sign in as, what to do, and what should happen. <b>Part C</b> is where you rate the app and report problems.</p>
+<div class="card">
+    <h3 style="margin-top:0">Reading a test case</h3>
+    <article class="tc" style="box-shadow:none;margin:0">
+        <header><span class="id">AUTH-01</span><h4>The test's name: what it checks</h4><span class="tag any">Who to sign in as</span></header>
+        <div class="body">
+            <p class="pre"><b>Before you start:</b> anything that must already be true.</p>
+            <ol><li>Numbered steps. Do exactly these, in order.</li></ol>
+            <div class="exp"><span class="lbl">Expected result</span>What you should see. If you see this, the test passes.</div>
+        </div>
+        <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks"></div></div>
+    </article>
+</div>
+<ul>
+    <li><b>Pass</b>: what happened matches the expected result.</li>
+    <li><b>Fail</b>: something different happened. Fill in a <a href="#bug-form">bug report</a> and write its number in Remarks.</li>
+    <li><b>Blocked</b>: you could not do the test (for example an earlier step failed). Say why in Remarks.</li>
+    <li>You can tick the boxes and type remarks in the HTML version, then print it to PDF with <kbd>Ctrl</kbd>+<kbd>P</kbd>. Ticks typed into the page are not saved if you close it, so print before you close.</li>
+</ul>
+<div class="box tip"><p><b>The demo shop.</b> The app comes with a made-up shop: 50 products in 5 categories (food and beverages, personal care, household and cleaning, school and office supplies, hardware) and about two years of sales. No real customer or personal data is in it. Three demo accounts let you test each role; their emails and the shared password are in <a href="#app-accounts">Appendix 1</a>.</p></div>
+<div class="box warn"><p><b>Your changes are real.</b> Tests change the demo data (sales, stock, settings). That is fine. If you want a clean start at any time, <a href="#reset">reset the database</a>, which takes under a minute.</p></div>
+</section>
+
+<section id="part-a" class="page-break">
+<h2><span class="mark">Part A · Set up your computer</span></h2>
+<p>You will install three things: <b>WSL 2</b> (a small Linux inside Windows), <b>Docker Desktop</b> (runs the app's parts, called containers) and <b>Git</b> (downloads the code). Then you download StockSense AI and start it with one command.</p>
+
+<h3>What you need</h3>
+<table class="grid">
+    <thead><tr><th>Item</th><th>Minimum</th><th>Better</th></tr></thead>
+    <tbody>
+        <tr><td>Windows</td><td>Windows 10 version 22H2, 64-bit</td><td>Windows 11</td></tr>
+        <tr><td>Memory (RAM)</td><td>8 GB</td><td>16 GB</td></tr>
+        <tr><td>Free disk space</td><td>20 GB</td><td>30 GB, on an SSD</td></tr>
+        <tr><td>Processor</td><td>4 cores, with virtualization</td><td>6 or more cores</td></tr>
+        <tr><td>Internet</td><td colspan="2">Needed once, to download about 3 GB. After that the app works offline.</td></tr>
+    </tbody>
+</table>
+
+<div class="step"><div class="n">1</div><div>
+    <h3>Check that virtualization is on</h3>
+    <p>Docker needs the processor's virtualization feature.</p>
+    <ol>
+        <li>Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Esc</kbd> to open <b>Task Manager</b>.</li>
+        <li>Open the <b>Performance</b> tab and choose <b>CPU</b>.</li>
+        <li>Look for <b>Virtualization: Enabled</b> at the bottom right.</li>
+    </ol>
+    <div class="box warn"><p>If it says <b>Disabled</b>, restart the computer, open the BIOS/UEFI setup (usually <kbd>F2</kbd>, <kbd>F10</kbd>, <kbd>Del</kbd> or <kbd>Esc</kbd> while it starts), and turn on <b>Intel VT-x</b>, <b>Intel Virtualization Technology</b>, <b>AMD-V</b> or <b>SVM Mode</b>. Ask your instructor if you are not sure: do not change other BIOS settings.</p></div>
+</div></div>
+
+<div class="step"><div class="n">2</div><div>
+    <h3>Install WSL 2</h3>
+    <ol>
+        <li>Right-click the Start button and choose <b>Terminal (Admin)</b> (on Windows 10: <b>Windows PowerShell (Admin)</b>). Click <b>Yes</b>.</li>
+        <li>Type this and press <kbd>Enter</kbd>:</li>
+    </ol>
+<pre><code>wsl --install</code></pre>
+<pre class="out">Installing: Windows Subsystem for Linux
+Installing: Ubuntu
+The requested operation is successful. Changes will not be effective until the system is rebooted.</pre>
+    <ol start="3">
+        <li><b>Restart the computer.</b> After it restarts, an <b>Ubuntu</b> window opens and asks for a new UNIX username and password. Choose any short username (lower case) and a password you will remember. This is only for the Linux inside your PC.</li>
+        <li>Open Terminal again (it does not need to be Admin this time) and check:</li>
+    </ol>
+<pre><code>wsl --status</code></pre>
+<pre class="out">Default Distribution: Ubuntu
+Default Version: 2</pre>
+    <div class="box tip"><p>If WSL is already installed, <code>wsl --install</code> says so. Run <code>wsl --update</code> to make sure it is current.</p></div>
+</div></div>
+
+<div class="step"><div class="n">3</div><div>
+    <h3>Install Docker Desktop</h3>
+    <ol>
+        <li>Go to <a href="https://www.docker.com/products/docker-desktop/">docker.com/products/docker-desktop</a> and download <b>Docker Desktop for Windows (AMD64)</b>. Use ARM64 only if your laptop has an ARM (Snapdragon) processor.</li>
+        <li>Run the installer. Keep <b>Use WSL 2 instead of Hyper-V</b> ticked. When it finishes, restart if it asks you to.</li>
+        <li>Start <b>Docker Desktop</b> from the Start menu. Accept the terms. You can skip signing in. Wait until the bottom-left corner says <b>Engine running</b> (the whale icon in the taskbar stops moving).</li>
+        <li>Open <b>Settings</b> (the gear) → <b>Resources</b> → <b>WSL integration</b>, turn on <b>Ubuntu</b>, and click <b>Apply &amp; restart</b>.</li>
+    </ol>
+    <p>Check it from a terminal:</p>
+<pre><code>docker version
+docker compose version</code></pre>
+<pre class="out">Client:
+ Version:           28.x.x
+ ...
+Server: Docker Desktop
+ Engine:
+  Version:          28.x.x
+ ...
+Docker Compose version v2.x.x</pre>
+    <div class="box warn"><p>If <code>docker version</code> shows <b>Client</b> but then an error such as <code>error during connect</code> or <code>cannot connect to the Docker daemon</code>, Docker Desktop is not running yet. Start it and wait for <b>Engine running</b>.</p></div>
+    <div class="box tip"><p><b>Only 8 GB of RAM?</b> Docker can use up to half of it by default, which is enough. Close other heavy apps (games, many browser tabs) while testing.</p></div>
+</div></div>
+
+<div class="step"><div class="n">4</div><div>
+    <h3>Install Git</h3>
+    <p>Inside Ubuntu, Git is usually already there. Open the <b>Ubuntu</b> app from the Start menu and check:</p>
+<pre><code>git --version</code></pre>
+<pre class="out">git version 2.x.x</pre>
+    <p>If it says <code>command not found</code>, install it:</p>
+<pre><code>sudo apt update &amp;&amp; sudo apt install -y git</code></pre>
+</div></div>
+
+<div class="step"><div class="n">5</div><div>
+    <h3>Download StockSense AI</h3>
+    <p>In the <b>Ubuntu</b> window (not PowerShell), download the code into your Linux home folder. Keeping it inside Linux makes the app much faster than a folder on <code>C:</code> or <code>D:</code>.</p>
+<pre><code>cd ~
+git clone https://github.com/KxRaxe/stocksense-ai.git
+cd stocksense-ai
+ls</code></pre>
+<pre class="out">CHANGELOG.md  README.md  compose.prod.yaml  compose.yaml  contracts  docker  docs  e2e  ml  tests  web</pre>
+    <div class="box tip"><p><b>Prefer a Windows folder?</b> It also works: run the same commands in PowerShell inside, for example, <code>C:\Projects</code>. The first page load is then slower (up to about 30 seconds after each start) because Windows folders are slow for containers. Everything else in this manual is the same.</p></div>
+</div></div>
+
+<div class="step"><div class="n">6</div><div>
+    <h3>Build and start the app</h3>
+    <p>Still in the <code>stocksense-ai</code> folder, run:</p>
+<pre><code>docker compose up -d --build</code></pre>
+    <p>The first time, this downloads the base images and builds the app, then installs the PHP and JavaScript packages inside the containers. <b>Allow 10 to 20 minutes</b> on a typical connection. Later starts take under a minute.</p>
+<pre class="out">[+] Building ...
+[+] Running 9/9
+ ✔ Container stocksense-db-1         Healthy
+ ✔ Container stocksense-redis-1      Healthy
+ ✔ Container stocksense-mailpit-1    Healthy
+ ✔ Container stocksense-ml-1         Healthy
+ ✔ Container stocksense-app-1        Healthy
+ ✔ Container stocksense-horizon-1    Started
+ ✔ Container stocksense-scheduler-1  Started
+ ✔ Container stocksense-vite-1       Started
+ ✔ Container stocksense-web-1        Started</pre>
+    <p>Check that everything is up:</p>
+<pre><code>docker compose ps</code></pre>
+    <p>Every service should say <b>Up</b>, and those with a health check <b>(healthy)</b>. On the very first start <code>app</code> installs its packages, which takes a few minutes; until then it says <b>(health: starting)</b> and <code>web</code>, <code>vite</code>, <code>horizon</code> and <code>scheduler</code> wait for it. Run the command again after a few minutes. What each container does:</p>
+    <table class="grid">
+        <thead><tr><th>Container</th><th>What it is</th></tr></thead>
+        <tbody>
+            <tr><td><code>web</code></td><td>The web server you open in the browser (nginx), port 8080</td></tr>
+            <tr><td><code>app</code></td><td>The application itself (Laravel, PHP)</td></tr>
+            <tr><td><code>vite</code></td><td>Builds the screens (React) while you use them</td></tr>
+            <tr><td><code>horizon</code></td><td>Background worker: imports, forecasts, emails</td></tr>
+            <tr><td><code>scheduler</code></td><td>Runs timed jobs: daily advice, digests, weekly forecasts</td></tr>
+            <tr><td><code>ml</code></td><td>The forecasting service (Python, XGBoost)</td></tr>
+            <tr><td><code>db</code></td><td>The database (PostgreSQL 17)</td></tr>
+            <tr><td><code>redis</code></td><td>The queue and cache</td></tr>
+            <tr><td><code>mailpit</code></td><td>A pretend mailbox that catches every email the app sends</td></tr>
+        </tbody>
+    </table>
+</div></div>
+
+<div class="step"><div class="n">7</div><div>
+    <h3>Create the database and load the demo shop</h3>
+<pre><code>docker compose exec app php artisan migrate
+docker compose exec app php artisan db:seed</code></pre>
+<pre class="out">   INFO  Running migrations.
+  ...
+  2026_10_04_100000_create_settings_table ........ 20.92ms DONE
+
+Loading categories and products...
+Loading deliveries...
+Importing sales through the import pipeline...
+  30,084 sales imported (0 skipped as duplicates, 0 failed).
+  Database\Seeders\DemoDataSeeder ............... 37,075 ms DONE</pre>
+    <p>Migrating takes under half a minute; seeding about a minute: it loads the 50 products and about 30,000 sales through the app's own importer.</p>
+</div></div>
+
+<div class="step"><div class="n">8</div><div>
+    <h3>Open the app</h3>
+    <table class="grid">
+        <thead><tr><th>What</th><th>Address</th></tr></thead>
+        <tbody>
+            <tr><td><b>StockSense AI</b></td><td><a class="bare" href="http://localhost:8080">http://localhost:8080</a></td></tr>
+            <tr><td>Mailpit (the pretend mailbox)</td><td><a class="bare" href="http://localhost:8026">http://localhost:8026</a></td></tr>
+            <tr><td>Forecasting service API docs</td><td><a class="bare" href="http://localhost:8001/docs">http://localhost:8001/docs</a></td></tr>
+        </tbody>
+    </table>
+    <p>The <b>first</b> page after a start can take up to a minute while the screens are built, and stays blank until then. That is normal. Later pages are quick.</p>
+    <figure><img src="img/01-login.png" alt="The StockSense AI sign-in page: a white card on a cream grid, with email and password fields and a violet Log in button"><figcaption>The sign-in page. The button in the top-right corner switches between light and dark mode.</figcaption></figure>
+</div></div>
+
+<div class="step"><div class="n">9</div><div>
+    <h3>Stop and start it again later</h3>
+<pre><code><span class="c"># stop (your data is kept)</span>
+docker compose stop
+
+<span class="c"># start again</span>
+docker compose start</code></pre>
+    <p>Docker Desktop must be running first. You do not need to build or seed again.</p>
+</div></div>
+
+<div class="box ok"><p><b>Ready.</b> If the sign-in page appears, set-up is done. Go to the <a href="#m-smoke">smoke test</a>.</p></div>
+</section>
+
+<section id="trouble">
+<h2><span class="mark">Troubleshooting</span></h2>
+<table class="grid">
+    <thead><tr><th style="width:34%">What you see</th><th>What to do</th></tr></thead>
+    <tbody>
+        <tr><td><code>Bind for 0.0.0.0:8080 failed: port is already allocated</code></td><td>Another program uses that port (often another web server or an old copy of this app). Stop it, or find it with <code>netstat -ano | findstr :8080</code> in PowerShell. The app also uses ports 5173, 5433, 8001 and 8026.</td></tr>
+        <tr><td>The page stays blank or grey for over a minute</td><td>Run <code>docker compose logs vite --tail 30</code>. If it is still installing, wait. If it shows an error, run <code>docker compose restart vite</code>.</td></tr>
+        <tr><td><code>502 Bad Gateway</code></td><td>The app container is still starting. Wait a minute and reload. If it stays, run <code>docker compose ps</code> and <code>docker compose logs app --tail 50</code>.</td></tr>
+        <tr><td>Docker Desktop says <b>Engine stopped</b>, or commands say <code>cannot connect</code></td><td>Restart Docker Desktop from its whale menu. If it keeps stopping, your PC may be short of memory: close other apps, or lower Docker's limit (below).</td></tr>
+        <tr><td>Everything is very slow, the fan is loud</td><td>Docker may be using too much memory. Create the file <code>C:\Users\&lt;you&gt;\.wslconfig</code> with the two lines below, then run <code>wsl --shutdown</code> in PowerShell and start Docker Desktop again.<pre><code>[wsl2]
+memory=6GB</code></pre></td></tr>
+        <tr><td><code>exec /usr/local/bin/entrypoint.sh: no such file or directory</code></td><td>The files were downloaded with Windows line endings. Delete the folder and clone again from the Ubuntu window (step 5), or run <code>git config --global core.autocrlf false</code> first and clone again.</td></tr>
+        <tr><td>Login says the email or password is wrong for the demo accounts</td><td>The demo data was not loaded. Run step 7 again (<code>db:seed</code>).</td></tr>
+        <tr><td>A forecast stays on “running” for more than 5 minutes</td><td>Run <code>docker compose logs horizon --tail 50</code> and <code>docker compose logs ml --tail 50</code>, then <code>docker compose restart horizon</code>, and try again.</td></tr>
+        <tr><td>No emails arrive in Mailpit</td><td>Emails are sent by the background worker. Check <code>docker compose ps horizon</code> says <b>Up</b>; if not, <code>docker compose up -d horizon</code>.</td></tr>
+    </tbody>
+</table>
+
+<h3 id="reset">Reset to a clean demo shop</h3>
+<p>This deletes everything you changed and loads the demo shop again (under a minute):</p>
+<pre><code>docker compose exec app php artisan migrate:fresh --seed</code></pre>
+<p>To remove the app completely, including its data: <code>docker compose down -v</code>, then delete the <code>stocksense-ai</code> folder.</p>
+</section>
+<section id="part-b" class="page-break">
+<h2><span class="mark">Part B · Test cases</span></h2>
+<p>138 test cases in 18 groups. Sign in as the role shown on each case (<a href="#app-accounts">accounts</a>). Unless a case says otherwise, start from the dashboard.</p>
+<section id="m-smoke" class="">
+<h3>B1. Smoke test (5 minutes)</h3>
+<p class="module-intro">A quick check that the whole system is alive before the detailed tests. If any of these fail, fix the set-up first (see Troubleshooting).</p>
+<article class="tc" id="SMK-01">
+    <header><span class="id">SMK-01</span><h4>All containers are running</h4><span class="tag guest">Signed out</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> Part A is done.</p>
+        <ol><li>In the <code>stocksense-ai</code> folder run <code>docker compose ps</code>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Nine services are listed. All say <b>Up</b>; <code>app</code>, <code>db</code>, <code>redis</code>, <code>ml</code>, <code>mailpit</code>, <code>web</code> and <code>vite</code> also say <b>(healthy)</b>.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SMK-01"></div></div>
+</article>
+<article class="tc" id="SMK-02">
+    <header><span class="id">SMK-02</span><h4>The app answers</h4><span class="tag guest">Signed out</span></header>
+    <div class="body">
+        
+        <ol><li>Open <code>http://localhost:8080</code>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Within about 30 seconds the sign-in page appears: a white card titled <b>Log in to your account</b>, on a cream grid background.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SMK-02"></div></div>
+</article>
+<article class="tc" id="SMK-03">
+    <header><span class="id">SMK-03</span><h4>The forecasting service answers</h4><span class="tag guest">Signed out</span></header>
+    <div class="body">
+        
+        <ol><li>Open <code>http://localhost:8001/health</code>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The page shows a short JSON text that contains <code>"status":"ok"</code>.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SMK-03"></div></div>
+</article>
+<article class="tc" id="SMK-04">
+    <header><span class="id">SMK-04</span><h4>The pretend mailbox answers</h4><span class="tag guest">Signed out</span></header>
+    <div class="body">
+        
+        <ol><li>Open <code>http://localhost:8026</code>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The Mailpit inbox opens. It may be empty.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SMK-04"></div></div>
+</article>
+<article class="tc" id="SMK-05">
+    <header><span class="id">SMK-05</span><h4>A demo account can sign in</h4><span class="tag guest">Signed out</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> The demo shop is loaded (Part A, step 7).</p>
+        <ol><li>On the sign-in page enter <code>owner@stocksense.test</code> and <code>password</code>.</li><li>Click <b>Log in</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The <b>Dashboard</b> opens with four figure cards (sales, stock value, needs ordering, forecast error) and charts. The menu on the left shows Dashboard, Products, Inventory, Sales, Forecasts, Recommendations, Reports, Categories, Users, Audit log and System settings.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SMK-05"></div></div>
+</article>
+<article class="tc" id="SMK-06">
+    <header><span class="id">SMK-06</span><h4>Make the first forecast</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> SMK-05 is done. A new copy has no forecast yet, so <b>Needs ordering</b> shows 0 and there is no advice. Many later tests need one.</p>
+        <ol><li>Open <b>Forecasts</b> and click <b>Run weekly forecast</b>.</li><li>Wait until the summary appears (usually under a minute, up to a few minutes on a slow computer).</li><li>Open the <b>Dashboard</b> again.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The forecasts page shows a summary and a table of 50 products. On the dashboard, <b>Needs ordering</b> now shows a coloured number and <b>Typical forecast error</b> a percentage. <b>Recommendations</b> lists cards.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SMK-06"></div></div>
+</article>
+</section>
+<section id="m-auth" class="page-break">
+<h3>B2. Signing in and your account</h3>
+<p class="module-intro">Sign-in, sign-out, password reset by email, profile and security settings. The demo password is <code>password</code> for all three accounts.</p>
+<article class="tc" id="AUTH-01">
+    <header><span class="id">AUTH-01</span><h4>Sign in with the right password</h4><span class="tag guest">Signed out</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> You are signed out.</p>
+        <ol><li>Open <code>http://localhost:8080/login</code>.</li><li>Enter <code>manager@stocksense.test</code> / <code>password</code> and click <b>Log in</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The Dashboard opens. Your name, <b>Demo Manager</b>, is at the bottom of the left menu.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for AUTH-01"></div></div>
+</article>
+<article class="tc" id="AUTH-02">
+    <header><span class="id">AUTH-02</span><h4>A wrong password is refused, without saying which part was wrong</h4><span class="tag guest">Signed out</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> You are signed out.</p>
+        <ol><li>Enter <code>manager@stocksense.test</code> and the password <code>wrong-password</code>.</li><li>Click <b>Log in</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>You stay on the sign-in page. A red message under the email says the details do not match our records. It does not say whether the email exists.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for AUTH-02"></div></div>
+</article>
+<article class="tc" id="AUTH-03">
+    <header><span class="id">AUTH-03</span><h4>An unknown email is refused the same way</h4><span class="tag guest">Signed out</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> You are signed out.</p>
+        <ol><li>Enter <code>nobody@stocksense.test</code> / <code>password</code> and click <b>Log in</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The same message as in AUTH-02. Nothing tells you whether an account exists.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for AUTH-03"></div></div>
+</article>
+<article class="tc" id="AUTH-04">
+    <header><span class="id">AUTH-04</span><h4>Too many wrong tries pause sign-in</h4><span class="tag guest">Signed out</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> You are signed out.</p>
+        <ol><li>Try to sign in as <code>staff@stocksense.test</code> with a wrong password <b>six times</b> within one minute.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>From the sixth try a message says <b>Too many login attempts. Please try again in … seconds.</b> Even the right password is refused until the wait is over (about a minute). Then sign-in works again.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for AUTH-04"></div></div>
+</article>
+<article class="tc" id="AUTH-05">
+    <header><span class="id">AUTH-05</span><h4>Show and hide the password</h4><span class="tag guest">Signed out</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> On the sign-in page.</p>
+        <ol><li>Type something in the Password field.</li><li>Click the eye button at the right end of the field. Click it again.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The first click shows the password as plain text; the second hides it again.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for AUTH-05"></div></div>
+</article>
+<article class="tc" id="AUTH-06">
+    <header><span class="id">AUTH-06</span><h4>Sign out</h4><span class="tag any">Any role</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> You are signed in.</p>
+        <ol><li>Click your name at the bottom of the left menu.</li><li>Click <b>Log out</b>.</li><li>Press the browser's Back button.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>You are taken to the sign-in page. Going back does not show the app; any page you open asks you to sign in again.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for AUTH-06"></div></div>
+</article>
+<article class="tc" id="AUTH-07">
+    <header><span class="id">AUTH-07</span><h4>Pages need a signed-in person</h4><span class="tag guest">Signed out</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> You are signed out.</p>
+        <ol><li>Type <code>http://localhost:8080/products</code> in the address bar.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>You are sent to the sign-in page instead of the product list.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for AUTH-07"></div></div>
+</article>
+<article class="tc" id="AUTH-08">
+    <header><span class="id">AUTH-08</span><h4>Forgot password: the email is sent</h4><span class="tag guest">Signed out</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> You are signed out.</p>
+        <ol><li>On the sign-in page click <b>Forgot your password?</b>.</li><li>Enter <code>staff@stocksense.test</code> and send the request.</li><li>Open Mailpit (<code>http://localhost:8026</code>).</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A green message says <b>We have emailed your password reset link.</b> In Mailpit a new password-reset email is addressed to the staff account.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for AUTH-08"></div></div>
+</article>
+<article class="tc" id="AUTH-09">
+    <header><span class="id">AUTH-09</span><h4>The reset email contains nothing personal</h4><span class="tag guest">Signed out</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> AUTH-08 is done.</p>
+        <ol><li>Open the email in Mailpit. Read the subject and the whole text. Look at the link (hover over the button).</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The email starts with a plain <b>Hello</b>, not a name. Nowhere does it show a person's name or an email address, not even inside the link. It is drawn in the StockSense style: a violet name tag and a white card with a thick dark edge.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for AUTH-09"></div></div>
+</article>
+<article class="tc" id="AUTH-10">
+    <header><span class="id">AUTH-10</span><h4>Choose a new password from the link</h4><span class="tag guest">Signed out</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> AUTH-08 is done.</p>
+        <ol><li>Click the button in the email.</li><li>Type <code>staff@stocksense.test</code> as the email (the link does not carry it), and a new password twice, for example <code>NewPass123</code>.</li><li>Submit, then sign in with the new password.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>You are sent to the sign-in page with a message that the password was reset. The new password works; the old one (<code>password</code>) no longer does. <i>Reset the database afterwards, or set it back under Settings → Password, so other tests still work.</i></div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for AUTH-10"></div></div>
+</article>
+<article class="tc" id="AUTH-11">
+    <header><span class="id">AUTH-11</span><h4>A reset link works only once</h4><span class="tag guest">Signed out</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> AUTH-10 is done.</p>
+        <ol><li>Open the same link from the email again and try to set another password.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The app refuses: the link is invalid or expired.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for AUTH-11"></div></div>
+</article>
+<article class="tc" id="AUTH-12">
+    <header><span class="id">AUTH-12</span><h4>Change your name</h4><span class="tag any">Any role</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> Signed in as the Manager.</p>
+        <ol><li>Click your name (bottom left) → <b>Settings</b>.</li><li>On <b>Profile</b>, change the name to <code>Manager Test</code> and click <b>Save</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>Profile updated.</b> The new name appears at the bottom of the menu. Change it back to <code>Demo Manager</code>.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for AUTH-12"></div></div>
+</article>
+<article class="tc" id="AUTH-13">
+    <header><span class="id">AUTH-13</span><h4>Change your password</h4><span class="tag any">Any role</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> Signed in as the Manager.</p>
+        <ol><li>Settings → <b>Security</b> (enter your password again if asked).</li><li>Fill in the current password, then a new password twice, and save.</li><li>Sign out and sign in with the new password.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>Password updated.</b> The new password works. Set it back to <code>password</code> the same way.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for AUTH-13"></div></div>
+</article>
+<article class="tc" id="AUTH-14">
+    <header><span class="id">AUTH-14</span><h4>Wrong current password is refused</h4><span class="tag any">Any role</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> Settings → Security.</p>
+        <ol><li>Enter a wrong current password and any new password, and save.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Nothing changes. A red message under the current-password field says it is incorrect.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for AUTH-14"></div></div>
+</article>
+<article class="tc" id="AUTH-15">
+    <header><span class="id">AUTH-15</span><h4>Turn on two-factor authentication (optional)</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> You have an authenticator app on your phone (Google Authenticator, Microsoft Authenticator or similar).</p>
+        <ol><li>Settings → <b>Security</b> → turn on two-factor authentication.</li><li>Scan the QR code with the app and type the 6-digit code it shows.</li><li>Note the recovery codes. Sign out and sign in again.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>After the password the app asks for a 6-digit code. The code from your phone lets you in. Turn two-factor authentication off again at the end, so others can test with this account.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for AUTH-15"></div></div>
+</article>
+</section>
+<section id="m-theme" class="page-break">
+<h3>B3. Light and dark mode</h3>
+<p class="module-intro">The app has a light theme (cream paper, ink outlines) and a dark theme (deep ink, violet shadows). You can switch with the button at the top right of every page, or choose in Settings → Appearance.</p>
+<figure><img src="img/03-dashboard-dark.png" alt="The dashboard in dark mode. The sun/moon button at the top right switches modes."><figcaption>The dashboard in dark mode. The sun/moon button at the top right switches modes.</figcaption></figure>
+<article class="tc" id="THM-01">
+    <header><span class="id">THM-01</span><h4>Switch from the top bar</h4><span class="tag any">Any role</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> Signed in, in light mode.</p>
+        <ol><li>Click the moon button at the top right, next to the bell.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The whole app turns dark at once: dark background, light text, violet shadows. The button now shows a sun, and its tooltip says <b>Switch to light mode</b>.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for THM-01"></div></div>
+</article>
+<article class="tc" id="THM-02">
+    <header><span class="id">THM-02</span><h4>The choice is remembered</h4><span class="tag any">Any role</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> THM-01 is done (dark mode).</p>
+        <ol><li>Open another page, then reload with <kbd>F5</kbd>.</li><li>Sign out and sign in again.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Every page stays dark, without a flash of light while loading. The sign-in page is dark too.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for THM-02"></div></div>
+</article>
+<article class="tc" id="THM-03">
+    <header><span class="id">THM-03</span><h4>Switch on the sign-in page</h4><span class="tag guest">Signed out</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> Signed out.</p>
+        <ol><li>Click the button at the top right of the sign-in page.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The sign-in page switches between light and dark.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for THM-03"></div></div>
+</article>
+<article class="tc" id="THM-04">
+    <header><span class="id">THM-04</span><h4>Follow the computer's setting</h4><span class="tag any">Any role</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> Signed in.</p>
+        <ol><li>Settings → <b>Appearance</b> → choose <b>System</b>.</li><li>In Windows Settings → Personalisation → Colours, switch between Light and Dark.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The app follows Windows within a moment, without reloading. The chosen tab (Light, Dark or System) is shown in yellow.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for THM-04"></div></div>
+</article>
+<article class="tc" id="THM-05">
+    <header><span class="id">THM-05</span><h4>Everything is readable in both modes</h4><span class="tag any">Any role</span></header>
+    <div class="body">
+        
+        <ol><li>In each mode, look at the dashboard, a product, the recommendations and a report.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>All text is easy to read on its background. Badges (Critical, Low, Watch, OK, Overstock, Low stock) are bright with dark text in both modes. Nothing is invisible or hard to read.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for THM-05"></div></div>
+</article>
+</section>
+<section id="m-roles" class="page-break">
+<h3>B4. Roles and permissions</h3>
+<p class="module-intro">There are three roles. Each sees only the menu items it may use, and the server blocks the rest even if someone types the address. Use this table, then check it with the tests below.</p>
+
+<table class="grid">
+    <thead><tr><th>What</th><th>Owner</th><th>Manager</th><th>Inventory staff</th></tr></thead>
+    <tbody>
+        <tr><td>Dashboard</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓ (no forecasts)</td></tr>
+        <tr><td>Products and categories</td><td class="yes">change</td><td class="yes">change</td><td>look only</td></tr>
+        <tr><td>Record deliveries and stock counts</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>Enter and import sales</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>Run forecasts, see accuracy</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">–</td></tr>
+        <tr><td>See recommendations</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>Decide on recommendations</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">–</td></tr>
+        <tr><td>Reports</td><td class="yes">all four</td><td class="yes">all four</td><td>stock report only</td></tr>
+        <tr><td>Users, system settings, audit log</td><td class="yes">✓</td><td class="no">–</td><td class="no">–</td></tr>
+    </tbody>
+</table>
+<article class="tc" id="ROL-01">
+    <header><span class="id">ROL-01</span><h4>The Owner's menu</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> Signed in as the Owner.</p>
+        <ol><li>Look at the left menu.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Dashboard, Products, Inventory, Sales, Forecasts, Recommendations, Reports, Categories, Users, Audit log, System settings.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for ROL-01"></div></div>
+</article>
+<article class="tc" id="ROL-02">
+    <header><span class="id">ROL-02</span><h4>The Manager's menu</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> Signed in as the Manager.</p>
+        <ol><li>Look at the left menu.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The same as the Owner but <b>without</b> Users, Audit log and System settings.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for ROL-02"></div></div>
+</article>
+<article class="tc" id="ROL-03">
+    <header><span class="id">ROL-03</span><h4>Inventory staff's menu</h4><span class="tag staff">Inventory staff</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> Signed in as staff.</p>
+        <ol><li>Look at the left menu.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Dashboard, Products, Inventory, Sales, Recommendations, Reports, Categories. <b>No</b> Forecasts, Users, Audit log or System settings.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for ROL-03"></div></div>
+</article>
+<article class="tc" id="ROL-04">
+    <header><span class="id">ROL-04</span><h4>Staff cannot open blocked pages by address</h4><span class="tag staff">Inventory staff</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> Signed in as staff.</p>
+        <ol><li>Type each address in turn: <code>/forecasts</code>, <code>/users</code>, <code>/system-settings</code>, <code>/audit-log</code>, <code>/products/create</code>, <code>/reports/sales</code> (after <code>http://localhost:8080</code>).</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Each shows a <b>403</b> “forbidden” page. Nothing from those pages is shown.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for ROL-04"></div></div>
+</article>
+<article class="tc" id="ROL-05">
+    <header><span class="id">ROL-05</span><h4>The Manager cannot open Owner pages</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> Signed in as the Manager.</p>
+        <ol><li>Type <code>/users</code>, <code>/system-settings</code> and <code>/audit-log</code>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Each shows a 403 page.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for ROL-05"></div></div>
+</article>
+<article class="tc" id="ROL-06">
+    <header><span class="id">ROL-06</span><h4>Staff can look at products but not change them</h4><span class="tag staff">Inventory staff</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> Signed in as staff.</p>
+        <ol><li>Open <b>Products</b>, then any product.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The list and the product page open. There are no <b>New product</b>, <b>Edit</b> or <b>Archive</b> buttons. <b>Record restock</b> and <b>Count stock</b> are there.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for ROL-06"></div></div>
+</article>
+<article class="tc" id="ROL-07">
+    <header><span class="id">ROL-07</span><h4>Staff can see advice but not decide</h4><span class="tag staff">Inventory staff</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> Signed in as staff. A forecast exists.</p>
+        <ol><li>Open <b>Recommendations</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The cards show the advice and reasoning, but there are no <b>Accept</b>, <b>Change quantity</b>, <b>Dismiss</b> or <b>Recalculate</b> buttons.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for ROL-07"></div></div>
+</article>
+<article class="tc" id="ROL-08">
+    <header><span class="id">ROL-08</span><h4>Staff sees only the stock report</h4><span class="tag staff">Inventory staff</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> Signed in as staff.</p>
+        <ol><li>Open <b>Reports</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Only <b>Inventory status</b> is offered. Sales, forecast accuracy and replenishment history are not.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for ROL-08"></div></div>
+</article>
+<article class="tc" id="ROL-09">
+    <header><span class="id">ROL-09</span><h4>Each role's dashboard</h4><span class="tag any">Any role</span></header>
+    <div class="body">
+        
+        <ol><li>Sign in as each of the three accounts in turn and open the dashboard.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Owner and Manager see sales, stock value, needs ordering, forecast error and the charts. Staff sees the stock figures and urgent products, without forecast numbers.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for ROL-09"></div></div>
+</article>
+</section>
+<section id="m-users" class="page-break">
+<h3>B5. Users</h3>
+<p class="module-intro">Only the Owner manages people. Nobody is ever sent a password: a new person gets an email link to choose their own.</p>
+<article class="tc" id="USR-01">
+    <header><span class="id">USR-01</span><h4>Add a person</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> Signed in as the Owner. Mailpit is open in another tab.</p>
+        <ol><li><b>Users</b> → <b>New user</b>.</li><li>Name <code>Test Staff One</code>, email <code>test.staff1@stocksense.test</code>, role <b>Inventory staff</b>.</li><li>Save.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>User created. A set-up email has been sent.</b> The person appears in the list. In Mailpit a set-up email arrived for that address.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for USR-01"></div></div>
+</article>
+<article class="tc" id="USR-02">
+    <header><span class="id">USR-02</span><h4>The set-up email contains nothing personal</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> USR-01 is done.</p>
+        <ol><li>Open the set-up email. Read it, including the button's link.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>No name and no email address anywhere in the email or in the link. The greeting is a plain <b>Hello</b>.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for USR-02"></div></div>
+</article>
+<article class="tc" id="USR-03">
+    <header><span class="id">USR-03</span><h4>The new person sets a password and signs in</h4><span class="tag guest">Signed out</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> USR-01 is done. Use a private (incognito) browser window.</p>
+        <ol><li>Click the link in the set-up email.</li><li>Type the email <code>test.staff1@stocksense.test</code> and a password twice.</li><li>Sign in with it.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The person signs in and sees the Inventory staff menu (as in ROL-03).</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for USR-03"></div></div>
+</article>
+<article class="tc" id="USR-04">
+    <header><span class="id">USR-04</span><h4>The same email cannot be used twice</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> USR-01 is done.</p>
+        <ol><li>Add another user with the email <code>test.staff1@stocksense.test</code>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Nothing is saved. A message says the email has already been taken.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for USR-04"></div></div>
+</article>
+<article class="tc" id="USR-05">
+    <header><span class="id">USR-05</span><h4>Required fields</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        
+        <ol><li>Open <b>New user</b> and save without filling anything in.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Nothing is saved. Name, email and role each show a red message.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for USR-05"></div></div>
+</article>
+<article class="tc" id="USR-06">
+    <header><span class="id">USR-06</span><h4>Change someone's role</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> USR-01 is done.</p>
+        <ol><li>Open the user, change the role to <b>Manager</b>, save.</li><li>In the private window, reload the app.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>User updated.</b> The person now sees the Manager menu (Forecasts appears).</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for USR-06"></div></div>
+</article>
+<article class="tc" id="USR-07">
+    <header><span class="id">USR-07</span><h4>Deactivate someone: they are signed out at once</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> The test user is signed in, in the private window.</p>
+        <ol><li>Open the user and click <b>Deactivate</b>, then confirm.</li><li>In the private window, click any page.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>User deactivated.</b> The person is sent to the sign-in page and cannot sign in again (the same message as a wrong password).</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for USR-07"></div></div>
+</article>
+<article class="tc" id="USR-08">
+    <header><span class="id">USR-08</span><h4>Activate them again</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> USR-07 is done.</p>
+        <ol><li>Open the user and click <b>Activate</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>User activated.</b> The person can sign in again.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for USR-08"></div></div>
+</article>
+<article class="tc" id="USR-09">
+    <header><span class="id">USR-09</span><h4>Send a new set-up link</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        
+        <ol><li>Open an active user and click <b>Send set-up link</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>Set-up email sent.</b> A new email arrives in Mailpit.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for USR-09"></div></div>
+</article>
+<article class="tc" id="USR-10">
+    <header><span class="id">USR-10</span><h4>The Owner cannot lock themselves out</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        
+        <ol><li>Open your own user (Demo Owner).</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>There is no Deactivate button for yourself, and the role cannot be changed (the form says <b>You cannot change your own role.</b>).</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for USR-10"></div></div>
+</article>
+</section>
+<section id="m-categories" class="page-break">
+<h3>B6. Categories</h3>
+<p class="module-intro">Categories group products and set a <b>service level</b>: how often you want to have stock when a customer asks (higher means more safety stock).</p>
+<article class="tc" id="CAT-01">
+    <header><span class="id">CAT-01</span><h4>Add a category</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        
+        <ol><li><b>Categories</b> → <b>New category</b>.</li><li>Name <code>Test pet supplies</code>, service level <code>90</code>.</li><li>Click <b>Create category</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>Category created.</b> It appears in the list with 90%.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for CAT-01"></div></div>
+</article>
+<article class="tc" id="CAT-02">
+    <header><span class="id">CAT-02</span><h4>Names are unique, whatever the capitals</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> CAT-01 is done.</p>
+        <ol><li>Add another category named <code>TEST PET SUPPLIES</code>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Nothing is saved. A red message says the name is already taken.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for CAT-02"></div></div>
+</article>
+<article class="tc" id="CAT-03">
+    <header><span class="id">CAT-03</span><h4>The service level must be between 50 and 99.9</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        
+        <ol><li>Try service levels <code>40</code>, then <code>100</code>, then <code>99.9</code>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>40 and 100 are refused with a red message; 99.9 is accepted.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for CAT-03"></div></div>
+</article>
+<article class="tc" id="CAT-04">
+    <header><span class="id">CAT-04</span><h4>Edit a category</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> CAT-01 is done.</p>
+        <ol><li>Edit <b>Test pet supplies</b>, change the service level to 95, click <b>Save changes</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>Category updated.</b> The list shows 95%.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for CAT-04"></div></div>
+</article>
+<article class="tc" id="CAT-05">
+    <header><span class="id">CAT-05</span><h4>A category in use cannot be deleted</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        
+        <ol><li>Try to delete <b>Food and beverages</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>It is not deleted. The message says <b>This category still has products, including archived ones. Move them to another category first.</b></div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for CAT-05"></div></div>
+</article>
+<article class="tc" id="CAT-06">
+    <header><span class="id">CAT-06</span><h4>Delete an empty category</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> CAT-01 is done and the category has no products.</p>
+        <ol><li>Delete <b>Test pet supplies</b> and confirm.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>Category deleted.</b> It is gone from the list.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for CAT-06"></div></div>
+</article>
+</section>
+<section id="m-products" class="page-break">
+<h3>B7. Products</h3>
+<p class="module-intro">Each product has a SKU (the shop's own code, stored in capitals), cost and price, and reordering details. Products are never deleted, only archived, so their history stays.</p>
+<figure><img src="img/05-product.png" alt="A product page: stock figures, the details, the stock ledger, and buttons to record a delivery or a stock count."><figcaption>A product page: stock figures, the details, the stock ledger, and buttons to record a delivery or a stock count.</figcaption></figure>
+<article class="tc" id="PRD-01">
+    <header><span class="id">PRD-01</span><h4>Search and filter the product list</h4><span class="tag any">Any role</span></header>
+    <div class="body">
+        
+        <ol><li>Open <b>Products</b>.</li><li>Type <code>soap</code> in the search box and wait a moment.</li><li>Clear it and choose the category <b>Hardware and construction</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The list narrows as you type (no button needed) to the soaps. Then only hardware products are shown. The address bar changes, so the filtered list can be bookmarked.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for PRD-01"></div></div>
+</article>
+<article class="tc" id="PRD-02">
+    <header><span class="id">PRD-02</span><h4>Add a product</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        
+        <ol><li><b>Products</b> → <b>New product</b>.</li><li>SKU <code>ts-001</code>, name <code>Test notebook A5</code>, category <b>School and office supplies</b>, unit <code>pc</code>, cost <code>25</code>, price <code>39</code>, lead time <code>4</code>, minimum order <code>1</code>, pack size <code>10</code>, opening stock <code>50</code>.</li><li>Click <b>Create product</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>Product created.</b> Its page shows SKU <b>TS-001</b> (in capitals) and 50 on hand. The stock ledger has one line: opening stock 50.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for PRD-02"></div></div>
+</article>
+<article class="tc" id="PRD-03">
+    <header><span class="id">PRD-03</span><h4>SKUs are unique, whatever the capitals</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> PRD-02 is done.</p>
+        <ol><li>Add another product with SKU <code>TS-001</code> (or <code>ts-001</code>).</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Nothing is saved; a red message says the SKU is already taken.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for PRD-03"></div></div>
+</article>
+<article class="tc" id="PRD-04">
+    <header><span class="id">PRD-04</span><h4>Checks on the numbers</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        
+        <ol><li>On <b>New product</b> try: price <code>-5</code>; lead time <code>400</code>; pack size <code>0</code>; leave the name empty.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Each is refused with a red message next to the field: price cannot be negative, lead time at most 365 days, pack size at least 1, name is required.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for PRD-04"></div></div>
+</article>
+<article class="tc" id="PRD-05">
+    <header><span class="id">PRD-05</span><h4>Edit a product</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> PRD-02 is done.</p>
+        <ol><li>Open TS-001 → <b>Edit</b>. Change the price to <code>42</code>, save.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>Product updated.</b> The page shows ₱42.00.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for PRD-05"></div></div>
+</article>
+<article class="tc" id="PRD-06">
+    <header><span class="id">PRD-06</span><h4>Archive and restore</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> PRD-02 is done.</p>
+        <ol><li>Open TS-001 → <b>Archive</b>, confirm.</li><li>Find it with the list's status filter set to archived, open it, click <b>Restore</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span><b>Product archived.</b>: it disappears from the normal list but its history stays. <b>Product restored.</b>: it is back.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for PRD-06"></div></div>
+</article>
+<article class="tc" id="PRD-07">
+    <header><span class="id">PRD-07</span><h4>Import a product list</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> Save the file below as <code>products-test.csv</code> (Notepad → Save as → All files).</p>
+        <ol><li><b>Products</b> → <b>Import from a file</b>. (You can also click <b>Download an example file</b> to see the layout.)</li><li>Choose the file and click <b>Upload and check</b>.</li><li>Read the preview, then click the <b>Import 2 rows</b> button.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The preview shows <b>Will be imported</b> 2, with the columns matched automatically. After the import, both products exist with their opening stock.<pre><code>sku,name,category,unit,unit_cost,unit_price,lead_time_days,moq,pack_size,reorder_point,opening_stock
+TS-101,Test glue stick,School and office supplies,pc,12.00,20.00,5,1,12,,36
+TS-102,Test sponge,Household and cleaning,pc,9.50,15.00,4,1,10,,40</code></pre></div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for PRD-07"></div></div>
+</article>
+<article class="tc" id="PRD-08">
+    <header><span class="id">PRD-08</span><h4>A product file with mistakes</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> Save this as <code>products-bad.csv</code>.</p>
+        <ol><li>Import it as in PRD-07.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The preview lists the problems row by row (unknown category; a negative price) and imports only the good row. A downloadable list of the failed rows is offered.<pre><code>sku,name,category,unit,unit_cost,unit_price,lead_time_days,moq,pack_size,reorder_point,opening_stock
+TS-201,Good row,Personal care,pc,10.00,18.00,5,1,1,,5
+TS-202,Bad category,Garden tools,pc,10.00,18.00,5,1,1,,5
+TS-203,Bad price,Personal care,pc,10.00,-18.00,5,1,1,,5</code></pre></div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for PRD-08"></div></div>
+</article>
+<article class="tc" id="PRD-09">
+    <header><span class="id">PRD-09</span><h4>Undo a product import</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> PRD-07 is done.</p>
+        <ol><li>Open the import (Products → Import from a file → the list of past imports) and click <b>Undo this import</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The products the import created are archived. A message says <b>Import undone.</b></div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for PRD-09"></div></div>
+</article>
+</section>
+<section id="m-inventory" class="page-break">
+<h3>B8. Stock and inventory</h3>
+<p class="module-intro">Stock is a ledger: every change is a line with who, when and why, and the stock on hand is the total of those lines.</p>
+<article class="tc" id="INV-01">
+    <header><span class="id">INV-01</span><h4>The stock overview</h4><span class="tag staff">Inventory staff</span></header>
+    <div class="body">
+        
+        <ol><li>Open <b>Inventory</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Every product with what is on hand, on order and its reorder point. Products at or below the reorder point have an orange <b>Low stock</b> badge; products with nothing left have a red <b>Out of stock</b> badge.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for INV-01"></div></div>
+</article>
+<article class="tc" id="INV-02">
+    <header><span class="id">INV-02</span><h4>Record a delivery (restock)</h4><span class="tag staff">Inventory staff</span></header>
+    <div class="body">
+        
+        <ol><li>Open any product → <b>Record restock</b>.</li><li>Quantity <code>24</code>, today's date, note <code>Test delivery</code>. Click <b>Save restock</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>Restock recorded.</b> On hand goes up by 24. The ledger has a new line with +24, your name and the note.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for INV-02"></div></div>
+</article>
+<article class="tc" id="INV-03">
+    <header><span class="id">INV-03</span><h4>A delivery cannot be in the future</h4><span class="tag staff">Inventory staff</span></header>
+    <div class="body">
+        
+        <ol><li>Record restock with tomorrow's date.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Refused: the date cannot be in the future.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for INV-03"></div></div>
+</article>
+<article class="tc" id="INV-04">
+    <header><span class="id">INV-04</span><h4>Count stock</h4><span class="tag staff">Inventory staff</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> Note the product's current on-hand number.</p>
+        <ol><li>Same product → <b>Count stock</b>.</li><li>Enter a number 3 lower than on hand, reason <code>Test count: damaged</code>. Click <b>Save count</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>Stock adjusted.</b> On hand now equals what you counted. The ledger shows the difference (−3) with your reason.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for INV-04"></div></div>
+</article>
+<article class="tc" id="INV-05">
+    <header><span class="id">INV-05</span><h4>A count needs a reason</h4><span class="tag staff">Inventory staff</span></header>
+    <div class="body">
+        
+        <ol><li>Count stock without typing a reason.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Refused: a reason is required.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for INV-05"></div></div>
+</article>
+<article class="tc" id="INV-06">
+    <header><span class="id">INV-06</span><h4>Low-stock flag follows the reorder point</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        
+        <ol><li>Pick a product with a reorder point. Count its stock to a number <b>below</b> the reorder point.</li><li>Open Inventory.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The product now shows the <b>Low stock</b> badge.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for INV-06"></div></div>
+</article>
+</section>
+<section id="m-sales" class="page-break">
+<h3>B9. Sales and imports</h3>
+<p class="module-intro">Sales are what the forecasts learn from. You can type them in or import a file. <b>Use yesterday's date</b> in the files below (a sale cannot be in the future). Write dates as <code>YYYY-MM-DD</code>, for example <code>2026-10-04</code>.</p>
+<figure><img src="img/07-import-preview.png" alt="An import preview: what will be imported, what will be skipped as a repeat, and what is wrong."><figcaption>An import preview: what will be imported, what will be skipped as a repeat, and what is wrong.</figcaption></figure>
+<article class="tc" id="SAL-01">
+    <header><span class="id">SAL-01</span><h4>Enter sales by hand</h4><span class="tag staff">Inventory staff</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> Note the on-hand stock of <b>FB-006</b> (Instant noodles).</p>
+        <ol><li><b>Sales</b> → <b>Record sales</b>.</li><li>Date: yesterday. Line 1: product FB-006, quantity <code>2</code>. Click <b>Add a line</b>; line 2: FB-007, quantity <code>1</code>.</li><li>Save.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>Sale recorded.</b> The sales list shows both lines. FB-006's stock went down by 2.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SAL-01"></div></div>
+</article>
+<article class="tc" id="SAL-02">
+    <header><span class="id">SAL-02</span><h4>Warning when selling more than is in stock</h4><span class="tag staff">Inventory staff</span></header>
+    <div class="body">
+        
+        <ol><li>In <b>Record sales</b>, pick a product and type a quantity larger than its stock.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A warning under the line says it is more than is in stock. You can still save (the shelf count may be wrong).</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SAL-02"></div></div>
+</article>
+<article class="tc" id="SAL-03">
+    <header><span class="id">SAL-03</span><h4>Checks on a sale</h4><span class="tag staff">Inventory staff</span></header>
+    <div class="body">
+        
+        <ol><li>Try a quantity of <code>0</code>, then a date in the future.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Both are refused with red messages.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SAL-03"></div></div>
+</article>
+<article class="tc" id="SAL-04">
+    <header><span class="id">SAL-04</span><h4>Delete a sale</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> SAL-01 is done.</p>
+        <ol><li>In the sales list, delete one of your test sales and confirm.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>Sale deleted and its stock put back.</b> The product's stock goes back up.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SAL-04"></div></div>
+</article>
+<article class="tc" id="SAL-05">
+    <header><span class="id">SAL-05</span><h4>Search and filter sales</h4><span class="tag any">Any role</span></header>
+    <div class="body">
+        
+        <ol><li>In <b>Sales</b>, search <code>FB-006</code>; then set From and To to last week; then set the source to imported.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The list follows each filter straight away.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SAL-05"></div></div>
+</article>
+<article class="tc" id="SAL-06">
+    <header><span class="id">SAL-06</span><h4>Import a sales file: preview first</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> Save the file below as <code>sales-test.csv</code>, with yesterday's date.</p>
+        <ol><li><b>Sales</b> → <b>Import from a file</b>.</li><li>Choose the file. For <b>Should these sales change stock levels?</b> choose <b>Yes, take them off the shelf</b>. Click <b>Upload and check</b>.</li><li>In the preview, check that <b>How are dates written?</b> says <b>YYYY-MM-DD</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A preview: <b>Will be imported</b> 3, <b>Already imported, skipped</b> 0, <b>Have a problem, skipped</b> 0. Under <b>Which column is which?</b> the columns are matched to Date, SKU, Quantity sold and Unit price. <b>Nothing is saved yet.</b><pre><code>date,sku,quantity,unit_price
+2026-10-04,FB-006,4,69.30
+2026-10-04,PC-003,2,68.00
+2026-10-04,HW-004,1,719.25</code></pre></div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SAL-06"></div></div>
+</article>
+<article class="tc" id="SAL-07">
+    <header><span class="id">SAL-07</span><h4>Start the import</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> SAL-06 is done.</p>
+        <ol><li>Click <b>Import 3 rows</b>.</li><li>Wait for the result.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The page shows progress, then the result: <b>Rows in the file</b> 3, <b>Imported</b> 3, <b>Already there, skipped</b> 0, <b>Failed</b> 0. The rows appear in <b>Sales</b> with the source <b>Imported from a file</b>, and the three products' stock went down.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SAL-07"></div></div>
+</article>
+<article class="tc" id="SAL-08">
+    <header><span class="id">SAL-08</span><h4>The same file twice: repeats are skipped</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> SAL-07 is done.</p>
+        <ol><li>Import exactly the same file again.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The preview shows <b>Already imported, skipped</b> 3 and <b>Will be imported</b> 0. Nothing is imported twice.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SAL-08"></div></div>
+</article>
+<article class="tc" id="SAL-09">
+    <header><span class="id">SAL-09</span><h4>A file with problems</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> Save this as <code>sales-bad.csv</code> (yesterday's date on line 2).</p>
+        <ol><li>Import it.</li><li>After the import, click <b>Download the error report</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span><b>Have a problem, skipped</b> shows 4, and <b>Problems found</b> lists each one with its row: unknown SKU <code>NOPE-999</code>, a date that does not exist, a quantity that is not a number, a negative quantity. Only the good row is imported. The error report is a CSV of the failed rows with the reason.<pre><code>date,sku,quantity,unit_price
+2026-10-04,FB-006,5,69.30
+2026-10-04,NOPE-999,1,10.00
+2026-13-45,FB-007,2,288.75
+2026-10-04,FB-008,many,35.70
+2026-10-04,FB-010,-3,162.75</code></pre></div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SAL-09"></div></div>
+</article>
+<article class="tc" id="SAL-10">
+    <header><span class="id">SAL-10</span><h4>Undo an import</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> SAL-07 is done.</p>
+        <ol><li>Open that import and click <b>Undo this import</b>, then confirm.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>Import undone.</b> Its sales are gone from the list, and the stock it took off is put back.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SAL-10"></div></div>
+</article>
+<article class="tc" id="SAL-11">
+    <header><span class="id">SAL-11</span><h4>Choose columns yourself</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> A file whose headers are unusual, for example <code>Fecha,Item,Qty</code>.</p>
+        <ol><li>Upload it. Under <b>Which column is which?</b> set Date → Fecha, SKU → Item, Quantity sold → Qty. Click <b>Update preview</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Until all required columns are chosen, the preview says which are missing and cannot be started. After choosing them, the rows are checked again.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SAL-11"></div></div>
+</article>
+<article class="tc" id="SAL-12">
+    <header><span class="id">SAL-12</span><h4>Wrong kind of file</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        
+        <ol><li>Try to upload a <code>.pdf</code> or <code>.docx</code> file.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Refused: only CSV, TXT or Excel (.xlsx) files up to 10 MB.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SAL-12"></div></div>
+</article>
+</section>
+<section id="m-forecasts" class="page-break">
+<h3>B10. Forecasts</h3>
+<p class="module-intro">The forecasting model (XGBoost) predicts each product's sales, week by week or month by month, with a likely range. Products with under a year of history get a simpler average and a <b>Low confidence</b> label. A run trains a real model: from under a minute to a few minutes, depending on the computer.</p>
+<figure><img src="img/09-forecasts.png" alt="The forecasts page after a weekly run: how far ahead it looks, how accurate it has been, and every product's forecast."><figcaption>The forecasts page after a weekly run: how far ahead it looks, how accurate it has been, and every product's forecast.</figcaption></figure>
+<article class="tc" id="FOR-01">
+    <header><span class="id">FOR-01</span><h4>Run a weekly forecast</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        
+        <ol><li>Open <b>Forecasts</b>. Make sure <b>Weekly</b> is selected.</li><li>Click <b>Run weekly forecast</b>.</li><li>Wait; you may open other pages meanwhile and come back.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>Forecast started. It usually takes a minute or two.</b> A progress box appears and updates by itself. When done, a summary shows how far ahead it looks (8 weeks), how many products were forecast (50, of which some are low confidence) and <b>Typically off by …% of units sold</b>. A table lists every product.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for FOR-01"></div></div>
+</article>
+<article class="tc" id="FOR-02">
+    <header><span class="id">FOR-02</span><h4>Only one run at a time</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> Start a weekly run and, while it runs, click the button again (or open the page in a second tab and click there).</p>
+        <ol><li>Try to start a second weekly run.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The second is refused: <b>A weekly forecast is already running.</b></div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for FOR-02"></div></div>
+</article>
+<article class="tc" id="FOR-03">
+    <header><span class="id">FOR-03</span><h4>Run a monthly forecast</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        
+        <ol><li>Click <b>Monthly</b>, then <b>Run monthly forecast</b>. Wait for it.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The same as FOR-01, looking 3 months ahead. The address bar now ends in <code>?granularity=month</code>.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for FOR-03"></div></div>
+</article>
+<article class="tc" id="FOR-04">
+    <header><span class="id">FOR-04</span><h4>One product's forecast and chart</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> A weekly forecast exists.</p>
+        <ol><li>In the forecasts table, click a product's name.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A chart shows recent weekly sales followed by the forecast line and a shaded band (the likely range). Below, a table gives each future week with its forecast and range.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for FOR-04"></div></div>
+</article>
+<article class="tc" id="FOR-05">
+    <header><span class="id">FOR-05</span><h4>Low-confidence products are marked</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> A weekly forecast exists.</p>
+        <ol><li>In the forecasts filters, choose <b>Low confidence only</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>About 5 newer products are labelled <b>Low confidence</b>. Opening one says it has less than a year of history, so a plain recent average is used.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for FOR-05"></div></div>
+</article>
+<article class="tc" id="FOR-06">
+    <header><span class="id">FOR-06</span><h4>Accuracy against simple guesses</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> A weekly forecast exists.</p>
+        <ol><li>Click <b>See how accurate it has been</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The page compares the model with two simple guesses, <b>the same week last year</b> and <b>a recent average</b>, using MAE, RMSE, MAPE and WAPE (lower is better). The model's WAPE should be lower than both. Below: accuracy per category and what the model pays most attention to.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for FOR-06"></div></div>
+</article>
+<article class="tc" id="FOR-07">
+    <header><span class="id">FOR-07</span><h4>Search and filter forecasts</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        
+        <ol><li>Search <code>rice</code>; then choose a category; then change the sort order.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The table follows each choice straight away.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for FOR-07"></div></div>
+</article>
+<article class="tc" id="FOR-08">
+    <header><span class="id">FOR-08</span><h4>Notified when a forecast finishes</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> FOR-01 is done.</p>
+        <ol><li>Look at the bell at the top right. Open Mailpit.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The bell has a new notification that the weekly forecast is ready, with its accuracy. Mailpit has the same as an email, sent to you and to the Owner, with no names in it.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for FOR-08"></div></div>
+</article>
+<article class="tc" id="FOR-09">
+    <header><span class="id">FOR-09</span><h4>The forecasting service is protected</h4><span class="tag guest">Signed out</span></header>
+    <div class="body">
+        
+        <ol><li>Open <code>http://localhost:8001/docs</code>. Expand <b>GET /models</b>, click <b>Try it out</b>, then <b>Execute</b> (leave the token empty).</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The response code is <b>401</b>: the service refuses anyone without the secret token. Only the app knows it.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for FOR-09"></div></div>
+</article>
+</section>
+<section id="m-recs" class="page-break">
+<h3>B11. Recommendations</h3>
+<p class="module-intro">The advice: what to order, how much and by when, with a risk level and a sentence explaining why. The app never orders anything; it only records what you decide.</p>
+<figure><img src="img/10-recommendations.png" alt="Recommendations: counts by risk level, the To decide / Overstock / Decided tabs, filters, and one card per product."><figcaption>Recommendations: counts by risk level, the To decide / Overstock / Decided tabs, filters, and one card per product.</figcaption></figure>
+<article class="tc" id="REC-01">
+    <header><span class="id">REC-01</span><h4>Advice is ready after a forecast</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> FOR-01 is done (advice is worked out right after each forecast).</p>
+        <ol><li>Open <b>Recommendations</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Counts at the top: Critical, Low, Watch, Overstock and On order. The page says which forecast the advice is based on and how old it is. Cards are listed most urgent first.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for REC-01"></div></div>
+</article>
+<article class="tc" id="REC-02">
+    <header><span class="id">REC-02</span><h4>A card explains itself</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        
+        <ol><li>Read the first card.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>It shows the product, a risk badge, <b>Order N … · Order now</b> (or <b>Order by</b> a date), packs, on hand, on order, demand during the lead time, safety stock, reorder point, days of cover, and a sentence such as “Stock is expected to run out before a new order could arrive…”.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for REC-02"></div></div>
+</article>
+<article class="tc" id="REC-03">
+    <header><span class="id">REC-03</span><h4>Risk badges have the right colours</h4><span class="tag any">Any role</span></header>
+    <div class="body">
+        
+        <ol><li>Look at the badges on several cards and on the Overstock tab.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span><b>Critical</b> red, <b>Low</b> orange, <b>Watch</b> blue, <b>OK</b> green, <b>Overstock</b> purple; each with dark text and readable in light and dark mode.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for REC-03"></div></div>
+</article>
+<article class="tc" id="REC-04">
+    <header><span class="id">REC-04</span><h4>Accept a recommendation</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        
+        <ol><li>On a card click <b>Accept</b>. Type a note such as <code>Ordered by phone</code>. Confirm.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>Accepted. The quantity now counts as on order.</b> The card leaves the To decide tab; the On order count goes up by 1. On the product's page, <b>On order</b> shows that quantity.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for REC-04"></div></div>
+</article>
+<article class="tc" id="REC-05">
+    <header><span class="id">REC-05</span><h4>Accept with a different quantity</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        
+        <ol><li>On another card click <b>Change quantity</b>, type a different number, confirm.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>Accepted with your quantity. It now counts as on order.</b></div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for REC-05"></div></div>
+</article>
+<article class="tc" id="REC-06">
+    <header><span class="id">REC-06</span><h4>Dismiss a recommendation</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        
+        <ol><li>On another card click <b>Dismiss</b> and confirm.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>Dismissed. This product will not be recommended again for 7 days.</b> (7 is the default; see System settings.)</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for REC-06"></div></div>
+</article>
+<article class="tc" id="REC-07">
+    <header><span class="id">REC-07</span><h4>The Decided tab records who decided what</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> REC-04 to REC-06 are done.</p>
+        <ol><li>Click the <b>Decided</b> tab.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Each decision is listed with its status (accepted, changed quantity, dismissed), who decided, when, and the note.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for REC-07"></div></div>
+</article>
+<article class="tc" id="REC-08">
+    <header><span class="id">REC-08</span><h4>Cancel an accepted order</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> REC-05 is done.</p>
+        <ol><li>On the Decided tab, on the changed-quantity card, click <b>Cancel order</b> and confirm.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>Order cancelled. It no longer counts as on order.</b> The On order count goes down.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for REC-08"></div></div>
+</article>
+<article class="tc" id="REC-09">
+    <header><span class="id">REC-09</span><h4>On order clears when the goods arrive</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> REC-04 is done; note the product and quantity.</p>
+        <ol><li>Open that product and <b>Record restock</b> with the same quantity.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span><b>Restock recorded.</b> On order goes back to 0 and on hand goes up. The product is not recommended again straight away.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for REC-09"></div></div>
+</article>
+<article class="tc" id="REC-10">
+    <header><span class="id">REC-10</span><h4>Recalculate</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        
+        <ol><li>Click <b>Recalculate</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>Refreshing the recommendations. This takes a moment.</b> After a few seconds the page reflects the latest stock.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for REC-10"></div></div>
+</article>
+<article class="tc" id="REC-11">
+    <header><span class="id">REC-11</span><h4>Filter the advice</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        
+        <ol><li>Search <code>soap</code>; choose a category; choose a risk level.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The cards follow each filter straight away.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for REC-11"></div></div>
+</article>
+<article class="tc" id="REC-12">
+    <header><span class="id">REC-12</span><h4>Overstock tab</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        
+        <ol><li>Click <b>Overstock</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Products with far more stock than they are likely to sell soon, for information (no order suggested).</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for REC-12"></div></div>
+</article>
+</section>
+<section id="m-notify" class="page-break">
+<h3>B12. Notifications and email</h3>
+<p class="module-intro">Notifications appear under the bell and, if you choose, by email. In this set-up every email goes to Mailpit (<code>http://localhost:8026</code>), never to a real inbox. <b>No email may ever contain a person's name or email address.</b></p>
+<article class="tc" id="NOT-01">
+    <header><span class="id">NOT-01</span><h4>The bell</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> There are notifications (for example after FOR-01).</p>
+        <ol><li>Click the bell at the top right.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A list of recent notifications opens; unread ones have a violet dot. The red number on the bell is the unread count.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for NOT-01"></div></div>
+</article>
+<article class="tc" id="NOT-02">
+    <header><span class="id">NOT-02</span><h4>Open and mark as read</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        
+        <ol><li>Click one notification. Then open the bell again and click <b>Mark all as read</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Clicking takes you to the right page (for example the forecast). After Mark all as read the red number disappears.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for NOT-02"></div></div>
+</article>
+<article class="tc" id="NOT-03">
+    <header><span class="id">NOT-03</span><h4>All notifications</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        
+        <ol><li>Open the bell → <b>See all notifications</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A page lists every notification, newest first.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for NOT-03"></div></div>
+</article>
+<article class="tc" id="NOT-04">
+    <header><span class="id">NOT-04</span><h4>Choose what comes by email</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        
+        <ol><li>Settings → <b>Notifications</b>. For <b>Critical stock alerts</b> switch email off and keep in-app on. Save.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>Notification settings saved.</b> After reloading, the choices are kept.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for NOT-04"></div></div>
+</article>
+<article class="tc" id="NOT-05">
+    <header><span class="id">NOT-05</span><h4>The replenishment digest</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> A forecast exists. Digest frequency is Daily (the default).</p>
+        <ol><li>In a terminal run: <code>docker compose exec app php artisan notifications:digest</code></li><li>Open Mailpit.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The terminal says <b>Digest sent to 2 people.</b> Mailpit has a digest for the Owner and the Manager: counts by risk level, the most urgent products, and a button to the recommendations.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for NOT-05"></div></div>
+</article>
+<article class="tc" id="NOT-06">
+    <header><span class="id">NOT-06</span><h4>Critical stock alert</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        
+        <ol><li>After a forecast (or REC-10), open Mailpit.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>An email titled <b>Critical stock: … may run out</b> lists products that may run out, to the Owner and Manager only. Each product is alerted at most once a day.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for NOT-06"></div></div>
+</article>
+<article class="tc" id="NOT-07">
+    <header><span class="id">NOT-07</span><h4>Import with problems</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> SAL-09 is done.</p>
+        <ol><li>Look at the bell and Mailpit.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A notification that the sales import had problems, with a link to its error report. Only the person who uploaded it is told.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for NOT-07"></div></div>
+</article>
+<article class="tc" id="NOT-08">
+    <header><span class="id">NOT-08</span><h4>No personal data in any email</h4><span class="tag any">Any role</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> Several emails are in Mailpit.</p>
+        <ol><li>Open every email. Read the subject, the text and the links. Use Mailpit's <b>HTML</b> and <b>Text</b> tabs.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>None contains a person's name (Demo Owner, Demo Manager, a test user's name) or an email address. Greetings are just <b>Hello</b>. Emails are in the StockSense style.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for NOT-08"></div></div>
+</article>
+</section>
+<section id="m-dashboard" class="page-break">
+<h3>B13. Dashboard</h3>
+<p class="module-intro">The first page after signing in: how the shop is doing over the last 30 days compared with the 30 before.</p>
+<figure><img src="img/02-dashboard.png" alt="The dashboard (Owner): headline figures, weekly sales, where the sales come from, and more below."><figcaption>The dashboard (Owner): headline figures, weekly sales, where the sales come from, and more below.</figcaption></figure>
+<article class="tc" id="DSH-01">
+    <header><span class="id">DSH-01</span><h4>Headline figures</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        
+        <ol><li>Open the <b>Dashboard</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Four cards: <b>Sales, last 30 days</b> (₱ and the change from the 30 days before), <b>Stock value (at cost)</b>, <b>Needs ordering</b> (a coloured number: red when anything is critical) and <b>Typical forecast error</b>.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for DSH-01"></div></div>
+</article>
+<article class="tc" id="DSH-02">
+    <header><span class="id">DSH-02</span><h4>Cards lead somewhere</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        
+        <ol><li>Click the <b>Needs ordering</b> card.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The Recommendations page opens.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for DSH-02"></div></div>
+</article>
+<article class="tc" id="DSH-03">
+    <header><span class="id">DSH-03</span><h4>Charts</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        
+        <ol><li>Scroll through the page. Hover over the bars of <b>Sales by week</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Weekly sales for the last 26 weeks (a tooltip shows each week's figure), what is expected next with its range, revenue by category with shares, the most urgent products, and the best and slowest sellers.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for DSH-03"></div></div>
+</article>
+<article class="tc" id="DSH-04">
+    <header><span class="id">DSH-04</span><h4>Figures agree with the rest of the app</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        
+        <ol><li>Compare the dashboard's <b>Needs ordering</b> number with the Critical + Low counts on Recommendations.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>They match.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for DSH-04"></div></div>
+</article>
+</section>
+<section id="m-reports" class="page-break">
+<h3>B14. Reports</h3>
+<p class="module-intro">Four reports, each on screen with filters, and downloadable as Excel (real numbers you can add up) or PDF (for printing).</p>
+<figure><img src="img/12-report.png" alt="The sales report with its filters, summary figures and the Excel and PDF buttons."><figcaption>The sales report with its filters, summary figures and the Excel and PDF buttons.</figcaption></figure>
+<article class="tc" id="RPT-01">
+    <header><span class="id">RPT-01</span><h4>The four reports</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        
+        <ol><li>Open <b>Reports</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Four cards: <b>Sales</b>, <b>Inventory status</b>, <b>Forecast accuracy</b> and <b>Replenishment history</b>.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for RPT-01"></div></div>
+</article>
+<article class="tc" id="RPT-02">
+    <header><span class="id">RPT-02</span><h4>Sales report with filters</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        
+        <ol><li>Open <b>Sales</b>. Change From and To to last month and choose one category. Click <b>Show report</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The summary and the table show only that period and category. The address bar and the export buttons carry the same filters.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for RPT-02"></div></div>
+</article>
+<article class="tc" id="RPT-03">
+    <header><span class="id">RPT-03</span><h4>Download as Excel</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> RPT-02 is done.</p>
+        <ol><li>Click the Excel button and open the file.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A file named like <code>stocksense-sales-2026-09-01_2026-09-30.xlsx</code>. Numbers are real numbers (you can sum them), dates are dates, and an <b>About</b> sheet explains what the report covers.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for RPT-03"></div></div>
+</article>
+<article class="tc" id="RPT-04">
+    <header><span class="id">RPT-04</span><h4>Download as PDF</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        
+        <ol><li>Click the PDF button and open the file.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A tidy A4 report: a violet StockSense tag, the title highlighted in yellow, summary boxes, a table with a dark header row and a yellow total row, and page numbers. Peso signs (₱) print correctly.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for RPT-04"></div></div>
+</article>
+<article class="tc" id="RPT-05">
+    <header><span class="id">RPT-05</span><h4>The other three reports</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        
+        <ol><li>Open Inventory status, Forecast accuracy and Replenishment history; export each once.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Each opens with sensible figures for the demo shop and downloads in both formats.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for RPT-05"></div></div>
+</article>
+<article class="tc" id="RPT-06">
+    <header><span class="id">RPT-06</span><h4>Downloads are recorded</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> RPT-03 and RPT-04 are done.</p>
+        <ol><li>Open the <b>Audit log</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Entries say <b>Exported the sales report as an Excel file</b> and <b>… as a PDF</b>, with your name and the time.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for RPT-06"></div></div>
+</article>
+</section>
+<section id="m-settings" class="page-break">
+<h3>B15. System settings</h3>
+<p class="module-intro">Owner only. How the advice is worked out and when things run automatically. Each setting shows its default; changes apply at once, including to background jobs.</p>
+<article class="tc" id="SET-01">
+    <header><span class="id">SET-01</span><h4>Change a setting</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        
+        <ol><li>Open <b>System settings</b>. Set <b>Review period</b> to <code>14</code> days. Click <b>Save settings</b>.</li><li>Reload the page.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>Settings saved. They apply from now on.</b> After reloading it still says 14, with a note <b>Default: 7 days.</b></div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SET-01"></div></div>
+</article>
+<article class="tc" id="SET-02">
+    <header><span class="id">SET-02</span><h4>Settings take effect</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> SET-01 is done.</p>
+        <ol><li>Open Recommendations and click Recalculate. Compare a card's numbers with before.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Order-up-to quantities and safety stock are higher (ordering less often means holding more).</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SET-02"></div></div>
+</article>
+<article class="tc" id="SET-03">
+    <header><span class="id">SET-03</span><h4>Out-of-range values are refused</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        
+        <ol><li>Try <b>Review period</b> <code>0</code> and <code>61</code>; <b>Default service level</b> <code>100</code>; <b>Weekly forecast looks ahead</b> <code>27</code>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Each is refused with a red message giving the allowed range (1–60 days, 50–99.9%, 1–26 weeks).</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SET-03"></div></div>
+</article>
+<article class="tc" id="SET-04">
+    <header><span class="id">SET-04</span><h4>The digest must come after the advice</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        
+        <ol><li>Set <b>Digest emails are sent at</b> to a time earlier than <b>Recommendations are refreshed at</b>. Save.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Refused: the digest must be after the recommendations are refreshed.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SET-04"></div></div>
+</article>
+<article class="tc" id="SET-05">
+    <header><span class="id">SET-05</span><h4>Saving without changes</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        
+        <ol><li>Click <b>Save settings</b> without changing anything.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>Nothing was changed.</b></div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SET-05"></div></div>
+</article>
+<article class="tc" id="SET-06">
+    <header><span class="id">SET-06</span><h4>Restore defaults</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> SET-01 is done.</p>
+        <ol><li>Click <b>Restore defaults</b> and confirm in the dialog.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>A message says <b>The default settings are back.</b> Review period is 7 again.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SET-06"></div></div>
+</article>
+</section>
+<section id="m-audit" class="page-break">
+<h3>B16. Audit log</h3>
+<p class="module-intro">Owner only. Who did what and when, with what changed. It can be read but never edited.</p>
+<article class="tc" id="AUD-01">
+    <header><span class="id">AUD-01</span><h4>Your actions are there</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> You have done some of the tests above.</p>
+        <ol><li>Open <b>Audit log</b>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Newest first: imports started and undone, forecasts started, recommendations accepted, settings changed, users created or deactivated, reports exported, each with the person and time.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for AUD-01"></div></div>
+</article>
+<article class="tc" id="AUD-02">
+    <header><span class="id">AUD-02</span><h4>What changed, from and to</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> SET-01 or PRD-05 is done.</p>
+        <ol><li>Find that entry.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>It shows the old and the new value (for example review period 7 → 14, or price 39.00 → 42.00).</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for AUD-02"></div></div>
+</article>
+<article class="tc" id="AUD-03">
+    <header><span class="id">AUD-03</span><h4>Filter the log</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        
+        <ol><li>Filter by area, then by person, then by a period, then search <code>settings</code>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The list follows each filter.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for AUD-03"></div></div>
+</article>
+<article class="tc" id="AUD-04">
+    <header><span class="id">AUD-04</span><h4>Nothing can be edited</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        
+        <ol><li>Look for edit or delete buttons.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>There are none.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for AUD-04"></div></div>
+</article>
+</section>
+<section id="m-security" class="page-break">
+<h3>B17. Security spot checks</h3>
+<p class="module-intro">Simple checks anyone can do with the browser. They do not replace a professional security test.</p>
+<article class="tc" id="SEC-01">
+    <header><span class="id">SEC-01</span><h4>Protective headers</h4><span class="tag guest">Signed out</span></header>
+    <div class="body">
+        
+        <ol><li>Open the sign-in page. Press <kbd>F12</kbd> → <b>Network</b>, reload, click the first request (<code>login</code>) → <b>Headers</b> → Response headers.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>You see <code>X-Frame-Options: SAMEORIGIN</code>, <code>X-Content-Type-Options: nosniff</code>, <code>Referrer-Policy: strict-origin-when-cross-origin</code> and <code>Permissions-Policy: camera=(), microphone=(), …</code>. (The Content-Security-Policy header is switched on only in the production set-up, because it would block the development tools used here.)</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SEC-01"></div></div>
+</article>
+<article class="tc" id="SEC-02">
+    <header><span class="id">SEC-02</span><h4>Session cookies are protected</h4><span class="tag guest">Signed out</span></header>
+    <div class="body">
+        
+        <ol><li><kbd>F12</kbd> → <b>Application</b> → <b>Cookies</b> → <code>http://localhost:8080</code>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The session cookie (its name ends in <code>-session</code>) is marked <b>HttpOnly</b>, so scripts on the page cannot read it.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SEC-02"></div></div>
+</article>
+<article class="tc" id="SEC-03">
+    <header><span class="id">SEC-03</span><h4>Typing in code does nothing</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        
+        <ol><li>Create a category named <code>&lt;script&gt;alert(1)&lt;/script&gt;</code>. Open the categories list. Delete the category afterwards.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>No pop-up appears; the name is shown as plain text.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SEC-03"></div></div>
+</article>
+<article class="tc" id="SEC-04">
+    <header><span class="id">SEC-04</span><h4>Costly actions are slowed down when repeated</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        
+        <ol><li>On <b>Recommendations</b>, click <b>Recalculate</b> 7 times within a minute.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The first 6 work. The 7th shows <b>You are doing that too often. Please wait … and try again.</b> instead of an error page. After a minute it works again.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SEC-04"></div></div>
+</article>
+<article class="tc" id="SEC-05">
+    <header><span class="id">SEC-05</span><h4>Blocked pages stay blocked</h4><span class="tag staff">Inventory staff</span></header>
+    <div class="body">
+        
+        <ol><li>As staff, try <code>/users/1/edit</code> and <code>/horizon</code>.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Both are refused (403).</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for SEC-05"></div></div>
+</article>
+</section>
+<section id="m-perf" class="page-break">
+<h3>B18. Speed, devices and browsers</h3>
+<p class="module-intro">How quick and how portable it feels. Write your measurements in the Remarks.</p>
+<article class="tc" id="PRF-01">
+    <header><span class="id">PRF-01</span><h4>Page speed</h4><span class="tag owner">Owner</span></header>
+    <div class="body">
+        <p class="pre"><b>Before you start:</b> The app has been open for a while (not the first page after a start).</p>
+        <ol><li><kbd>F12</kbd> → <b>Network</b>. Open Dashboard, Products, Recommendations and a report. Note the <b>Load</b> time at the bottom of the Network tab.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Each page loads within about 2 to 3 seconds on a normal laptop. Write down the times.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for PRF-01"></div></div>
+</article>
+<article class="tc" id="PRF-02">
+    <header><span class="id">PRF-02</span><h4>Forecast time</h4><span class="tag manager">Manager</span></header>
+    <div class="body">
+        
+        <ol><li>Time a weekly forecast run from the click to the summary.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>Usually under a minute for the 50 products; up to a few minutes on a slower computer. Write down the time.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for PRF-02"></div></div>
+</article>
+<article class="tc" id="PRF-03">
+    <header><span class="id">PRF-03</span><h4>Other browsers</h4><span class="tag any">Any role</span></header>
+    <div class="body">
+        
+        <ol><li>Open the app in Chrome, Edge and Firefox. Sign in and open a few pages in each.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>It looks and works the same in all three.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for PRF-03"></div></div>
+</article>
+<article class="tc" id="PRF-04">
+    <header><span class="id">PRF-04</span><h4>Phone-sized screen</h4><span class="tag any">Any role</span></header>
+    <div class="body">
+        
+        <ol><li><kbd>F12</kbd> → click the phone-and-tablet icon (device toolbar) → choose a phone (for example iPhone 12). Use the app.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>The left menu folds away behind a menu button. Pages fit the width without sideways scrolling. Tables scroll inside their box.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for PRF-04"></div></div>
+</article>
+<article class="tc" id="PRF-05">
+    <header><span class="id">PRF-05</span><h4>Keyboard only</h4><span class="tag any">Any role</span></header>
+    <div class="body">
+        
+        <ol><li>Without the mouse, press <kbd>Tab</kbd> to move through the sign-in page and the dashboard, <kbd>Enter</kbd> to press buttons, <kbd>Esc</kbd> to close a dialog.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>You can reach and use every control. The focused control always has a clear violet outline. In a dialog, Tab stays inside it until you close it.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for PRF-05"></div></div>
+</article>
+<article class="tc" id="PRF-06">
+    <header><span class="id">PRF-06</span><h4>It recovers from a restart</h4><span class="tag any">Any role</span></header>
+    <div class="body">
+        
+        <ol><li>In a terminal: <code>docker compose restart</code>. Wait a minute, then reload the app.</li></ol>
+        <div class="exp"><span class="lbl">Expected result</span>You are still signed in or can sign in again. Your data (sales you entered, decisions) is all still there.</div>
+    </div>
+    <div class="result"><label><input type="checkbox"> Pass</label><label><input type="checkbox"> Fail</label><label><input type="checkbox"> Blocked</label><div class="remarks"><span>Remarks</span><input type="text" aria-label="Remarks for PRF-06"></div></div>
+</article>
+</section>
+</section>
+
+<section id="part-c" class="page-break">
+<h2><span class="mark">Part C · Rating sheet, bug reports, sign-off</span></h2>
+<p>When you have finished the test cases, rate the app against the eight quality characteristics of <b>ISO/IEC 25010</b>, the international standard for software product quality. Rate each statement from <b>1</b> (strongly disagree) to <b>5</b> (strongly agree): circle or tick one number. Base your rating on what you saw during testing.</p>
+<div class="box tip"><p><b>Privacy.</b> Use the <b>Tester ID</b> your instructor gives you instead of your name. The sheet asks for no personal data (in line with the Data Privacy Act of 2012, RA 10173).</p></div>
+
+<div class="card">
+    <div class="form-row"><b>Tester ID</b><div class="line"></div></div>
+    <div class="form-row"><b>Date tested</b><div class="line"></div></div>
+    <div class="form-row"><b>Computer</b><div class="line"></div></div>
+    <p class="pre" style="margin:4px 0 0;color:var(--muted);font-size:.85rem">Computer: Windows version, RAM, and whether you used the Ubuntu folder or a Windows folder.</p>
+</div>
+
+<table class="grid rate">
+    <thead><tr><th>Characteristic and statement</th><th style="text-align:center">1 2 3 4 5</th></tr></thead>
+    <tbody>
+        <tr><td colspan="2"><b>1. Functional suitability</b>: does it do what it should, correctly?</td></tr>
+        <tr><td class="q">The app has every function needed to forecast sales and plan restocking for a small shop.</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+        <tr><td class="q">Calculations and figures (stock, totals, forecasts, quantities to order) were correct where I could check them.</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+        <tr><td class="q">The functions help me reach the goal (knowing what to reorder, how much and when) without unnecessary steps.</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+        <tr><td class="q">The recommendations and their explanations made sense for the stock and sales shown.</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+
+        <tr><td colspan="2"><b>2. Performance efficiency</b>: is it fast and light enough?</td></tr>
+        <tr><td class="q">Pages opened quickly enough for everyday use.</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+        <tr><td class="q">A forecast run finished in an acceptable time, and I could keep working meanwhile.</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+        <tr><td class="q">Imports and report downloads were quick.</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+
+        <tr><td colspan="2"><b>3. Compatibility</b>: does it work alongside other things?</td></tr>
+        <tr><td class="q">The app worked the same in the browsers I tried.</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+        <tr><td class="q">Its files (CSV, Excel, PDF) opened correctly in the programs I normally use.</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+        <tr><td class="q">It ran on my computer alongside my other programs without problems.</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+
+        <tr><td colspan="2"><b>4. Usability</b>: is it easy to learn and pleasant to use?</td></tr>
+        <tr><td class="q">I could find my way around without help.</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+        <tr><td class="q">Labels, messages and explanations were clear.</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+        <tr><td class="q">The app prevented mistakes or explained clearly how to fix them (for example in imports).</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+        <tr><td class="q">The look (light and dark mode) was attractive and easy to read.</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+        <tr><td class="q">It could be used with the keyboard alone and on a phone-sized screen.</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+
+        <tr><td colspan="2"><b>5. Reliability</b>: does it keep working?</td></tr>
+        <tr><td class="q">Nothing crashed or showed an error page during my tests.</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+        <tr><td class="q">After a restart, all my data was still there.</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+        <tr><td class="q">Bad input (wrong files, wrong values) was handled without breaking anything.</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+
+        <tr><td colspan="2"><b>6. Security</b>: is data protected?</td></tr>
+        <tr><td class="q">Each role could reach only what it should, even by typing addresses.</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+        <tr><td class="q">Passwords were handled safely (no password ever emailed; lockout after wrong tries).</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+        <tr><td class="q">Emails contained no personal data.</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+        <tr><td class="q">Important actions were recorded in the audit log with who did them.</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+
+        <tr><td colspan="2"><b>7. Maintainability</b>: could it be changed and fixed easily? (Look at the README, <code>docs/</code> and the project layout.)</td></tr>
+        <tr><td class="q">The project is clearly organised and documented.</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+        <tr><td class="q">Error messages and logs helped me understand problems.</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+        <tr><td class="q">The app is made of clear parts (web app, forecasting service, database) that can be looked at separately.</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+
+        <tr><td colspan="2"><b>8. Portability</b>: can it be installed and moved easily?</td></tr>
+        <tr><td class="q">Installing it by following Part A was straightforward.</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+        <tr><td class="q">It could be reset, stopped and started again easily.</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+        <tr><td class="q">It would be easy to install on another computer.</td><td class="s"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></td></tr>
+    </tbody>
+</table>
+
+<div class="card">
+    <h3 style="margin-top:0">Comments</h3>
+    <p>What did you like most? What would you change first?</p>
+    <div class="lines"></div><div class="lines"></div><div class="lines"></div><div class="lines"></div>
+</div>
+
+<h3 id="bug-form">Bug report form</h3>
+<p>Fill in one for each failed test or problem you notice. Copy the form as many times as you need. Number them <b>BUG-1</b>, <b>BUG-2</b>, … and write the number in the test case's Remarks.</p>
+<div class="card">
+    <div class="form-row"><b>Bug number</b><div class="line"></div></div>
+    <div class="form-row"><b>Test case ID</b><div class="line"></div></div>
+    <div class="form-row"><b>Page (address)</b><div class="line"></div></div>
+    <div class="form-row"><b>Signed in as</b><div class="line"></div></div>
+    <div class="form-row"><b>Steps</b><div class="line"></div></div>
+    <div class="form-row"><b></b><div class="line"></div></div>
+    <div class="form-row"><b>Expected</b><div class="line"></div></div>
+    <div class="form-row"><b>What happened</b><div class="line"></div></div>
+    <div class="form-row"><b></b><div class="line"></div></div>
+    <div class="form-row"><b>Severity</b><div>☐ Critical (data lost or wrong, cannot continue) &nbsp; ☐ Major (a function does not work) &nbsp; ☐ Minor (works, but wrong or confusing) &nbsp; ☐ Cosmetic (looks)</div></div>
+    <div class="form-row"><b>Screenshot</b><div>☐ Attached (press <kbd>Win</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> to take one) &nbsp; Light / dark mode: ______</div></div>
+</div>
+
+<h3>Test summary and sign-off</h3>
+<table class="grid">
+    <thead><tr><th>Module</th><th>Cases</th><th>Pass</th><th>Fail</th><th>Blocked</th></tr></thead>
+    <tbody id="summary-rows">
+        <tr><td>B1. Smoke test (5 minutes)</td><td>6</td><td></td><td></td><td></td></tr>
+        <tr><td>B2. Signing in and your account</td><td>15</td><td></td><td></td><td></td></tr>
+        <tr><td>B3. Light and dark mode</td><td>5</td><td></td><td></td><td></td></tr>
+        <tr><td>B4. Roles and permissions</td><td>9</td><td></td><td></td><td></td></tr>
+        <tr><td>B5. Users</td><td>10</td><td></td><td></td><td></td></tr>
+        <tr><td>B6. Categories</td><td>6</td><td></td><td></td><td></td></tr>
+        <tr><td>B7. Products</td><td>9</td><td></td><td></td><td></td></tr>
+        <tr><td>B8. Stock and inventory</td><td>6</td><td></td><td></td><td></td></tr>
+        <tr><td>B9. Sales and imports</td><td>12</td><td></td><td></td><td></td></tr>
+        <tr><td>B10. Forecasts</td><td>9</td><td></td><td></td><td></td></tr>
+        <tr><td>B11. Recommendations</td><td>12</td><td></td><td></td><td></td></tr>
+        <tr><td>B12. Notifications and email</td><td>8</td><td></td><td></td><td></td></tr>
+        <tr><td>B13. Dashboard</td><td>4</td><td></td><td></td><td></td></tr>
+        <tr><td>B14. Reports</td><td>6</td><td></td><td></td><td></td></tr>
+        <tr><td>B15. System settings</td><td>6</td><td></td><td></td><td></td></tr>
+        <tr><td>B16. Audit log</td><td>4</td><td></td><td></td><td></td></tr>
+        <tr><td>B17. Security spot checks</td><td>5</td><td></td><td></td><td></td></tr>
+        <tr><td>B18. Speed, devices and browsers</td><td>6</td><td></td><td></td><td></td></tr>
+        <tr><td><b>Total</b></td><td><b>138</b></td><td></td><td></td><td></td></tr>
+    </tbody>
+</table>
+<div class="card">
+    <div class="form-row"><b>Tester ID</b><div class="line"></div></div>
+    <div class="form-row"><b>Bugs reported</b><div class="line"></div></div>
+    <div class="form-row"><b>Overall verdict</b><div>☐ Ready to use &nbsp; ☐ Ready with minor fixes &nbsp; ☐ Not ready</div></div>
+    <div class="form-row"><b>Date</b><div class="line"></div></div>
+</div>
+</section>
+
+<section id="appendix" class="page-break">
+<h2><span class="mark">Appendices</span></h2>
+
+<h3 id="app-accounts">1. Demo accounts and addresses</h3>
+<p>These exist only in your local copy, for testing. They are never created on a real (production) installation.</p>
+<table class="grid">
+    <thead><tr><th>Email</th><th>Password</th><th>Role</th></tr></thead>
+    <tbody>
+        <tr><td><code>owner@stocksense.test</code></td><td><code>password</code></td><td><span class="tag owner">Owner</span></td></tr>
+        <tr><td><code>manager@stocksense.test</code></td><td><code>password</code></td><td><span class="tag manager">Manager</span></td></tr>
+        <tr><td><code>staff@stocksense.test</code></td><td><code>password</code></td><td><span class="tag staff">Inventory staff</span></td></tr>
+    </tbody>
+</table>
+<table class="grid">
+    <thead><tr><th>What</th><th>Address</th></tr></thead>
+    <tbody>
+        <tr><td>StockSense AI</td><td><code>http://localhost:8080</code></td></tr>
+        <tr><td>Mailpit (every email the app sends)</td><td><code>http://localhost:8026</code></td></tr>
+        <tr><td>Forecasting service API docs</td><td><code>http://localhost:8001/docs</code></td></tr>
+        <tr><td>Background jobs dashboard (Owner only)</td><td><code>http://localhost:8080/horizon</code></td></tr>
+        <tr><td>Database, for database tools (optional)</td><td><code>localhost:5433</code>, database and user <code>stocksense</code>, password <code>secret</code></td></tr>
+    </tbody>
+</table>
+
+<h3>2. Sample files</h3>
+<p>The test cases give small files to copy into Notepad (save with <b>Save as type: All files</b> and a name ending in <code>.csv</code>). Bigger ones come with the project:</p>
+<table class="grid">
+    <thead><tr><th>File</th><th>What it is</th></tr></thead>
+    <tbody>
+        <tr><td><code>web/database/data/sales-sample-with-errors.csv</code></td><td>Sales with deliberate mistakes (unknown SKU, impossible date, a word as quantity)</td></tr>
+        <tr><td><code>e2e/fixtures/sales-import.csv</code></td><td>Five good sales rows</td></tr>
+        <tr><td><code>e2e/fixtures/sales-with-problems.csv</code></td><td>Three rows, two of them bad</td></tr>
+        <tr><td><code>web/database/data/products.csv</code></td><td>The demo shop's 50 products, in the import layout</td></tr>
+        <tr><td><b>Download an example file</b> button</td><td>On each import page: an empty file with the right columns</td></tr>
+    </tbody>
+</table>
+<p>In the Ubuntu set-up, the project folder is reachable from Windows Explorer at <code>\\wsl$\Ubuntu\home\&lt;your username&gt;\stocksense-ai</code>.</p>
+
+<h3>3. Commands</h3>
+<p>Run them in the <code>stocksense-ai</code> folder.</p>
+<table class="grid">
+    <thead><tr><th>To</th><th>Run</th></tr></thead>
+    <tbody>
+        <tr><td>Start (after the first time)</td><td><code>docker compose start</code></td></tr>
+        <tr><td>Stop, keeping the data</td><td><code>docker compose stop</code></td></tr>
+        <tr><td>See what is running</td><td><code>docker compose ps</code></td></tr>
+        <tr><td>Reset to the clean demo shop</td><td><code>docker compose exec app php artisan migrate:fresh --seed</code></td></tr>
+        <tr><td>Send the digest email now</td><td><code>docker compose exec app php artisan notifications:digest</code></td></tr>
+        <tr><td>Make a weekly forecast in the terminal</td><td><code>docker compose exec app php artisan forecast:run week --sync</code></td></tr>
+        <tr><td>Refresh the recommendations</td><td><code>docker compose exec app php artisan recommendations:generate --sync</code></td></tr>
+        <tr><td>See a service's log</td><td><code>docker compose logs horizon --tail 50</code> (or <code>app</code>, <code>ml</code>, <code>vite</code>)</td></tr>
+        <tr><td>Restart one service</td><td><code>docker compose restart horizon</code></td></tr>
+        <tr><td>Get the latest version of the code</td><td><code>git pull</code> then <code>docker compose up -d --build</code> and <code>docker compose exec app php artisan migrate</code></td></tr>
+        <tr><td>Remove everything, including the data</td><td><code>docker compose down -v</code></td></tr>
+        <tr><td>Run the automated tests (optional)</td><td><code>docker compose exec app php artisan test</code></td></tr>
+    </tbody>
+</table>
+
+<h3>4. Words used</h3>
+<table class="grid">
+    <thead><tr><th>Word</th><th>Meaning</th></tr></thead>
+    <tbody>
+        <tr><td><b>SKU</b></td><td>Stock-keeping unit: the shop's own code for a product, such as <code>FB-006</code></td></tr>
+        <tr><td><b>Lead time</b></td><td>Days from placing an order to receiving it</td></tr>
+        <tr><td><b>Review period</b></td><td>How often the shop places orders (default 7 days)</td></tr>
+        <tr><td><b>Service level</b></td><td>How often you want to have stock when a customer asks, for example 95%</td></tr>
+        <tr><td><b>Safety stock</b></td><td>Extra stock to cover surprises while an order is on its way</td></tr>
+        <tr><td><b>Reorder point</b></td><td>The stock level at which to order: expected sales during the lead time plus safety stock</td></tr>
+        <tr><td><b>On order</b></td><td>Quantities you accepted that have not arrived yet</td></tr>
+        <tr><td><b>Days of cover</b></td><td>How many days the stock on hand would last at the usual rate of sales</td></tr>
+        <tr><td><b>Forecast range</b></td><td>The band around a forecast where actual sales should fall about 8 times in 10</td></tr>
+        <tr><td><b>Low confidence</b></td><td>A product with under a year of sales history, forecast with a plain recent average</td></tr>
+        <tr><td><b>MAE</b></td><td>Mean absolute error: the average number of units a forecast was off by</td></tr>
+        <tr><td><b>RMSE</b></td><td>Root mean squared error: like MAE, but big misses count more</td></tr>
+        <tr><td><b>MAPE</b></td><td>Mean absolute percentage error: the average miss as a percentage of actual sales</td></tr>
+        <tr><td><b>WAPE</b></td><td>Weighted absolute percentage error: all misses as a percentage of all units sold. The headline accuracy figure</td></tr>
+        <tr><td><b>Baseline</b></td><td>A simple guess the model must beat: the same week last year, or a recent average</td></tr>
+        <tr><td><b>Container</b></td><td>One part of the app running in Docker, with everything it needs</td></tr>
+    </tbody>
+</table>
+
+<h3>5. Where to read more</h3>
+<ul>
+    <li><code>README.md</code>: the project overview and everyday commands</li>
+    <li><code>docs/user-guide.md</code>: how to use the app, page by page</li>
+    <li><code>docs/testing.md</code>: the automated tests and their results</li>
+    <li><code>docs/ml-methodology.md</code> and <code>docs/replenishment-methodology.md</code>: how the forecasts and the advice are worked out</li>
+</ul>
+</section>
+
+<footer class="end">StockSense AI · Student testing manual · October 2026</footer>
+</main>
+<script>
+// Copy buttons on commands. Nothing else runs on this page.
+document.querySelectorAll('pre:not(.out)').forEach((pre) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'copy';
+    button.textContent = 'Copy';
+    button.addEventListener('click', async () => {
+        const text = [...pre.querySelectorAll('code')].map((code) => code.innerText).join('\n').replace(/^#.*$/gm, '').replace(/\n{2,}/g, '\n').trim();
+        try {
+            await navigator.clipboard.writeText(text);
+            button.textContent = 'Copied';
+        } catch {
+            button.textContent = 'Select and copy';
+        }
+        setTimeout(() => (button.textContent = 'Copy'), 1500);
+    });
+    pre.appendChild(button);
+});
+</script>
+</body>
+</html>
