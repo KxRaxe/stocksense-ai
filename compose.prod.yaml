@@ -1,0 +1,204 @@
+# StockSense AI - production stack
+#
+#   cp .env.production.example .env      # then fill it in (see docs/deployment.md)
+#   docker compose -f compose.prod.yaml up -d --build --wait
+#
+# What differs from the development stack (compose.yaml):
+#   - the code and the built assets are inside the images: no bind mounts, no Vite, no Node
+#   - PHP runs with OPcache that never re-reads files, errors go to the log and never the page
+#   - every container runs as an unprivileged user and cannot gain privileges
+#   - nothing is published except the web server's port: the database, Redis and the ML
+#     service are reachable only from inside the stack
+#   - Redis needs a password, and the ML service and the app refuse to start with the
+#     development secrets or a well-known database password (`php artisan app:check`)
+#   - there is no mail catcher: email goes through the SMTP service in .env
+#   - the database is migrated, and the roles seeded, before the app starts
+#
+# TLS is not done here. Put a reverse proxy or load balancer that ends HTTPS in front of the
+# web service, then set APP_URL=https://... and TRUSTED_PROXIES (see docs/deployment.md).
+name: stocksense
+
+x-laravel: &laravel
+  build:
+    context: .
+    dockerfile: docker/php/Dockerfile
+    target: prod
+  image: stocksense-php:prod
+  restart: unless-stopped
+  security_opt:
+    - no-new-privileges:true
+  logging: &logging
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "5"
+  environment:
+    APP_NAME: ${APP_NAME:-StockSense AI}
+    APP_ENV: production
+    APP_DEBUG: "false"
+    APP_KEY: ${APP_KEY:?Set APP_KEY, see .env.production.example for how to generate one}
+    APP_URL: ${APP_URL:?Set APP_URL to the address people will use, e.g. https://stock.example.com}
+    APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Manila}
+    LOG_CHANNEL: stderr
+    LOG_LEVEL: ${LOG_LEVEL:-info}
+    TRUSTED_PROXIES: ${TRUSTED_PROXIES:-}
+    BCRYPT_ROUNDS: "12"
+
+    DB_CONNECTION: pgsql
+    DB_HOST: db
+    DB_PORT: "5432"
+    DB_DATABASE: stocksense
+    DB_USERNAME: stocksense
+    DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD to a long random value}
+
+    REDIS_CLIENT: phpredis
+    REDIS_HOST: redis
+    REDIS_PORT: "6379"
+    REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD to a long random value}
+    CACHE_STORE: redis
+    QUEUE_CONNECTION: redis
+    SESSION_DRIVER: database
+    SESSION_SECURE_COOKIE: ${SESSION_SECURE_COOKIE:-true}
+
+    MAIL_MAILER: ${MAIL_MAILER:-smtp}
+    MAIL_SCHEME: ${MAIL_SCHEME:-null}
+    MAIL_HOST: ${MAIL_HOST:?Set MAIL_HOST (and MAIL_PORT, MAIL_USERNAME, MAIL_PASSWORD) to your SMTP service}
+    MAIL_PORT: ${MAIL_PORT:-587}
+    MAIL_USERNAME: ${MAIL_USERNAME:-null}
+    MAIL_PASSWORD: ${MAIL_PASSWORD:-null}
+    MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:?Set MAIL_FROM_ADDRESS to the address emails come from}
+    MAIL_FROM_NAME: ${APP_NAME:-StockSense AI}
+
+    ML_SERVICE_URL: http://ml:8000
+    ML_INTERNAL_TOKEN: ${ML_INTERNAL_TOKEN:?Set ML_INTERNAL_TOKEN to a long random value (at least 24 characters)}
+    ML_TIMEOUT: ${ML_TIMEOUT:-600}
+
+    FORECAST_SCHEDULE: ${FORECAST_SCHEDULE:-true}
+    REPLENISHMENT_SCHEDULE: ${REPLENISHMENT_SCHEDULE:-true}
+    INERTIA_DEVTOOLS_ENABLED: "false"
+    SKIP_PRODUCTION_CHECK: ${SKIP_PRODUCTION_CHECK:-false}
+  volumes:
+    # Uploaded import files and report scratch files: shared by the web app and the queue worker.
+    - app_storage:/var/www/html/storage
+  working_dir: /var/www/html
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: web
+    image: stocksense-web:prod
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    logging: *logging
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    depends_on:
+      app: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/nginx-health >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+
+  app:
+    <<: *laravel
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@fsockopen('127.0.0.1', 9000) ? 0 : 1);"]
+      interval: 15s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+
+  # Runs once per start: brings the database up to date and makes sure the roles and
+  # permissions exist. Safe to run repeatedly, so every deploy can simply restart the stack.
+  migrate:
+    <<: *laravel
+    restart: "no"
+    command: ["sh", "-c", "php artisan migrate --force && php artisan db:seed --class=RolesAndPermissionsSeeder --force"]
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  horizon:
+    <<: *laravel
+    command: php artisan horizon
+    # Give running jobs time to finish when the stack is stopped.
+    stop_grace_period: 120s
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test: ["CMD-SHELL", "php artisan horizon:status | grep -qi running"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 40s
+
+  scheduler:
+    <<: *laravel
+    command: php artisan schedule:work
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+
+  ml:
+    build:
+      context: ./ml
+      target: prod
+    image: stocksense-ml:prod
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    logging: *logging
+    environment:
+      ML_ENVIRONMENT: production
+      ML_INTERNAL_TOKEN: ${ML_INTERNAL_TOKEN:?Set ML_INTERNAL_TOKEN to a long random value (at least 24 characters)}
+      ML_MODELS_DIR: /models
+    volumes:
+      - ml_models:/models
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    logging: *logging
+    environment:
+      POSTGRES_DB: stocksense
+      POSTGRES_USER: stocksense
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD to a long random value}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stocksense -d stocksense"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    logging: *logging
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD to a long random value}
+    # Append-only, so queued jobs survive a restart.
+    command: ["sh", "-c", "exec redis-server --requirepass \"$$REDIS_PASSWORD\" --appendonly yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" --no-auth-warning ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:
+  redis_data:
+  ml_models:
+  app_storage:

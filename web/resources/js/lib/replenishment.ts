@@ -15,7 +15,7 @@ export const riskStyles: Record<
     },
     low: {
         className:
-            'border-transparent bg-amber-500/15 text-amber-700 dark:text-amber-400',
+            'border-transparent bg-amber-500/15 text-amber-800 dark:text-amber-400',
         meaning: 'At or below the reorder point',
     },
     watch: {

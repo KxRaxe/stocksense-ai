@@ -6,6 +6,7 @@ use App\Services\Reporting\Reports\ReportFormatter;
 use App\Services\Reporting\Reports\ReportResult;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -14,7 +15,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
  * An "About" sheet: what the report is, what it was narrowed to, when it was
  * made, its headline figures and the notes needed to read it correctly.
  */
-class ReportSummarySheet implements FromArray, ShouldAutoSize, WithStyles, WithTitle
+class ReportSummarySheet extends SafeValueBinder implements FromArray, ShouldAutoSize, WithCustomValueBinder, WithStyles, WithTitle
 {
     public function __construct(
         private readonly string $title,

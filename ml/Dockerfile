@@ -14,6 +14,29 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl libgomp1 \
 
 WORKDIR /srv
 
+# ---------------------------------------------------------------------------
+# prod: only what the service needs to run, from the lockfile, as an unprivileged user,
+# and it refuses to start with the development token (see app/config.py).
+# ---------------------------------------------------------------------------
+FROM base AS prod
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-install-project --no-dev
+COPY app ./app
+RUN useradd --system --uid 10001 --no-create-home ml \
+ && mkdir -p /models && chown ml /models
+USER ml
+ENV ML_MODELS_DIR=/models \
+    ML_ENVIRONMENT=production
+EXPOSE 8000
+HEALTHCHECK --interval=10s --timeout=3s --retries=5 \
+  CMD curl -fsS http://localhost:8000/health || exit 1
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# ---------------------------------------------------------------------------
+# dev: the default target. Adds the test tools and the tests.
+# ---------------------------------------------------------------------------
+FROM base AS dev
+
 # Dependencies first for layer caching
 COPY pyproject.toml ./
 RUN uv sync --no-install-project --group dev

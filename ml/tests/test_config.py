@@ -6,6 +6,8 @@ import os
 
 import numpy as np
 import pandas as pd
+import pytest
+from pydantic import ValidationError
 
 from app.config import Settings
 from app.model import train
@@ -39,3 +41,44 @@ def test_the_model_trains_with_that_many_threads():
     y = rng.uniform(size=300)
 
     assert train(X, y).regressor.get_params()["n_jobs"] == Settings().training_threads
+
+
+# --- the shared secret -------------------------------------------------------------------
+
+
+def test_the_development_token_is_fine_in_development():
+    assert Settings().internal_token == "change-me-dev-token"
+    assert Settings(environment="development").environment == "development"
+
+
+def test_production_refuses_the_development_token():
+    with pytest.raises(ValidationError, match="ML_INTERNAL_TOKEN"):
+        Settings(environment="production")
+
+    with pytest.raises(ValidationError, match="ML_INTERNAL_TOKEN"):
+        Settings(environment="production", internal_token="change-me-dev-token")
+
+
+def test_production_refuses_a_short_token():
+    with pytest.raises(ValidationError, match="at least 24 characters"):
+        Settings(environment="production", internal_token="abc123")
+
+    with pytest.raises(ValidationError):
+        Settings(environment="production", internal_token="x" * 23)
+
+
+def test_production_accepts_a_long_one():
+    assert Settings(environment="production", internal_token="x" * 24).environment == "production"
+    assert Settings(environment="production", internal_token="a1b2" * 16).internal_token
+
+
+def test_production_is_read_from_the_environment(monkeypatch):
+    monkeypatch.setenv("ML_ENVIRONMENT", "production")
+    monkeypatch.delenv("ML_INTERNAL_TOKEN", raising=False)
+
+    with pytest.raises(ValidationError):
+        Settings()
+
+    monkeypatch.setenv("ML_INTERNAL_TOKEN", "k" * 32)
+
+    assert Settings().environment == "production"

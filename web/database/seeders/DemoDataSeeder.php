@@ -36,6 +36,8 @@ class DemoDataSeeder extends Seeder
 {
     public function run(StockService $stock, ImportManager $imports): void
     {
+        DemoGuard::refuseInProduction();
+
         if (Product::query()->exists()) {
             $this->say('Products already exist; leaving the demo data alone.', 'warn');
 

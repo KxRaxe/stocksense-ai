@@ -30,7 +30,7 @@ export default function ReportTabs({ reports, current }: Props) {
                         className={`rounded-md px-3 py-1 font-medium transition-colors ${
                             selected
                                 ? 'bg-background shadow-sm'
-                                : 'text-muted-foreground hover:text-foreground'
+                                : 'text-foreground/70 hover:text-foreground'
                         }`}
                         data-test={`report-tab-${report.key}`}
                     >

@@ -8,6 +8,7 @@ use Carbon\CarbonImmutable;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
 use Maatwebsite\Excel\Concerns\WithFreezePane;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
@@ -23,7 +24,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
  * dates with number formats (so a person can sort, filter and add them up),
  * and the totals row if there is one.
  */
-class ReportDataSheet implements FromArray, ShouldAutoSize, WithColumnFormatting, WithFreezePane, WithHeadings, WithStyles, WithTitle
+class ReportDataSheet extends SafeValueBinder implements FromArray, ShouldAutoSize, WithColumnFormatting, WithCustomValueBinder, WithFreezePane, WithHeadings, WithStyles, WithTitle
 {
     public function __construct(
         private readonly string $title,

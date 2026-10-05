@@ -9,6 +9,7 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+!.env.production.example
 
 # ML
 ml/.venv/
@@ -24,3 +25,9 @@ ml/models/*
 e2e/node_modules/
 e2e/test-results/
 e2e/playwright-report/
+
+# Signed-in browser state kept by the end-to-end global setup.
+e2e/.auth/
+
+# k6 results from a particular machine.
+tests/load/results/

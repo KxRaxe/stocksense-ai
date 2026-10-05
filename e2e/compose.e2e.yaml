@@ -1,0 +1,14 @@
+# Added to compose.prod.yaml for the end-to-end tests: a place to see the emails the app sends.
+#
+#   docker compose -p stocksense-e2e -f compose.prod.yaml -f e2e/compose.e2e.yaml --env-file e2e/stack.env up -d --build --wait
+services:
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    ports:
+      - "8027:8025"
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 10s
+      timeout: 3s
+      retries: 5

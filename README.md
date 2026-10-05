@@ -4,6 +4,8 @@ An AI-assisted sales forecasting and inventory replenishment recommendation syst
 
 **Stack:** Laravel 13 + React 19 (Inertia 3, TypeScript, Tailwind 4, Vite+ / Vite 8, Wayfinder, Fortify) · PostgreSQL 17 · Redis + Horizon · Python/FastAPI + XGBoost (forecasting service) · everything runs in Docker.
 
+**Documentation:** [architecture](docs/architecture.md) · [user guide](docs/user-guide.md) · [deployment](docs/deployment.md) · [security](docs/security.md) · [testing and results](docs/testing.md) · [forecasting method](docs/ml-methodology.md) · [replenishment method](docs/replenishment-methodology.md) · [multi-branch plan](docs/future-multi-branch.md)
+
 ## Quick start
 
 Requires Docker with Compose v2. Nothing else needs to be installed on the host.
@@ -263,9 +265,32 @@ docker compose restart horizon scheduler
 
 If you forget, an import fails with an error such as "class not found". The import page then shows it as failed with a message, and nothing is lost: the sales already imported stay, and the import can be undone. A forecast run fails the same way, with its own message, and can simply be started again. Horizon's own dashboard is at `/horizon` (Owner only).
 
-## Frontend tests
+## Testing
 
-`npm test` (in `web/`) runs the Vitest component tests. They run on the host rather than in Docker because installing npm packages inside the containers is very slow on some Windows setups; CI runs them in a clean Linux environment either way. Containers pick up new npm packages when the `vite` service next restarts.
+| Layer | Run | What it covers |
+|---|---|---|
+| PHP (Pest, on PostgreSQL) | `docker compose exec app php artisan test` | Business rules, every permission, pages, imports, forecasting, replenishment, notifications, reports, settings, security controls |
+| Frontend (Vitest) | `npm test` in `web/` | Every screen: forms, dialogs, charts, tables, role-dependent content |
+| ML service (pytest) | `docker compose exec ml python -m pytest` | Features without leakage, metrics, the model's accuracy, the API, the contract |
+| Static analysis | `composer lint:check`, `composer types:check`, `npm run check`, `npm run types:check`, `ruff`, `mypy` | Style and types |
+| **End to end** (Playwright) | see [e2e/README.md](e2e/README.md) | Sign-in, roles, security headers and the content security policy, onboarding, the whole sales-to-decision journey, accessibility, against the production stack |
+| **Load** (k6) | see [tests/load/README.md](tests/load/README.md) | 25 and 100 concurrent users, report downloads, forecast run time |
+
+Run only one PHP suite at a time: they share a test database. The frontend tests run on the host rather than in Docker because installing npm packages inside the containers is very slow on some Windows setups; CI runs them in a clean Linux environment either way. Containers pick up new npm packages when the `vite` service next restarts.
+
+What is tested, the results (accuracy, load, accessibility), and what is **not** tested are in [docs/testing.md](docs/testing.md).
+
+## Running in production
+
+`compose.prod.yaml` is the production stack: the code and the built assets are inside the images, nothing is exposed but the web port, every container runs unprivileged, and the application **refuses to start** with a configuration that must not go to production (debug on, development secrets, well-known passwords, an unusable key). In short:
+
+```bash
+cp .env.production.example .env       # fill in every REQUIRED value
+docker compose -f compose.prod.yaml up -d --build --wait
+docker compose -f compose.prod.yaml exec app php artisan app:create-owner "Full Name" owner@example.com
+```
+
+Put a reverse proxy that ends HTTPS in front. Everything else (TLS, updating, backups, what the start-up check does, a checklist before real use) is in [docs/deployment.md](docs/deployment.md). What protects the system, and what does not, is in [docs/security.md](docs/security.md).
 
 ## Repository layout
 
@@ -273,8 +298,12 @@ If you forget, an import fails with an error such as "class not found". The impo
 web/         Laravel + Inertia React app
 ml/          FastAPI forecasting service (XGBoost)
 contracts/   JSON Schemas shared by Laravel and the ML service
-docker/      Dockerfile, nginx and Postgres init files
-docs/        Architecture, ML methodology, testing evidence, user guide
+docker/      PHP and nginx images (development and production) and Postgres init files
+e2e/         Playwright end-to-end tests and the throwaway stack they run on
+tests/load/  k6 load tests
+docs/        Architecture, deployment, security, testing evidence, methodology, user guide
+compose.yaml       Development stack (bind mounts, Vite, Mailpit)
+compose.prod.yaml  Production stack
 .github/     CI workflow
 ```
 
@@ -283,9 +312,10 @@ docs/        Architecture, ML methodology, testing evidence, user guide
 - **Mailpit is on port 8026**, not its default 8025, to avoid clashing with other local projects.
 - **Accounts:** there is no public sign-up. The Owner creates user accounts. Users get email verification, optional two-factor authentication, and password confirmation for sensitive actions.
 - **npm installs:** `web/node_modules` on the host is only for editor IntelliSense. Containers use their own Linux copy in a Docker volume. Commit `package-lock.json` whenever dependencies change.
-- **Email policy:** emails never contain personal data. They use a generic greeting and only product, stock and forecast figures.
+- **Email policy:** emails never contain personal data. They use a generic greeting and only product, stock and forecast figures. A test renders every email as sent and searches it for a user's name and address.
+- **Security headers** come from the application (`SecurityHeaders` middleware): a Content-Security-Policy with a per-response nonce, plus framing, sniffing, referrer and permissions headers. The policy is off in development, because the Vite dev server serves scripts from another port, and on in production.
 - **Multi-branch support is planned, not built.** The data model already carries a `location_id` so branches can be added later without migrating data.
 
 ## Branching
 
-`main` holds released work. Day-to-day work happens on `develop`, and each implementation phase is committed and pushed there. CI runs on every push and pull request.
+`main` holds released work. Day-to-day work happens on `develop`, and each implementation phase is committed and pushed there. CI runs on every push and pull request: lint, types and tests for each part, dependency audits, and a build of the production images that starts them through the strict check. The end-to-end suite runs on pull requests to `main`.

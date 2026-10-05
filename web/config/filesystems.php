@@ -33,7 +33,9 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => true,
+            // Nothing here is ever served by link (imports are read by the app itself), so the
+            // signed-URL routes Laravel would add for it stay off.
+            'serve' => false,
             'throw' => false,
             'report' => false,
         ],

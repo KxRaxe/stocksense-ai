@@ -161,3 +161,32 @@ describe('the main seeder', function () {
             ->and(Role::count())->toBe(3);
     });
 });
+
+describe('the demo seeders in production', function () {
+    beforeEach(function () {
+        User::query()->delete();
+        $this->app->instance('env', 'production');
+    });
+
+    it('refuse to create accounts with a known password, even when asked for by name', function () {
+        expect(fn () => $this->artisan('db:seed', ['--class' => DemoUsersSeeder::class, '--force' => true])->run())
+            ->toThrow(RuntimeException::class, 'for development and demonstrations only');
+
+        expect(User::where('email', 'like', '%@stocksense.test')->exists())->toBeFalse();
+    });
+
+    it('refuse to load the demo shop', function () {
+        expect(fn () => $this->artisan('db:seed', ['--class' => DemoDataSeeder::class, '--force' => true])->run())
+            ->toThrow(RuntimeException::class, 'for development and demonstrations only');
+
+        expect(Product::count())->toBe(0);
+    });
+
+    it('can be allowed for a throwaway test stack', function () {
+        config(['demo.allowed' => true]);
+
+        $this->artisan('db:seed', ['--class' => DemoUsersSeeder::class, '--force' => true])->assertSuccessful();
+
+        expect(User::where('email', 'owner@stocksense.test')->exists())->toBeTrue();
+    });
+});

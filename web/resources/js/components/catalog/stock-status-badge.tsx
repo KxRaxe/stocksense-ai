@@ -18,7 +18,7 @@ export default function StockStatusBadge({ status }: { status: StockStatus }) {
             variant={variant}
             className={
                 status === 'low'
-                    ? 'bg-amber-500/15 text-amber-700 dark:text-amber-400'
+                    ? 'bg-amber-500/15 text-amber-800 dark:text-amber-400'
                     : undefined
             }
         >

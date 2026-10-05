@@ -37,3 +37,70 @@ COPY --chmod=755 docker/php/vite-dev.sh /usr/local/bin/vite-dev.sh
 USER ${UID}
 ENTRYPOINT ["entrypoint.sh"]
 CMD ["php-fpm"]
+
+# ---------------------------------------------------------------------------
+# vendor: the application with its production dependencies only
+# ---------------------------------------------------------------------------
+FROM base AS vendor
+WORKDIR /app
+COPY web/composer.json web/composer.lock ./
+RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts --no-autoloader
+COPY web/ ./
+# The scripts run `artisan`, which needs a key to start; this one is thrown away with the stage.
+RUN APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= \
+    composer dump-autoload --no-dev --optimize --classmap-authoritative \
+ && rm -rf /root/.composer
+
+# ---------------------------------------------------------------------------
+# assets: the React app built with Vite. The build calls `php artisan` (Wayfinder turns the
+# routes into TypeScript), so it runs where PHP and the vendor directory are.
+# ---------------------------------------------------------------------------
+FROM base AS assets
+WORKDIR /app
+# The packages first: they change far less often than the code, and installing them is the slow part.
+COPY web/package.json web/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY --from=vendor /app/ ./
+ENV APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= \
+    APP_ENV=production \
+    CACHE_STORE=array \
+    SESSION_DRIVER=array \
+    QUEUE_CONNECTION=sync
+RUN npm run build \
+ && rm -rf node_modules
+
+# ---------------------------------------------------------------------------
+# prod: what runs in production. PHP-FPM without Node, Composer or git, as an
+# unprivileged user, with the code and the built assets inside the image.
+# ---------------------------------------------------------------------------
+FROM php:8.4-fpm-bookworm AS prod
+
+COPY --from=ghcr.io/mlocati/php-extension-installer:latest /usr/bin/install-php-extensions /usr/local/bin/
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+ && rm -rf /var/lib/apt/lists/* \
+ && install-php-extensions pdo_pgsql pgsql redis intl gd zip bcmath opcache pcntl exif \
+ && rm /usr/local/bin/install-php-extensions
+
+COPY docker/php/php.prod.ini /usr/local/etc/php/conf.d/zz-stocksense.ini
+COPY docker/php/fpm-pool.conf /usr/local/etc/php-fpm.d/zz-stocksense.conf
+COPY --chmod=755 docker/php/entrypoint.prod.sh /usr/local/bin/entrypoint.sh
+
+WORKDIR /var/www/html
+COPY --from=vendor --chown=www-data:www-data /app /var/www/html
+COPY --from=assets --chown=www-data:www-data /app/public/build /var/www/html/public/build
+
+RUN rm -f public/hot .env \
+ && mkdir -p storage/app/private storage/app/public storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
+ && chown -R www-data:www-data storage bootstrap/cache
+
+USER www-data
+ENTRYPOINT ["entrypoint.sh"]
+CMD ["php-fpm"]
+
+# ---------------------------------------------------------------------------
+# web: nginx, with the public files (the built assets) so it serves them itself and
+# hands only PHP requests to the app container
+# ---------------------------------------------------------------------------
+FROM nginx:1.27-alpine AS web
+COPY docker/nginx/prod.conf /etc/nginx/conf.d/default.conf
+COPY --from=prod /var/www/html/public /var/www/html/public

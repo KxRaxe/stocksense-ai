@@ -14,6 +14,8 @@ class DemoUsersSeeder extends Seeder
 {
     public function run(): void
     {
+        DemoGuard::refuseInProduction();
+
         $accounts = [
             ['Demo Owner', 'owner@stocksense.test', Role::Owner],
             ['Demo Manager', 'manager@stocksense.test', Role::Manager],

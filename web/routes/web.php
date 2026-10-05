@@ -60,7 +60,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::get('/', [$controller, 'index'])->name('index');
                 Route::get('create', [$controller, 'create'])->name('create');
                 Route::get('template', [$controller, 'template'])->name('template');
-                Route::post('/', [$controller, 'store'])->name('store');
+                Route::post('/', [$controller, 'store'])->middleware('throttle:heavy')->name('store');
                 Route::get('{batch}', [$controller, 'show'])->name('show')->whereNumber('batch');
                 Route::put('{batch}', [$controller, 'update'])->name('update')->whereNumber('batch');
                 Route::post('{batch}/confirm', [$controller, 'confirm'])->name('confirm')->whereNumber('batch');
@@ -83,7 +83,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('products/{product}', [ForecastController::class, 'product'])->name('product')->whereNumber('product');
         });
     Route::post('forecasts/run', [ForecastController::class, 'run'])
-        ->middleware('can:'.Permission::RunForecasts->value)
+        ->middleware(['can:'.Permission::RunForecasts->value, 'throttle:heavy'])
         ->name('forecasts.run');
 
     // What to reorder: everyone with `recommendations.view` can look; deciding (accept, adjust,
@@ -95,7 +95,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->prefix('recommendations')
         ->name('recommendations.')
         ->group(function () {
-            Route::post('refresh', [RecommendationController::class, 'refresh'])->name('refresh');
+            Route::post('refresh', [RecommendationController::class, 'refresh'])->middleware('throttle:heavy')->name('refresh');
             Route::post('{recommendation}/accept', [RecommendationController::class, 'accept'])->name('accept')->whereNumber('recommendation');
             Route::post('{recommendation}/adjust', [RecommendationController::class, 'adjust'])->name('adjust')->whereNumber('recommendation');
             Route::post('{recommendation}/dismiss', [RecommendationController::class, 'dismiss'])->name('dismiss')->whereNumber('recommendation');
@@ -107,7 +107,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('/', [ReportController::class, 'index'])->name('index');
         Route::get('{report}', [ReportController::class, 'show'])->name('show')->where('report', '[a-z-]+');
-        Route::get('{report}/export/{format}', [ReportController::class, 'export'])->name('export')->where('report', '[a-z-]+')->where('format', 'xlsx|pdf');
+        Route::get('{report}/export/{format}', [ReportController::class, 'export'])->name('export')->middleware('throttle:exports')->where('report', '[a-z-]+')->where('format', 'xlsx|pdf');
     });
 
     // Everyone's own notifications.
@@ -147,7 +147,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('users', UserController::class)->except(['show', 'destroy']);
         Route::patch('users/{user}/deactivate', [UserController::class, 'deactivate'])->name('users.deactivate');
         Route::patch('users/{user}/activate', [UserController::class, 'activate'])->name('users.activate');
-        Route::post('users/{user}/setup-link', [UserController::class, 'sendSetupLink'])->name('users.setup-link');
+        Route::post('users/{user}/setup-link', [UserController::class, 'sendSetupLink'])->middleware('throttle:heavy')->name('users.setup-link');
     });
 });
 
