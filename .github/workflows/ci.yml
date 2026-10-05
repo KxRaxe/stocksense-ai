@@ -125,7 +125,7 @@ jobs:
           coverage: none
       - name: composer audit
         working-directory: web
-        run: composer audit --no-interaction
+        run: composer audit --locked --no-interaction
       - uses: actions/setup-node@v4
         with:
           node-version: 22
