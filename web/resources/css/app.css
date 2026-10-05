@@ -214,6 +214,14 @@
         translate: 2px 2px;
         box-shadow: none;
     }
+
+    /* Only the press moves; Tailwind positions other things with translate too. */
+    @media (prefers-reduced-motion: reduce) {
+        &:hover:not(:disabled),
+        &:active:not(:disabled) {
+            translate: none;
+        }
+    }
 }
 
 /* A yellow highlighter swipe behind a heading. */
@@ -256,7 +264,6 @@
         *::after {
             transition-duration: 0ms !important;
             animation-duration: 0ms !important;
-            translate: none !important;
         }
     }
 }

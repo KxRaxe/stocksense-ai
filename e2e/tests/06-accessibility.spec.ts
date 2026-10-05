@@ -91,6 +91,52 @@ test.describe('with the keyboard', () => {
         expect(focused.visible, 'something should take the focus').toBe(true);
     });
 
+    for (const mode of ['light', 'dark'] as const) {
+        test(`the focused control is always marked, in ${mode} mode`, async ({ page }) => {
+            await useTheme(page, mode);
+            await page.goto('/dashboard');
+
+            for (let i = 0; i < 6; i++) {
+                await page.keyboard.press('Tab');
+
+                // The same element, focused and not: its outline or shadow must differ.
+                const look = await page.evaluate(() => {
+                    const element = document.activeElement as HTMLElement;
+                    const style = () => {
+                        const s = getComputedStyle(element);
+
+                        return `${s.outlineStyle} ${s.outlineWidth} ${s.outlineColor} | ${s.boxShadow}`;
+                    };
+                    const focused = style();
+                    element.blur();
+                    const blurred = style();
+                    element.focus({ focusVisible: true } as FocusOptions);
+
+                    return { name: `${element.tagName} ${element.textContent?.trim().slice(0, 30)}`, focused, blurred };
+                });
+
+                expect(look.focused, `${look.name} should look different when it has the focus`).not.toBe(look.blurred);
+            }
+        });
+    }
+
+    test('a dialog stays on screen when the computer asks for reduced motion', async ({ page }) => {
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        await page.goto('/products/1');
+        await page.getByTestId('restock-button').click();
+
+        const box = await page.getByRole('dialog').boundingBox();
+        const viewport = page.viewportSize()!;
+
+        expect(box, 'the dialog should be drawn').not.toBeNull();
+        expect(box!.x).toBeGreaterThanOrEqual(0);
+        expect(box!.y).toBeGreaterThanOrEqual(0);
+        expect(box!.x + box!.width, 'the dialog should fit across').toBeLessThanOrEqual(viewport.width);
+        expect(box!.y + box!.height, 'the dialog should fit down').toBeLessThanOrEqual(viewport.height);
+
+        await page.keyboard.press('Escape');
+    });
+
     test('a dialog traps focus and closes with Escape', async ({ page }) => {
         await page.goto('/system-settings');
         await page.getByTestId('setting-review_days').fill('9');
