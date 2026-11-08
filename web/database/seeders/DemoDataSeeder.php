@@ -34,6 +34,9 @@ use SplFileObject;
  */
 class DemoDataSeeder extends Seeder
 {
+    /** Days every date in the files moves forward, so the history ends in the past week. */
+    private int $shift = 0;
+
     public function run(StockService $stock, ImportManager $imports): void
     {
         DemoGuard::refuseInProduction();
@@ -45,6 +48,11 @@ class DemoDataSeeder extends Seeder
         }
 
         $directory = rtrim((string) config('demo.data_path'), '/\\');
+        $this->shift = $this->daysToShift("{$directory}/sales.csv");
+
+        if ($this->shift > 0) {
+            $this->say(sprintf('Moving the history forward %d weeks, so it ends in the past week.', $this->shift / 7));
+        }
 
         $this->say('Loading categories and products...');
         $this->loadCatalog($directory, $stock);
@@ -100,7 +108,7 @@ class DemoDataSeeder extends Seeder
             $stock->openingStock(
                 $product,
                 (int) $row['opening_stock'],
-                occurredAt: CarbonImmutable::parse($row['start_date'])->setTime(8, 0),
+                occurredAt: $this->date($row['start_date'])->setTime(8, 0),
             );
         }
     }
@@ -115,7 +123,7 @@ class DemoDataSeeder extends Seeder
                 'product_id' => $products[$row['sku']]->id,
                 'type' => StockMovementType::Restock,
                 'quantity' => (int) $row['quantity'],
-                'occurred_at' => CarbonImmutable::parse($row['date'])->setTime(9, 0),
+                'occurred_at' => $this->date($row['date'])->setTime(9, 0),
                 'note' => 'Delivery',
             ];
         }
@@ -125,7 +133,7 @@ class DemoDataSeeder extends Seeder
 
     private function importSales(string $directory, ImportManager $imports): void
     {
-        $path = "{$directory}/sales.csv";
+        $path = $this->shiftedSales("{$directory}/sales.csv");
         $owner = User::query()->where('email', 'owner@stocksense.test')->first()
             ?? throw new RuntimeException('Run DemoUsersSeeder first: the demo owner uploads the sales file.');
 
@@ -135,12 +143,62 @@ class DemoDataSeeder extends Seeder
 
         $this->runToCompletion($batch, ImportType::Sales->definition()->processor());
 
+        if ($path !== "{$directory}/sales.csv") {
+            unlink($path);
+        }
+
         $this->say(sprintf(
             '  %s sales imported (%s skipped as duplicates, %s failed).',
             number_format($batch->rows_ok),
             number_format($batch->rows_duplicate),
             number_format($batch->rows_failed),
         ));
+    }
+
+    /**
+     * The files hold a fixed two years of history. Seeded months later, a shop with
+     * no recent sales would show an empty dashboard, so every date moves forward by
+     * the whole weeks that bring the last sale into the past week (whole weeks keep
+     * each sale on its weekday and never merge two dates into one).
+     *
+     * ponytail: payday and seasonal peaks drift off their calendar dates by the shift;
+     * regenerate the files (ml/scripts/generate_synthetic.py) when that matters.
+     */
+    private function daysToShift(string $salesPath): int
+    {
+        $last = null;
+        foreach ($this->rows($salesPath) as $row) {
+            $last = max($last ?? $row['date'], $row['date']);
+        }
+
+        if ($last === null) {
+            return 0;
+        }
+
+        $behind = CarbonImmutable::parse($last)->diffInDays(CarbonImmutable::yesterday(), false);
+
+        return max(0, intdiv((int) $behind, 7) * 7);
+    }
+
+    private function date(string $value): CarbonImmutable
+    {
+        return CarbonImmutable::parse($value)->addDays($this->shift);
+    }
+
+    /** The sales file with its dates moved, written beside the other temporary files. */
+    private function shiftedSales(string $path): string
+    {
+        if ($this->shift === 0) {
+            return $path;
+        }
+
+        $out = new SplFileObject(tempnam(sys_get_temp_dir(), 'demo-sales'), 'w');
+        $out->fputcsv(['date', 'sku', 'quantity', 'unit_price'], ',', '"', '');
+        foreach ($this->rows($path) as $row) {
+            $out->fputcsv([$this->date($row['date'])->toDateString(), $row['sku'], $row['quantity'], $row['unit_price']], ',', '"', '');
+        }
+
+        return $out->getPathname();
     }
 
     /**

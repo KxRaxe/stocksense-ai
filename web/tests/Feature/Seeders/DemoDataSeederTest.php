@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Sale;
 use App\Models\StockMovement;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\DemoDataSeeder;
 use Database\Seeders\DemoUsersSeeder;
@@ -26,6 +27,8 @@ use Spatie\Permission\Models\Role;
 beforeEach(function () {
     Storage::fake('local');
     config(['demo.data_path' => base_path('tests/Fixtures/demo')]);
+    // The day after the fixture's last sale, so its dates are used as they are.
+    $this->travelTo(CarbonImmutable::parse('2026-02-24 10:00'));
 
     $this->seed(RolesAndPermissionsSeeder::class);
     $this->seed(DemoUsersSeeder::class);
@@ -57,6 +60,21 @@ it('dates opening stock to the day each product started selling', function () {
     expect($opening)->toHaveCount(3)
         ->and($opening[Product::firstWhere('sku', 'FB-001')->id]->occurred_at->toDateString())->toBe('2026-01-01')
         ->and($opening[Product::firstWhere('sku', 'HW-001')->id]->occurred_at->toDateString())->toBe('2026-02-01');
+});
+
+it('moves the whole history forward by whole weeks so it ends in the past week', function () {
+    // The fixture's last sale is Monday 23 February; on 1 April that is 37 days ago.
+    $this->travelTo(CarbonImmutable::parse('2026-04-01 10:00'));
+
+    $this->seed(DemoDataSeeder::class);
+
+    $lastSale = CarbonImmutable::parse(Sale::max('sold_on'));
+    $opening = StockMovement::where('type', 'initial')->get()->keyBy('product_id');
+
+    expect($lastSale->toDateString())->toBe('2026-03-30')
+        ->and($lastSale->isMonday())->toBeTrue()
+        ->and($opening[Product::firstWhere('sku', 'FB-001')->id]->occurred_at->toDateString())->toBe('2026-02-05')
+        ->and(StockMovement::where('type', 'restock')->orderBy('occurred_at')->first()->occurred_at->toDateString())->toBe('2026-02-14');
 });
 
 it('records the deliveries', function () {
