@@ -18,6 +18,11 @@ function Table({ className, ...props }: React.ComponentProps<'table'>) {
         const observer = new ResizeObserver(measure);
         observer.observe(box);
 
+        // The table can grow inside a box that keeps its size (new rows after a filter).
+        if (box.firstElementChild) {
+            observer.observe(box.firstElementChild);
+        }
+
         return () => observer.disconnect();
     }, []);
 

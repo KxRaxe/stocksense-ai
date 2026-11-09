@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 
@@ -25,6 +25,7 @@ function container() {
 describe('Table', () => {
     afterEach(() => {
         vi.restoreAllMocks();
+        vi.unstubAllGlobals();
     });
 
     it('is not a tab stop when it fits', () => {
@@ -41,6 +42,33 @@ describe('Table', () => {
 
         expect(box.tabIndex).toBe(0);
         expect(screen.getByRole('region', { name: 'Stock levels' })).toBe(box);
+    });
+
+    it('becomes a tab stop when its rows grow wider than the box', () => {
+        // The box keeps its size; only the table inside grows (new rows after a filter).
+        const watched: Element[] = [];
+        let remeasure = () => {};
+        vi.stubGlobal(
+            'ResizeObserver',
+            class {
+                constructor(callback: () => void) {
+                    remeasure = callback;
+                }
+                observe(target: Element) {
+                    watched.push(target);
+                }
+                disconnect() {}
+            },
+        );
+        widths(300, 300);
+        const box = container();
+        expect(box.hasAttribute('tabindex')).toBe(false);
+
+        expect(watched).toContain(screen.getByRole('table'));
+        widths(900, 300);
+        act(() => remeasure());
+
+        expect(box.tabIndex).toBe(0);
     });
 
     it('still has a name when none is given', () => {
