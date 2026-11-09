@@ -3,12 +3,37 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 function Table({ className, ...props }: React.ComponentProps<'table'>) {
+    const container = React.useRef<HTMLDivElement>(null);
+    const [scrolls, setScrolls] = React.useState(false);
+
+    React.useLayoutEffect(() => {
+        const box = container.current;
+
+        if (!box) {
+            return;
+        }
+
+        const measure = () => setScrolls(box.scrollWidth > box.clientWidth);
+        measure();
+        const observer = new ResizeObserver(measure);
+        observer.observe(box);
+
+        return () => observer.disconnect();
+    }, []);
+
     return (
-        // Focusable, so a keyboard user can scroll a table wider than the screen.
+        // Only a table wider than its box is a tab stop: a keyboard user needs
+        // focus to scroll it sideways, and anything else would be a stray stop.
         <div
+            ref={container}
             data-slot="table-container"
             className="relative w-full overflow-x-auto"
-            tabIndex={0}
+            {...(scrolls && {
+                tabIndex: 0,
+                role: 'region',
+                'aria-label':
+                    props['aria-label'] ?? 'Table, scroll sideways for more',
+            })}
         >
             <table
                 data-slot="table"
@@ -43,8 +68,10 @@ function TableRow({ className, ...props }: React.ComponentProps<'tr'>) {
     return (
         <tr
             data-slot="table-row"
+            // Dark mode hovers fainter: muted text on accent/30 over the dark
+            // card measures 3.5:1; at /15 it is 5.5:1 (WCAG AA needs 4.5:1).
             className={cn(
-                'border-b border-border/20 transition-colors hover:bg-accent/30',
+                'border-b border-border/20 transition-colors hover:bg-accent/30 dark:hover:bg-accent/15',
                 className,
             )}
             {...props}

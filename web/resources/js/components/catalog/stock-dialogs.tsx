@@ -24,7 +24,6 @@ type Props = {
     onHand: number;
 };
 
-/** Today's date as YYYY-MM-DD in the browser's own time zone. */
 /** Record goods received from a supplier. */
 export function RestockDialog({ productId, productName, unit }: Props) {
     const [open, setOpen] = useState(false);

@@ -1,5 +1,5 @@
 import { render, screen, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import ReportTable from '@/components/reports/report-table';
 import type { ReportColumnDef } from '@/types';
 
@@ -18,6 +18,10 @@ const rows = [
 const totals = { name: 'Total', units: 1251 };
 
 describe('ReportTable', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
     it('has a heading for every column', () => {
         render(
             <ReportTable
@@ -36,6 +40,12 @@ describe('ReportTable', () => {
     });
 
     it('can be scrolled sideways with the keyboard when it is wider than the page', () => {
+        vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(
+            900,
+        );
+        vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(
+            300,
+        );
         render(
             <ReportTable
                 columns={columns}
